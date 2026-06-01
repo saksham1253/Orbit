@@ -1,6 +1,6 @@
 const Connection = require("../models/Connection");
 const Skill = require("../models/skill");
-const User = require("../models/User");
+const User = require("../models/user");
 
 // Send a connection request
 exports.requestConnection = async (req, res) => {
