@@ -144,13 +144,37 @@ app.use("/api/geo", geoRoutes);
 app.use("/api/video", videoRoutes);
 app.use("/api/connections", connectionRoutes);
 
-// Serve Frontend statically (combined origin)
-app.use(express.static(path.join(__dirname, "../frontend/dist"), { extensions: ['html'] }));
+// Serve Frontend statically (combined origin) if present
+const fs = require("fs");
+const frontendDistPath = path.join(__dirname, "../frontend/dist");
+const frontendDistPathAlt = path.join(__dirname, "../FrontEnd/dist");
+let indexHtmlPath = "";
 
-app.use((req, res, next) => {
-    if (req.url.startsWith('/api')) return next();
-    res.sendFile(path.join(__dirname, "../frontend/dist", "index.html"));
-});
+if (fs.existsSync(path.join(frontendDistPath, "index.html"))) {
+    indexHtmlPath = path.join(frontendDistPath, "index.html");
+    app.use(express.static(frontendDistPath, { extensions: ['html'] }));
+} else if (fs.existsSync(path.join(frontendDistPathAlt, "index.html"))) {
+    indexHtmlPath = path.join(frontendDistPathAlt, "index.html");
+    app.use(express.static(frontendDistPathAlt, { extensions: ['html'] }));
+}
+
+if (indexHtmlPath) {
+    app.use((req, res, next) => {
+        if (req.url.startsWith('/api')) return next();
+        res.sendFile(indexHtmlPath);
+    });
+} else {
+    // Separate deployment mode: Render only hosts the Backend API
+    app.get("/", (req, res) => {
+        res.json({ message: "SkillSwap API Server is running successfully." });
+    });
+    
+    // API welcome/fallback routes
+    app.use((req, res, next) => {
+        if (req.url.startsWith('/api')) return next();
+        res.status(404).json({ error: "Not Found", message: "API endpoint not found. Frontend is deployed separately." });
+    });
+}
 
 // Global Error Handler (must be last)
 app.use(errorHandler);
