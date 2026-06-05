@@ -73,10 +73,16 @@ exports.login = async (req, res) => {
             });
         }
 
+        if (!user.password) {
+            return res.status(400).json({
+                message: "This account uses Google or GitHub login. Please use the social login buttons below."
+            });
+        }
+
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
-            return res.status(401).json({
+            return res.status(400).json({
                 message: "Invalid credentials"
             });
         }

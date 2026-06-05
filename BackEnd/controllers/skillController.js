@@ -1,7 +1,7 @@
 const Skill = require("../models/skill");
 const User = require("../models/user");
 const mongoose = require("mongoose");
-const { containsBannedKeywords } = require("../utils/safetyCheck");
+const { validateSkillContent } = require("../utils/bannedKeywords");
 
 // ================= ADD SKILL =================
 exports.addSkill = async (req, res) => {
@@ -14,8 +14,13 @@ exports.addSkill = async (req, res) => {
             });
         }
 
-        // --- SAFETY CHECK ---
-        if (containsBannedKeywords(skillOffered) || containsBannedKeywords(skillWanted) || containsBannedKeywords(description)) {
+        // --- COMPREHENSIVE CONTENT MODERATION ---
+        const contentValidation = validateSkillContent(
+            `${skillOffered} ${skillWanted}`, 
+            description || ''
+        );
+        
+        if (!contentValidation.isValid) {
             const user = await User.findById(req.user.id);
             user.warningCount += 1;
             
@@ -27,14 +32,20 @@ exports.addSkill = async (req, res) => {
                 await user.save();
                 
                 return res.status(403).json({
-                    message: `You have been banned for ${banHours} hours due to repeated safety policy violations.`,
+                    message: `Account temporarily suspended for ${banHours} hours due to repeated community guideline violations.`,
                     banned: true,
-                    timeRemaining: banHours
+                    timeRemaining: banHours,
+                    violationType: 'content_policy',
+                    showLargeWarning: true
                 });
             } else {
                 await user.save();
                 return res.status(400).json({
-                    message: `Warning ${user.warningCount}/3: Your input contains restricted keywords that violate our safety policy. Please remove them.`
+                    message: `⚠️ WARNING ${user.warningCount}/3: ${contentValidation.message}`,
+                    warningCount: user.warningCount,
+                    remainingWarnings: 3 - user.warningCount,
+                    violationType: 'content_policy',
+                    showLargeWarning: true
                 });
             }
         }
@@ -50,10 +61,19 @@ exports.addSkill = async (req, res) => {
 
         await skill.save();
 
-        const user = await User.findById(req.user.id).select("name");
+        const user = await User.findById(req.user.id).select("name avatar");
+
+        // Find potential matches and notify them
+        const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const potentialMatches = await Skill.find({
+            userId: { $ne: req.user.id },
+            skillOffered: { $regex: escapeRegex(skillWanted), $options: "i" },
+            skillWanted: { $regex: escapeRegex(skillOffered), $options: "i" }
+        }).populate('userId', 'name avatar trustScore').limit(10);
 
         const io = req.app.get("io");
         if (io) {
+            // Broadcast new skill to all users
             io.emit("new-skill", {
                 _id: skill._id,
                 userId: user,
@@ -62,6 +82,23 @@ exports.addSkill = async (req, res) => {
                 description: skill.description,
                 level: skill.level,
                 createdAt: skill.createdAt
+            });
+
+            // Notify potential matches
+            potentialMatches.forEach(match => {
+                if (match.userId && match.userId._id) {
+                    io.to(`user_${match.userId._id}`).emit("skill-match", {
+                        matchedUser: {
+                            _id: req.user.id,
+                            name: user?.name || "Someone",
+                            avatar: user?.avatar
+                        },
+                        skill: {
+                            skillOffered: skillOffered,
+                            skillWanted: skillWanted
+                        }
+                    });
+                }
             });
         }
 
@@ -96,7 +133,8 @@ exports.getAllSkills = async (req, res) => {
                     { "userId.bannedUntil": { $lte: new Date() } }
                 ]
             }},
-            { $sort: { "userId.trustScore": -1 } },
+            // Sort by sentimentScore (0-1) first, then trustScore as tiebreaker
+            { $sort: { "userId.sentimentScore": -1, "userId.trustScore": -1 } },
             { $limit: 50 },
             { $project: {
                 "userId.password": 0,
@@ -120,7 +158,7 @@ exports.getAllSkills = async (req, res) => {
 // ================= GET MY SKILLS =================
 exports.getMySkills = async (req, res) => {
     try {
-        const skills = await Skill.find({ userId: req.user.id });
+        const skills = await Skill.find({ userId: req.user.id }).lean();
 
         res.status(200).json(skills);
 
@@ -141,8 +179,13 @@ exports.updateSkill = async (req, res) => {
             return res.status(404).json({ message: "Skill not found or unauthorized" });
         }
 
-        // --- SAFETY CHECK ---
-        if (containsBannedKeywords(skillOffered) || containsBannedKeywords(skillWanted) || containsBannedKeywords(description)) {
+        // --- COMPREHENSIVE CONTENT MODERATION ---
+        const contentValidation = validateSkillContent(
+            `${skillOffered || skill.skillOffered} ${skillWanted || skill.skillWanted}`, 
+            description !== undefined ? description : skill.description || ''
+        );
+        
+        if (!contentValidation.isValid) {
             const user = await User.findById(req.user.id);
             user.warningCount += 1;
             
@@ -154,14 +197,20 @@ exports.updateSkill = async (req, res) => {
                 await user.save();
                 
                 return res.status(403).json({
-                    message: `You have been banned for ${banHours} hours due to repeated safety policy violations.`,
+                    message: `Account temporarily suspended for ${banHours} hours due to repeated community guideline violations.`,
                     banned: true,
-                    timeRemaining: banHours
+                    timeRemaining: banHours,
+                    violationType: 'content_policy',
+                    showLargeWarning: true
                 });
             } else {
                 await user.save();
                 return res.status(400).json({
-                    message: `Warning ${user.warningCount}/3: Your input contains restricted keywords that violate our safety policy. Please remove them.`
+                    message: `⚠️ WARNING ${user.warningCount}/3: ${contentValidation.message}`,
+                    warningCount: user.warningCount,
+                    remainingWarnings: 3 - user.warningCount,
+                    violationType: 'content_policy',
+                    showLargeWarning: true
                 });
             }
         }

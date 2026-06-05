@@ -33,6 +33,25 @@ exports.requestConnection = async (req, res) => {
 
         await connection.save();
 
+        // Emit socket event to receiver for real-time notification
+        const io = req.app.get("io");
+        if (io) {
+            const requesterUser = await User.findById(req.user.id).select("name avatar");
+            const skillData = await Skill.findById(skillId).select("skillOffered skillWanted");
+            
+            io.to(`user_${receiverId}`).emit("connection-request", {
+                requester: {
+                    _id: req.user.id,
+                    name: requesterUser?.name || "Someone",
+                    avatar: requesterUser?.avatar
+                },
+                skill: {
+                    skillOffered: skillData?.skillOffered || "a skill",
+                    skillWanted: skillData?.skillWanted
+                }
+            });
+        }
+
         res.status(201).json({ message: "Connection request sent!", connection });
 
     } catch (err) {
@@ -50,12 +69,14 @@ exports.getPendingConnections = async (req, res) => {
         const incoming = await Connection.find({ receiver: req.user.id, status: "pending" })
             .populate("requester", "name email trustScore location")
             .populate("skill", "skillOffered skillWanted level")
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .lean();
 
         const outgoing = await Connection.find({ requester: req.user.id })
             .populate("receiver", "name trustScore email")
             .populate("skill", "skillOffered")
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .lean();
 
         res.status(200).json({
             incomingCount: incoming.length,
@@ -76,7 +97,8 @@ exports.getMyConnections = async (req, res) => {
         })
         .populate("requester", "name email trustScore location")
         .populate("receiver", "name email trustScore location")
-        .populate("skill", "skillOffered skillWanted level");
+        .populate("skill", "skillOffered skillWanted level")
+        .lean();
         
         res.status(200).json(connections);
     } catch (err) {
@@ -111,9 +133,10 @@ exports.respondConnection = async (req, res) => {
         if (action === "accepted") {
             const io = req.app.get("io");
             if (io) {
-                const receiverUser = await User.findById(req.user.id).select("name");
+                const receiverUser = await User.findById(req.user.id).select("name avatar");
                 io.to(`user_${connection.requester}`).emit("connection-accepted", {
-                    receiverName: receiverUser ? receiverUser.name : "Someone"
+                    receiverName: receiverUser ? receiverUser.name : "Someone",
+                    receiverAvatar: receiverUser?.avatar
                 });
             }
         }

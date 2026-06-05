@@ -1,127 +1,18 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SkillSwap — Exchange Skills, Grow Together</title>
-<meta name="description" content="SkillSwap is a peer-to-peer skill exchange platform. Teach what you know, learn what you don't.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="login.css">
-</head>
-<body>
-
-<!-- Animated Background -->
-<div class="bg-gradient">
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-  <div class="orb orb-3"></div>
-</div>
-<div class="bg-grid"></div>
-
-<!-- Constellation Canvas (draws connecting lines between pills) -->
-<canvas id="constellationCanvas"></canvas>
-
-<!-- Floating Skill Pills (dynamically positioned and animated by JS) -->
-<div class="floating-pills" id="floatingPills"></div>
-
-<div class="login-container">
-  <div class="brand">
-    <div class="brand-name">SkillSwap</div>
-    <p class="brand-tagline">Teach what you know. Learn what you don't.</p>
-  </div>
-
-  <div class="auth-card">
-    <div class="auth-tabs">
-      <button class="auth-tab active" id="tabLogin" onclick="switchTab('login')">Sign In</button>
-      <button class="auth-tab" id="tabRegister" onclick="switchTab('register')">Create Account</button>
-    </div>
-
-    <div id="alertBox" class="alert hidden"></div>
-
-    <!-- LOGIN -->
-    <div id="loginSection" class="form-section active">
-      <div class="form-group">
-        <label>Email address</label>
-        <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email" />
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" />
-      </div>
-      <button class="btn-auth" id="loginBtn" onclick="handleLogin()">
-        <span class="btn-text">Sign In</span>
-        <div class="spinner"></div>
-      </button>
-      <p class="auth-footer">Don't have an account? <a onclick="switchTab('register')">Create one</a></p>
-    </div>
-
-    <!-- REGISTER -->
-    <div id="registerSection" class="form-section">
-      <div class="form-group">
-        <label>Full name</label>
-        <input type="text" id="regName" placeholder="John Doe" autocomplete="name" />
-      </div>
-      <div class="form-group">
-        <label>Email address</label>
-        <input type="email" id="regEmail" placeholder="you@example.com" autocomplete="email" />
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="regPassword" placeholder="Min 6 characters" autocomplete="new-password" />
-      </div>
-      <div class="form-group">
-        <label>Spoken Languages</label>
-        <div class="language-pill-container" id="regLanguages">
-          <div class="lang-pill active" data-lang="English">English</div>
-          <div class="lang-pill" data-lang="Hindi">Hindi</div>
-          <div class="lang-pill" data-lang="Spanish">Spanish</div>
-          <div class="lang-pill" data-lang="French">French</div>
-          <div class="lang-pill" data-lang="German">German</div>
-          <div class="lang-pill" data-lang="Mandarin">Mandarin</div>
-          <div class="lang-pill" data-lang="Japanese">Japanese</div>
-          <div class="lang-pill" data-lang="Arabic">Arabic</div>
-        </div>
-      </div>
-      <button class="btn-auth" id="regBtn" onclick="handleRegister()">
-        <span class="btn-text">Create Account</span>
-        <div class="spinner"></div>
-      </button>
-      <p class="auth-footer">Already have an account? <a onclick="switchTab('login')">Sign in</a></p>
-    </div>
-
-    <!-- OAUTH SECTION -->
-    <div class="oauth-divider">
-      <span>Or continue with</span>
-    </div>
-    <div class="oauth-buttons">
-      <button class="btn-oauth btn-google" onclick="mockOAuthLogin('Google', event)" title="Sign in with Google">
-        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-      </button>
-      <button class="btn-oauth btn-github" onclick="mockOAuthLogin('GitHub', event)" title="Sign in with GitHub">
-        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
-      </button>
-    </div>
-
-    <div class="trust-badges">
-      <div class="trust-badge">
-        <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
-        Secure Auth
-      </div>
-      <div class="trust-badge">
-        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-        Trust Verified
-      </div>
-      <div class="trust-badge">
-        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
-        Geo-Matched
-      </div>
-    </div>
-  </div>
-</div>
-
-<script src="soundEngine.js"></script>
-<script src="login.js"></script>
-
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="SkillSwap — Peer-to-peer skill exchange platform. Teach what you know, learn what you don't." />
+    <title>SkillSwap — Exchange Skills, Grow Together</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Poppins: Modern, friendly headings | Open Sans: Clean, readable body text -->
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&family=Poppins:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>

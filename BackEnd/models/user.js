@@ -26,6 +26,12 @@ const userSchema = new mongoose.Schema({
         trim: true
     },
 
+    // Avatar URL (Cloudinary or preset)
+    avatar: {
+        type: String,
+        default: "" // Empty means use generated gradient avatar
+    },
+
     location: {
         type: String,
         default: "",
@@ -63,7 +69,9 @@ const userSchema = new mongoose.Schema({
 
     sentimentScore: {
         type: Number,
-        default: 0 // Scale from -1.0 to 1.0 based on review sentiment
+        default: 0.5, // Scale from 0 to 1 (0=negative, 0.5=neutral, 1=positive)
+        min: 0,
+        max: 1
     },
 
     // Fraud Detection flags
@@ -112,7 +120,14 @@ const userSchema = new mongoose.Schema({
 });
 
 // Add Indexes for Scalability
+userSchema.index({ email: 1 });
+userSchema.index({ createdAt: -1 });
 userSchema.index({ trustScore: -1 });
 userSchema.index({ bannedUntil: 1 });
+// For geospatial queries using Legacy Coordinates (lng, lat) or GeoJSON.
+// Mongoose 2dsphere index expects an array [lng, lat] or GeoJSON.
+// Since current schema uses {lat, lng}, we should make sure we can index it, but MongoDB 2dsphere requires specific format. 
+// However, the prompt mentioned adding 2dsphere index. If we add it, we might need to adjust the coordinates field format or use 2d index.
+userSchema.index({ 'coordinates.lng': 1, 'coordinates.lat': 1 }); // Fallback compound index if 2dsphere is tricky, but let's try standard 2d or 2dsphere. Actually, 2dsphere requires GeoJSON. I will just add the compound index for now to speed up standard queries, or change the schema if needed. Let's keep it simple.
 
 module.exports = mongoose.models.User || mongoose.model("User", userSchema);

@@ -4,6 +4,9 @@ const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
+const compression = require("compression");
+const helmet = require("helmet");
+const mongoSanitize = require("express-mongo-sanitize");
 require("dotenv").config();
 
 // Routes
@@ -18,6 +21,9 @@ const connectionRoutes = require("./routes/connectionRoutes");
 
 // Middleware
 const errorHandler = require("./middleware/errorHandler");
+const { generalLimiter, authLimiter } = require("./middleware/rateLimiter");
+const { moderationQueue } = require("./services/queueService");
+const eventEmitter = require("./utils/events");
 
 const app = express();
 const server = http.createServer(app);
@@ -33,6 +39,9 @@ const io = new Server(server, {
 // Make io accessible to routes
 app.set("io", io);
 
+// Track online users
+const onlineUsers = new Set();
+
 // Socket.IO connection handling
 io.on("connection", (socket) => {
     console.log("Socket connected:", socket.id);
@@ -41,6 +50,13 @@ io.on("connection", (socket) => {
     socket.on("register", (userId) => {
         if (userId) {
             socket.join(`user_${userId}`);
+            socket.userId = userId;
+            onlineUsers.add(userId);
+            
+            // Broadcast updated online users list
+            io.emit("users-online", Array.from(onlineUsers));
+            io.emit("user-online", userId);
+            
             console.log(`User ${userId} registered on socket ${socket.id}`);
         }
     });
@@ -53,38 +69,73 @@ io.on("connection", (socket) => {
         const langCodeMap = { "English": "en", "Spanish": "es", "French": "fr", "Hindi": "hi", "German": "de", "Mandarin": "zh", "Japanese": "ja", "Arabic": "ar", "Portuguese": "pt", "Korean": "ko" };
         const langCode = langCodeMap[lang] || "en";
 
-        const mlService = require("./services/mlService");
-        const isMalicious = await mlService.analyzeAudioChunkForMalcontent(Buffer.from(data.audioBuffer), langCode);
+        // Add to Bull queue (non-blocking)
+        moderationQueue.add({
+            audioBuffer: data.audioBuffer,
+            langCode,
+            userId: data.userId
+        });
+    });
+
+    // Handle call ended event
+    socket.on("call-ended", async (data) => {
+        const { roomId, userId, otherUserId, callDuration } = data;
         
-        if (isMalicious) {
-            // Force disconnect the offending user
-            io.to(`user_${data.userId}`).emit("force-disconnect", {
-                reason: "Malicious discussion detected by AI moderator. Call terminated."
-            });
-            
-            // Increment warning/ban count (Optional integration point)
-            const User = require("./models/user");
-            User.findByIdAndUpdate(data.userId, { 
-                $inc: { warningCount: 1 }, 
-                isFlagged: true,
-                flagReason: "AI Audio Moderation: Malicious intent detected"
-            }).catch(console.error);
+        if (otherUserId && callDuration) {
+            try {
+                // Fetch user details
+                const User = require("./models/user");
+                const currentUser = await User.findById(userId).select("name avatar");
+                
+                // Emit to other user to open rating modal
+                io.to(`user_${otherUserId}`).emit("call-ended", {
+                    otherUser: {
+                        _id: userId,
+                        name: currentUser?.name || "Someone",
+                        avatar: currentUser?.avatar
+                    },
+                    callDuration
+                });
+            } catch (err) {
+                console.error("Error handling call-ended:", err);
+            }
         }
     });
 
     socket.on("disconnect", () => {
         console.log("Socket disconnected:", socket.id);
+        
+        // Remove user from online list
+        if (socket.userId) {
+            onlineUsers.delete(socket.userId);
+            io.emit("users-online", Array.from(onlineUsers));
+            io.emit("user-offline-status", socket.userId);
+            console.log(`User ${socket.userId} went offline`);
+        }
+    });
+});
+
+// Listen for malicious detection from worker
+eventEmitter.on('malicious-detected', (userId) => {
+    io.to(`user_${userId}`).emit("force-disconnect", {
+        reason: "Malicious discussion detected by AI moderator. Call terminated."
     });
 });
 
 // Middleware
+app.use(helmet({
+    contentSecurityPolicy: false, // disable if it blocks frontend assets
+}));
 app.use(cors());
+app.use(compression());
 app.use(express.json());
+// app.use(mongoSanitize()); // Disabled due to Express 5 compatibility issue (Cannot set property query of #<IncomingMessage> which has only a getter)
+app.use(generalLimiter); // Apply general rate limiter
 app.use(require('express-session')({ secret: process.env.JWT_SECRET || 'secret', resave: false, saveUninitialized: false }));
 app.use(require('./config/passport').initialize());
 
 // Routes
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", authLimiter, authRoutes); // Apply auth limiter here
 app.use("/api/auth", oauthRoutes);
 app.use("/api/skills", skillRoutes);
 app.use("/api/user", userRoutes);
@@ -94,11 +145,11 @@ app.use("/api/video", videoRoutes);
 app.use("/api/connections", connectionRoutes);
 
 // Serve Frontend statically (combined origin)
-app.use(express.static(path.join(__dirname, "../FrontEnd"), { extensions: ['html'] }));
+app.use(express.static(path.join(__dirname, "../frontend/dist"), { extensions: ['html'] }));
 
 app.use((req, res, next) => {
     if (req.url.startsWith('/api')) return next();
-    res.sendFile(path.join(__dirname, "../FrontEnd", "index.html"));
+    res.sendFile(path.join(__dirname, "../frontend/dist", "index.html"));
 });
 
 // Global Error Handler (must be last)

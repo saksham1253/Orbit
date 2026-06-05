@@ -9,13 +9,13 @@ function generateToken(user) {
 
 function handleCallback(req, res) {
     if (!req.user) {
-        // Redirect back to frontend login page
-        return res.redirect('http://localhost:8000/index.html?error=oauth_failed');
+        return res.redirect('/login?error=oauth_failed');
     }
     const token = generateToken(req.user);
-    const isNew = req.authInfo && req.authInfo.isNewUser ? 'true' : 'false';
-    // Redirect to frontend dashboard with token in query params
-    res.redirect(`http://localhost:8000/dashboard.html?token=${token}&isNew=${isNew}`);
+    const userName = encodeURIComponent(req.user.name || '');
+    const userId = req.user._id;
+    // Redirect to a special OAuth handler route that stores the token
+    res.redirect(`/oauth/callback?token=${token}&name=${userName}&id=${userId}`);
 }
 
 // Google
@@ -30,6 +30,6 @@ router.get('/github/callback', passport.authenticate('github', { session: false,
 router.get('/linkedin', passport.authenticate('linkedin', { state: true }));
 router.get('/linkedin/callback', passport.authenticate('linkedin', { session: false, failureRedirect: '/api/auth/oauth-fail' }), handleCallback);
 
-router.get('/oauth-fail', (req, res) => res.redirect('http://localhost:8000/index.html?error=oauth_failed'));
+router.get('/oauth-fail', (req, res) => res.redirect('/login?error=oauth_failed'));
 
 module.exports = router;

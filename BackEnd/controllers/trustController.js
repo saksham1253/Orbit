@@ -112,27 +112,8 @@ exports.submitRating = async (req, res) => {
             { upsert: true, new: true }
         );
 
-        // Recalculate trust score for the rated user
+        // Recalculate trust score AND sentiment score for the rated user
         await recalculateTrustScore(toUserId);
-
-        // Trigger ML sentiment analysis asynchronously
-        if (review && review.trim() !== "") {
-            mlService.analyzeSentiment(review).then(async (sentiment) => {
-                if (sentiment !== 0) {
-                    // Update user's rolling average sentimentScore
-                    const user = await User.findById(toUserId);
-                    if (user) {
-                        // Blend the new sentiment (simple moving average approximation)
-                        if (user.sentimentScore === 0) {
-                            user.sentimentScore = sentiment;
-                        } else {
-                            user.sentimentScore = (user.sentimentScore * 0.7) + (sentiment * 0.3); // 30% weight to new review
-                        }
-                        await user.save();
-                    }
-                }
-            }).catch(err => console.error("ML Sentiment Async Error:", err));
-        }
 
         res.status(201).json({ message: "Rating submitted successfully" });
 
@@ -272,6 +253,17 @@ async function recalculateTrustScore(userId) {
     user.totalRatings  = count;
     user.averageRating = Math.round(avg * 10) / 10;
     user.trustScore    = calculateTrustScore(user, { count, avg });
+
+    // ─────────────────────────────────────────────
+    // SENTIMENT ANALYSIS: Star Rating Average Method
+    // Convert average rating (1-5 scale) to sentiment score (0-1 scale)
+    // This ensures Browse Skills sorts by user reputation
+    // ─────────────────────────────────────────────
+    if (count > 0) {
+        user.sentimentScore = avg / 5; // Normalize to 0-1 scale
+    } else {
+        user.sentimentScore = 0.5; // Neutral for users with no ratings
+    }
 
     await user.save();
 }
