@@ -18,7 +18,7 @@ const Settings = () => {
     reset,
   } = useAppearanceStore();
 
-  const { isDark, toggleTheme, setTheme: setGlobalMode } = useThemeStore();
+  const { isDark, toggleTheme } = useThemeStore();
   const { addToast } = useUIStore();
   const { toggle, isEnabled, playClick, playSuccess, toggleMusic, isMusicEnabled } = useSound();
   const [soundsEnabled, setSoundsEnabled] = useState(isEnabled());
@@ -144,7 +144,6 @@ const Settings = () => {
                   onClick={() => { 
                     playClick(); 
                     setTheme(key); 
-                    setGlobalMode(true); 
                   }}
                   className="relative p-4 rounded-xl text-left transition-all bg-white/5 border border-white/10"
                   style={{
@@ -170,10 +169,10 @@ const Settings = () => {
           </div>
         </div>
 
-        {/* Light Themes */}
+        {/* Pastel Themes */}
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'rgba(255,255,255,0.3)' }}>
-            ☀️ Light Themes
+            ✨ Pastel Themes
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {Object.entries(THEMES).filter(([, t]) => t.mode === 'light').map(([key, themeData]) => {
@@ -184,7 +183,6 @@ const Settings = () => {
                   onClick={() => { 
                     playClick(); 
                     setTheme(key); 
-                    setGlobalMode(false); 
                   }}
                   className="relative p-4 rounded-xl text-left transition-all bg-white/5 border border-white/10"
                   style={{
