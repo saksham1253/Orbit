@@ -120,7 +120,6 @@ const userSchema = new mongoose.Schema({
 });
 
 // Add Indexes for Scalability
-userSchema.index({ email: 1 });
 userSchema.index({ createdAt: -1 });
 userSchema.index({ trustScore: -1 });
 userSchema.index({ bannedUntil: 1 });
