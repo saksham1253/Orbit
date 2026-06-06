@@ -10,7 +10,7 @@ import ErrorState from '../components/common/ErrorState';
 import EmptyState from '../components/common/EmptyState';
 import { useAuthStore } from '../store/authStore';
 import UserRatingsModal from '../components/modals/UserRatingsModal';
-import { Users, Inbox, Send } from 'lucide-react';
+import { Users, Inbox, Send, CheckCircle2 } from 'lucide-react';
 
 const Connections = () => {
   const [activeTab, setActiveTab] = useState('established');
@@ -26,6 +26,11 @@ const Connections = () => {
   const { data: established, isLoading: loadingEstablished, error: establishedError, refetch: refetchEstablished } = useQuery({
     queryKey: ['connections', 'all'],
     queryFn: () => api.get('/connections/all').then(res => res.data)
+  });
+
+  const { data: completed, isLoading: loadingCompleted, error: completedError, refetch: refetchCompleted } = useQuery({
+    queryKey: ['connections', 'completed'],
+    queryFn: () => api.get('/connections/completed').then(res => res.data)
   });
 
   // Backend already returns only accepted, deduplicated connections.
@@ -46,6 +51,22 @@ const Connections = () => {
       return true;
     });
   }, [established, user]);
+
+  const completedList = React.useMemo(() => {
+    if (!Array.isArray(completed)) return [];
+    const seenUsers = new Set();
+    return completed.filter(conn => {
+      const otherId = conn.requester?._id || conn.requester;
+      const myId = user?._id;
+      const otherUserId = (otherId?.toString?.() === myId?.toString?.())
+        ? (conn.receiver?._id || conn.receiver)
+        : otherId;
+      const key = otherUserId?.toString?.() || conn._id;
+      if (seenUsers.has(key)) return false;
+      seenUsers.add(key);
+      return true;
+    });
+  }, [completed, user]);
 
   // Deduplicate incoming/outgoing by other user's _id
   const dedupeByOtherUser = (list) => {
@@ -70,6 +91,7 @@ const Connections = () => {
     { id: 'established', label: 'My Connections', count: connectionsList.length },
     { id: 'incoming', label: 'Incoming Requests', count: incomingReqs.length },
     { id: 'outgoing', label: 'Sent Requests', count: outgoingReqs.length },
+    { id: 'completed', label: 'Completed Swaps', count: completedList.length },
   ];
 
   return (
@@ -178,6 +200,29 @@ const Connections = () => {
             )}
             {!loadingPending && outgoingReqs.map(conn => (
               <ConnectionCard key={conn._id} connection={conn} type="outgoing" />
+            ))}
+          </>
+        )}
+
+        {activeTab === 'completed' && (
+          <>
+            {loadingCompleted && <LoadingSkeleton count={3} type="text" />}
+            {completedError && <ErrorState message="Failed to load completed swaps." onRetry={refetchCompleted} />}
+            {!loadingCompleted && !completedError && completedList.length === 0 && (
+              <EmptyState
+                icon={<CheckCircle2 size={26} />}
+                title="No completed swaps yet"
+                description="Once you complete skill exchanges with your connections, they will appear here."
+                accentColor="#10b981"
+              />
+            )}
+            {!loadingCompleted && completedList.map(conn => (
+              <ConnectionCard 
+                key={conn._id} 
+                connection={conn} 
+                type="completed"
+                onRate={(userId) => setRatingUserId(userId)}
+              />
             ))}
           </>
         )}

@@ -22,10 +22,11 @@ const ConnectionCard = ({ connection, type, onRate, onViewRatings }) => {
   const isIncoming   = type === 'incoming';
   const isOutgoing   = type === 'outgoing';
   const isEstablished = type === 'established';
+  const isCompleted = type === 'completed';
 
   // CRITICAL FIX: For established connections, determine who is the OTHER person
   let other;
-  if (isEstablished) {
+  if (isEstablished || isCompleted) {
     // Check if current user is requester or receiver
     const isRequester = connection.requester?._id === user?._id || connection.requester === user?._id;
     other = isRequester ? connection.receiver : connection.requester;
@@ -143,6 +144,7 @@ const ConnectionCard = ({ connection, type, onRate, onViewRatings }) => {
             {isIncoming && <>Wants to connect over{' '}<span className="text-accent">{connection.skill?.skillOffered}</span></>}
             {isOutgoing && <>You requested to exchange{' '}<span className="text-secondary">{connection.skill?.skillOffered}</span></>}
             {isEstablished && <>Connected via{' '}<span className="text-white/70">{connection.skill?.skillOffered}</span></>}
+            {isCompleted && <>Completed swap{' '}<span className="text-green">{connection.skill?.skillOffered}</span>{' '}⇄{' '}<span className="text-green">{connection.skill?.skillWanted}</span></>}
           </p>
 
           {/* Show swap request message */}
@@ -155,9 +157,11 @@ const ConnectionCard = ({ connection, type, onRate, onViewRatings }) => {
 
           <p className="text-xs text-white/25 mt-1 flex items-center gap-1">
             <Clock size={10} />
-            {connection.createdAt
-              ? formatDistanceToNow(new Date(connection.createdAt), { addSuffix: true })
-              : 'Recently'}
+            {isCompleted && connection.completedAt
+              ? `Completed ${formatDistanceToNow(new Date(connection.completedAt), { addSuffix: true })}`
+              : connection.createdAt
+                ? formatDistanceToNow(new Date(connection.createdAt), { addSuffix: true })
+                : 'Recently'}
           </p>
         </div>
       </div>
@@ -254,6 +258,24 @@ const ConnectionCard = ({ connection, type, onRate, onViewRatings }) => {
               {!isOtherUserOnline && (
                 <span className="absolute -top-1 -right-1 w-2 h-2 bg-danger rounded-full" title="User offline" />
               )}
+            </button>
+          </>
+        )}
+
+        {isCompleted && (
+          <>
+            <button
+              onClick={() => navigate(`/profile/${other?._id}`)}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-white/50 hover:text-accent hover:bg-accent/10 border border-white/08 transition-all"
+            >
+              <UserCheck size={15} /> View Profile
+            </button>
+            <button
+              onClick={() => onRate?.(other?._id)}
+              className="btn-gradient flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium"
+              title="Leave a rating for this completed swap"
+            >
+              <Star size={15} /> Leave Review
             </button>
           </>
         )}

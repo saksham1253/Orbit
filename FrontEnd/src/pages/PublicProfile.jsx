@@ -25,6 +25,12 @@ const PublicProfile = () => {
     enabled: !!user,
   });
 
+  const { data: ratingsData, isLoading: isLoadingRatings } = useQuery({
+    queryKey: ['ratings', userId],
+    queryFn: () => api.get(`/trust/ratings/${userId}`).then(res => res.data),
+    enabled: !!user,
+  });
+
   if (isLoading) {
     return (
       <div className="max-w-4xl mx-auto space-y-7">
@@ -88,7 +94,12 @@ const PublicProfile = () => {
               <Star size={16} fill="currentColor" /> {user.trustScore} Trust Score
             </div>
             {user.totalRatings > 0 && (
-              <span className="text-sm text-white/40">({user.totalRatings} reviews)</span>
+              <button
+                onClick={() => document.getElementById('ratings-section')?.scrollIntoView({ behavior: 'smooth' })}
+                className="text-sm text-white/60 hover:text-white/80 transition-colors underline decoration-white/30 hover:decoration-white/60"
+              >
+                {user.totalRatings} {user.totalRatings === 1 ? 'review' : 'reviews'}
+              </button>
             )}
           </div>
           
@@ -150,6 +161,109 @@ const PublicProfile = () => {
           </div>
         )}
       </div>
+
+      {/* Ratings & Reviews Section */}
+      {user.totalRatings > 0 && (
+        <div id="ratings-section" className="space-y-4 scroll-mt-24">
+          <h2 className="text-xl font-display font-semibold">Reviews & Ratings</h2>
+          {isLoadingRatings ? (
+            <LoadingSkeleton type="card" count={2} />
+          ) : ratingsData?.ratings?.length > 0 ? (
+            <div className="space-y-4">
+              {/* Ratings summary */}
+              <div className="card-glass p-6 border border-white/5">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+                  <div className="text-center">
+                    <div className="text-5xl font-bold text-amber flex items-center justify-center gap-2">
+                      <Star size={40} fill="currentColor" className="text-amber" />
+                      {user.trustScore}
+                    </div>
+                    <p className="text-sm text-white/40 mt-1">
+                      {user.totalRatings} {user.totalRatings === 1 ? 'review' : 'reviews'}
+                    </p>
+                  </div>
+                  
+                  {/* Star breakdown */}
+                  <div className="flex-1 space-y-2 w-full">
+                    {[5, 4, 3, 2, 1].map(stars => {
+                      const count = ratingsData.ratings.filter(r => r.score === stars).length;
+                      const percentage = user.totalRatings > 0 ? (count / user.totalRatings) * 100 : 0;
+                      return (
+                        <div key={stars} className="flex items-center gap-3">
+                          <span className="text-xs text-white/40 w-8">{stars} ★</span>
+                          <div className="flex-1 h-2 rounded-full bg-white/5 overflow-hidden">
+                            <div 
+                              className="h-full rounded-full transition-all"
+                              style={{ 
+                                width: `${percentage}%`, 
+                                background: 'linear-gradient(90deg, #ffb800, #ff8c00)' 
+                              }}
+                            />
+                          </div>
+                          <span className="text-xs text-white/40 w-12 text-right">{count}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Individual reviews */}
+              <div className="space-y-3">
+                {ratingsData.ratings.slice(0, 5).map(rating => (
+                  <div key={rating._id} className="card-glass p-5 border border-white/5">
+                    <div className="flex items-start gap-4">
+                      <Avatar 
+                        name={rating.fromUser?.name || 'Anonymous'} 
+                        url={rating.fromUser?.avatar} 
+                        size="md" 
+                        userId={rating.fromUser?._id}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <h4 className="font-semibold text-white text-sm">
+                            {rating.fromUser?.name || 'Anonymous'}
+                          </h4>
+                          <div className="flex items-center gap-1">
+                            {[...Array(5)].map((_, i) => (
+                              <Star 
+                                key={i} 
+                                size={12} 
+                                fill={i < rating.score ? '#ffb800' : 'none'}
+                                className={i < rating.score ? 'text-amber' : 'text-white/20'}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        {rating.review && (
+                          <p className="text-sm text-white/60 mt-2 leading-relaxed">{rating.review}</p>
+                        )}
+                        {rating.skillContext && (
+                          <p className="text-xs text-white/30 mt-2 flex items-center gap-1">
+                            <span className="opacity-50">•</span> {rating.skillContext}
+                          </p>
+                        )}
+                        <p className="text-xs text-white/25 mt-2">
+                          {formatDistanceToNow(new Date(rating.createdAt), { addSuffix: true })}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {ratingsData.ratings.length > 5 && (
+                  <p className="text-center text-sm text-white/40 py-2">
+                    Showing 5 of {ratingsData.ratings.length} reviews
+                  </p>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="card-glass p-8 text-center text-white/40">
+              No reviews yet
+            </div>
+          )}
+        </div>
+      )}
 
     </div>
   );

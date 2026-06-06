@@ -129,6 +129,67 @@ exports.getMyConnections = async (req, res) => {
     }
 };
 
+// Get completed connections (swaps that are marked as completed)
+exports.getCompletedConnections = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const connections = await Connection.find({
+            $or: [{ requester: userId }, { receiver: userId }],
+            status: 'completed'
+        })
+        .populate('requester', 'name email trustScore location avatar totalRatings')
+        .populate('receiver',  'name email trustScore location avatar totalRatings')
+        .populate('skill', 'skillOffered skillWanted level')
+        .sort({ completedAt: -1, updatedAt: -1 })
+        .lean();
+
+        // Deduplicate by unique other user
+        const seenUsers = new Set();
+        const unique = connections.filter(conn => {
+            const otherId = conn.requester._id.toString() === userId
+                ? conn.receiver._id.toString()
+                : conn.requester._id.toString();
+            if (seenUsers.has(otherId)) return false;
+            seenUsers.add(otherId);
+            return true;
+        });
+
+        res.status(200).json(unique);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// Mark a connection as completed
+exports.markConnectionCompleted = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.id;
+
+        const connection = await Connection.findOne({
+            _id: id,
+            $or: [{ requester: userId }, { receiver: userId }],
+            status: 'accepted'
+        });
+
+        if (!connection) {
+            return res.status(404).json({ message: "Connection not found or not accepted" });
+        }
+
+        connection.status = 'completed';
+        connection.completedAt = new Date();
+        await connection.save();
+
+        res.status(200).json({ message: "Connection marked as completed", connection });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
 // Respond to a connection request (accept/decline)
 exports.respondConnection = async (req, res) => {
     try {

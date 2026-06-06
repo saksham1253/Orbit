@@ -22,8 +22,11 @@ const connectionSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ["pending", "accepted", "declined"],
+        enum: ["pending", "accepted", "declined", "completed"],
         default: "pending"
+    },
+    completedAt: {
+        type: Date
     }
 }, { timestamps: true });
 
