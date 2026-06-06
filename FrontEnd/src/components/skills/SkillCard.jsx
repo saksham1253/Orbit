@@ -15,7 +15,7 @@ const LEVEL_STYLES = {
   advanced:     { bg: 'rgba(0,198,255,0.1)',  border: 'rgba(0,198,255,0.3)',  color: '#00c6ff' },
 };
 
-const SkillCard = memo(({ skill, variant = 'browse', onConnect }) => {
+const SkillCard = memo(({ skill, variant = 'browse', onConnect, onViewRatings }) => {
   const { user } = useAuthStore();
   const { addToast } = useUIStore();
   const queryClient = useQueryClient();
@@ -117,12 +117,33 @@ const SkillCard = memo(({ skill, variant = 'browse', onConnect }) => {
 
       {/* Action buttons */}
       {variant === 'browse' && !isOwner && (
-        <button
-          onClick={() => onConnect?.(skill._id, owner?._id)}
-          className="btn-gradient w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium"
-        >
-          <UserPlus size={15} /> Connect
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {/* View Ratings button */}
+          <button
+            onClick={() => onViewRatings?.(owner)}
+            title="View this person's ratings"
+            style={{
+              flex: '0 0 auto',
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '10px 14px', borderRadius: 12,
+              fontSize: 13, fontWeight: 600,
+              background: 'rgba(255,184,0,0.08)',
+              border: '1px solid rgba(255,184,0,0.28)',
+              color: '#ffb800', cursor: 'pointer',
+              transition: 'background 0.2s',
+            }}
+          >
+            <Star size={14} fill="currentColor" /> Ratings
+          </button>
+
+          {/* Connect button */}
+          <button
+            onClick={() => onConnect?.(skill._id, owner?._id)}
+            className="btn-gradient flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium"
+          >
+            <UserPlus size={15} /> Connect
+          </button>
+        </div>
       )}
 
       {variant === 'match' && !isOwner && (

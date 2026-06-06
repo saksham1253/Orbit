@@ -15,14 +15,19 @@ exports.requestConnection = async (req, res) => {
             return res.status(400).json({ message: "Cannot connect with yourself" });
         }
 
+        // Block if ANY connection already exists between these two users (any skill, any status)
         const existing = await Connection.findOne({
-            requester: req.user.id,
-            receiver: receiverId,
-            skill: skillId
+            $or: [
+                { requester: req.user.id, receiver: receiverId },
+                { requester: receiverId,  receiver: req.user.id }
+            ]
         });
 
         if (existing) {
-            return res.status(400).json({ message: "Connection request already sent for this skill" });
+            const statusMsg = existing.status === 'pending'
+                ? 'A connection request is already pending with this user'
+                : 'You are already connected with this user';
+            return res.status(400).json({ message: statusMsg });
         }
 
         const connection = new Connection({
@@ -89,21 +94,36 @@ exports.getPendingConnections = async (req, res) => {
     }
 };
 
-// Get ALL connections (to verify established connections)
+// Get ALL connections (established) - deduplicated by unique other user
 exports.getMyConnections = async (req, res) => {
     try {
+        const userId = req.user.id;
+
         const connections = await Connection.find({
-            $or: [{ requester: req.user.id }, { receiver: req.user.id }]
+            $or: [{ requester: userId }, { receiver: userId }],
+            status: 'accepted'
         })
-        .populate("requester", "name email trustScore location")
-        .populate("receiver", "name email trustScore location")
-        .populate("skill", "skillOffered skillWanted level")
+        .populate('requester', 'name email trustScore location avatar')
+        .populate('receiver',  'name email trustScore location avatar')
+        .populate('skill', 'skillOffered skillWanted level')
+        .sort({ updatedAt: -1 })
         .lean();
-        
-        res.status(200).json(connections);
+
+        // Deduplicate: keep only the FIRST accepted connection per unique other user
+        const seenUsers = new Set();
+        const unique = connections.filter(conn => {
+            const otherId = conn.requester._id.toString() === userId
+                ? conn.receiver._id.toString()
+                : conn.requester._id.toString();
+            if (seenUsers.has(otherId)) return false;
+            seenUsers.add(otherId);
+            return true;
+        });
+
+        res.status(200).json(unique);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ message: 'Server error' });
     }
 };
 

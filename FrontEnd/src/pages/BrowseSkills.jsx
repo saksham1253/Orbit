@@ -6,13 +6,15 @@ import SkillCard from '../components/skills/SkillCard';
 import LoadingSkeleton from '../components/common/LoadingSkeleton';
 import { useUIStore } from '../store/uiStore';
 import { Search, Compass, SlidersHorizontal, X } from 'lucide-react';
+import UserRatingsModal from '../components/modals/UserRatingsModal';
 
 const LEVELS = ['all', 'beginner', 'intermediate', 'advanced'];
 
 const BrowseSkills = () => {
-  const [search, setSearch]     = useState('');
-  const [level, setLevel]       = useState('all');
-  const { addToast }            = useUIStore();
+  const [search, setSearch]           = useState('');
+  const [level, setLevel]             = useState('all');
+  const [viewRatingsUser, setViewRatingsUser] = useState(null); // { _id, name }
+  const { addToast }                  = useUIStore();
 
   const { data: skills = [], isLoading } = useQuery({
     queryKey: ['skills', 'all'],
@@ -105,11 +107,23 @@ const BrowseSkills = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filtered.map(s => (
-            <SkillCard key={s._id} skill={s} variant="browse"
-              onConnect={(skillId, receiverId) => connectMutation.mutate({ skillId, receiverId })} />
+            <SkillCard
+              key={s._id}
+              skill={s}
+              variant="browse"
+              onConnect={(skillId, receiverId) => connectMutation.mutate({ skillId, receiverId })}
+              onViewRatings={(owner) => setViewRatingsUser(owner)}
+            />
           ))}
         </div>
       )}
+
+      {/* View User Ratings Modal */}
+      <UserRatingsModal
+        user={viewRatingsUser}
+        isOpen={!!viewRatingsUser}
+        onClose={() => setViewRatingsUser(null)}
+      />
     </div>
   );
 };

@@ -43,10 +43,10 @@ const RatingModal = ({ isOpen, onClose, otherUser, callDuration }) => {
     }
 
     submitRatingMutation.mutate({
-      userId: otherUser._id,
-      rating,
-      comment: comment.trim(),
-      callDuration,
+      toUserId: otherUser._id,   // backend field name
+      score: rating,             // backend field name
+      review: comment.trim(),    // backend field name
+      skillContext: 'video-call',
     });
   };
 

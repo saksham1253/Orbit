@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 
-const ConnectionCard = ({ connection, type, onRate }) => {
+const ConnectionCard = ({ connection, type, onRate, onViewRatings }) => {
   const queryClient = useQueryClient();
   const { addToast } = useUIStore();
   const { user } = useAuthStore();
@@ -143,6 +143,14 @@ const ConnectionCard = ({ connection, type, onRate }) => {
       <div className="flex gap-2 flex-shrink-0">
         {isIncoming && (
           <>
+            {/* View Ratings — check their reputation before accepting */}
+            <button
+              onClick={() => onViewRatings?.(other)}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-white/50 hover:text-amber hover:bg-amber/10 border border-white/08 transition-all"
+              title="View this person's ratings"
+            >
+              <Star size={14} /> Ratings
+            </button>
             <button
               onClick={() => respondMutation.mutate('decline')}
               disabled={respondMutation.isPending}

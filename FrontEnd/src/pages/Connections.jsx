@@ -5,10 +5,14 @@ import ConnectionCard from '../components/connections/ConnectionCard';
 import LoadingSkeleton from '../components/common/LoadingSkeleton';
 import Modal from '../components/common/Modal';
 import RatingForm from '../components/trust/RatingForm';
+import { useAuthStore } from '../store/authStore';
+import UserRatingsModal from '../components/modals/UserRatingsModal';
 
 const Connections = () => {
   const [activeTab, setActiveTab] = useState('established');
   const [ratingUserId, setRatingUserId] = useState(null);
+  const [viewRatingsUser, setViewRatingsUser] = useState(null); // { _id, name }
+  const { user } = useAuthStore();
 
   const { data: pending, isLoading: loadingPending } = useQuery({
     queryKey: ['connections', 'pending'],
@@ -20,22 +24,26 @@ const Connections = () => {
     queryFn: () => api.get('/connections/all').then(res => res.data)
   });
 
-  // Filter established connections (only accepted status)
+  // Backend already returns only accepted, deduplicated connections.
+  // Deduplicate on frontend too as a safety net (by other user's _id).
   const establishedList = React.useMemo(() => {
     if (!Array.isArray(established)) return [];
-    
-    // Only show accepted connections and deduplicate by _id
-    const accepted = established.filter(conn => conn.status === 'accepted');
-    const seen = new Set();
-    
-    return accepted.filter(conn => {
-      if (seen.has(conn._id)) return false;
-      seen.add(conn._id);
+    const seenUsers = new Set();
+    return established.filter(conn => {
+      // Determine the other user's id
+      const otherId = conn.requester?._id || conn.requester;
+      const myId = user?._id;
+      const otherUserId = (otherId?.toString?.() === myId?.toString?.())
+        ? (conn.receiver?._id || conn.receiver)
+        : otherId;
+      const key = otherUserId?.toString?.() || conn._id;
+      if (seenUsers.has(key)) return false;
+      seenUsers.add(key);
       return true;
     });
-  }, [established]);
+  }, [established, user]);
 
-  // Deduplicate incoming/outgoing
+  // Deduplicate incoming/outgoing by connection _id
   const dedupeById = (list) => {
     if (!Array.isArray(list)) return [];
     const seen = new Set();
@@ -119,7 +127,12 @@ const Connections = () => {
               </div>
             )}
             {!loadingPending && incomingReqs.map(conn => (
-              <ConnectionCard key={conn._id} connection={conn} type="incoming" />
+              <ConnectionCard
+                key={conn._id}
+                connection={conn}
+                type="incoming"
+                onViewRatings={(u) => setViewRatingsUser(u)}
+              />
             ))}
           </>
         )}
@@ -145,6 +158,13 @@ const Connections = () => {
           <RatingForm targetUserId={ratingUserId} onClose={() => setRatingUserId(null)} />
         )}
       </Modal>
+
+      {/* View Ratings Modal */}
+      <UserRatingsModal
+        user={viewRatingsUser}
+        isOpen={!!viewRatingsUser}
+        onClose={() => setViewRatingsUser(null)}
+      />
     </div>
   );
 };
