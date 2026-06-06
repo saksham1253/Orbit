@@ -116,15 +116,8 @@ const Navbar = () => {
       <header className="sticky top-0 z-40 w-full" style={{ padding: scrolled ? '5px 0' : '10px 0' }}>
         <div className="max-w-[1400px] mx-auto px-3 sm:px-5">
           <div
-            className="flex items-center justify-between h-13 px-3 rounded-2xl transition-all duration-300"
-            style={{
-              height: 52,
-              background: scrolled ? 'rgba(5,6,14,0.92)' : 'rgba(5,6,14,0.65)',
-              backdropFilter: 'blur(28px) saturate(160%)',
-              WebkitBackdropFilter: 'blur(28px) saturate(160%)',
-              border: `1px solid ${scrolled ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.07)'}`,
-              boxShadow: scrolled ? '0 8px 40px rgba(0,0,0,0.45)' : 'none',
-            }}
+            className={`flex items-center justify-between px-3 rounded-2xl transition-all duration-300 ${scrolled ? 'nav-glass-scrolled' : 'nav-glass'}`}
+            style={{ height: 52 }}
           >
             {/* ── Brand ── */}
             <NavLink to="/" className="flex items-center gap-2 flex-shrink-0 mr-2">
@@ -178,8 +171,7 @@ const Navbar = () => {
             {/* ── Right side ── */}
             <div className="flex items-center gap-1.5 flex-shrink-0">
               <NavLink to="/profile" title="Profile"
-                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all text-white/55 hover:text-white"
-                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
+                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all text-white/55 hover:text-white bg-white/5 border border-white/10"
               >
                 <Avatar name={user?.name} url={user?.avatar} size="xs" userId={user?._id} />
                 <span className="hidden md:block max-w-[80px] truncate">{user?.name?.split(' ')[0]}</span>
@@ -189,8 +181,7 @@ const Navbar = () => {
                 onClick={() => setChatOpen(true)}
                 aria-label="Messages"
                 title="Messages"
-                className="relative hidden sm:flex items-center justify-center w-8 h-8 rounded-xl text-white/40 hover:text-accent transition-all"
-                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
+                className="relative hidden sm:flex items-center justify-center w-8 h-8 rounded-xl text-white/40 hover:text-accent transition-all bg-white/5 border border-white/10"
               >
                 <MessageCircle size={15} />
                 {unreadCount > 0 && (
@@ -204,8 +195,7 @@ const Navbar = () => {
               <NavLink to="/settings"
                 aria-label="Settings"
                 title="Settings"
-                className="hidden sm:flex items-center justify-center w-8 h-8 rounded-xl text-white/40 hover:text-white transition-all"
-                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
+                className="hidden sm:flex items-center justify-center w-8 h-8 rounded-xl text-white/40 hover:text-white transition-all bg-white/5 border border-white/10"
               >
                 <SettingsIcon size={15} />
               </NavLink>
@@ -213,8 +203,7 @@ const Navbar = () => {
                 onClick={handleLogout}
                 aria-label="Logout"
                 title="Logout"
-                className="flex items-center justify-center w-8 h-8 rounded-xl text-white/40 hover:text-danger transition-all"
-                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
+                className="flex items-center justify-center w-8 h-8 rounded-xl text-white/40 hover:text-danger transition-all bg-white/5 border border-white/10"
               >
                 <LogOut size={15} />
               </button>
@@ -226,8 +215,7 @@ const Navbar = () => {
                 aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
                 aria-expanded={mobileOpen}
                 aria-controls="mobile-nav-drawer"
-                className="xl:hidden flex items-center justify-center w-8 h-8 rounded-xl text-white/60 hover:text-white transition-all"
-                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
+                className="xl:hidden flex items-center justify-center w-8 h-8 rounded-xl text-white/60 hover:text-white transition-all bg-white/5 border border-white/10"
               >
                 {mobileOpen ? <X size={16} /> : <Menu size={16} />}
               </button>
@@ -249,16 +237,14 @@ const Navbar = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.18 }}
-            className="fixed top-[72px] left-3 right-3 z-40 rounded-2xl overflow-hidden xl:hidden"
-            style={{ background: 'rgba(5,6,16,0.96)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 20px 60px rgba(0,0,0,0.6)' }}
+            className="fixed top-[72px] left-3 right-3 z-40 rounded-2xl overflow-hidden xl:hidden mobile-nav-glass"
           >
             <div className="p-3 grid grid-cols-2 gap-1.5">
               {navWithBadges.map(({ name, path, Icon, badge }) => (
                 <NavLink key={path} to={path} onClick={() => setMobileOpen(false)}
                   className={({ isActive }) =>
-                    `relative flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? 'text-accent' : 'text-white/55 hover:text-white'}`
+                    `relative flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? 'text-accent bg-accent/10 border border-accent/30' : 'text-white/55 hover:text-white bg-white/5 border border-white/10'}`
                   }
-                  style={({ isActive }) => isActive ? { background: 'rgba(0,198,255,0.12)', border: '1px solid rgba(0,198,255,0.3)' } : { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
                 >
                   <Icon size={15} /> {name}
                   {badge > 0 && (
@@ -272,14 +258,12 @@ const Navbar = () => {
                 </NavLink>
               ))}
               <NavLink to="/profile" onClick={() => setMobileOpen(false)}
-                className={({ isActive }) => `flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? 'text-accent' : 'text-white/55 hover:text-white'}`}
-                style={({ isActive }) => isActive ? { background: 'rgba(0,198,255,0.12)', border: '1px solid rgba(0,198,255,0.3)' } : { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+                className={({ isActive }) => `flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? 'text-accent bg-accent/10 border border-accent/30' : 'text-white/55 hover:text-white bg-white/5 border border-white/10'}`}
               >
                 <UserCircle size={15} /> Profile
               </NavLink>
               <NavLink to="/settings" onClick={() => setMobileOpen(false)}
-                className={({ isActive }) => `flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? 'text-accent' : 'text-white/55 hover:text-white'}`}
-                style={({ isActive }) => isActive ? { background: 'rgba(0,198,255,0.12)', border: '1px solid rgba(0,198,255,0.3)' } : { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+                className={({ isActive }) => `flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? 'text-accent bg-accent/10 border border-accent/30' : 'text-white/55 hover:text-white bg-white/5 border border-white/10'}`}
               >
                 <SettingsIcon size={15} /> Settings
               </NavLink>

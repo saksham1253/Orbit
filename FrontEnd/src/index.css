@@ -405,6 +405,27 @@ html.light body {
   color: #1a1a2e;
 }
 
+/* Comprehensive text color overrides for Light Mode */
+html.light .text-white { color: #1a1a2e; }
+html.light .text-white\/10 { color: rgba(26, 26, 46, 0.1); }
+html.light .text-white\/15 { color: rgba(26, 26, 46, 0.15); }
+html.light .text-white\/20 { color: rgba(26, 26, 46, 0.2); }
+html.light .text-white\/25 { color: rgba(26, 26, 46, 0.25); }
+html.light .text-white\/30 { color: rgba(26, 26, 46, 0.3); }
+html.light .text-white\/35 { color: rgba(26, 26, 46, 0.35); }
+html.light .text-white\/40 { color: rgba(26, 26, 46, 0.4); }
+html.light .text-white\/45 { color: rgba(26, 26, 46, 0.45); }
+html.light .text-white\/50 { color: rgba(26, 26, 46, 0.5); }
+html.light .text-white\/55 { color: rgba(26, 26, 46, 0.55); }
+html.light .text-white\/60 { color: rgba(26, 26, 46, 0.6); }
+html.light .text-white\/70 { color: rgba(26, 26, 46, 0.7); }
+html.light .text-white\/80 { color: rgba(26, 26, 46, 0.8); }
+html.light .text-white\/90 { color: rgba(26, 26, 46, 0.9); }
+
+/* Override bg-white utilities that are used as faint backgrounds */
+html.light .bg-white\/05 { background: rgba(0, 114, 255, 0.05); }
+html.light .bg-white\/10 { background: rgba(0, 114, 255, 0.1); }
+html.light .border-white\/10 { border-color: rgba(0, 114, 255, 0.1); }
 html.light ::-webkit-scrollbar-track { background: #e8edf5; }
 html.light ::-webkit-scrollbar-thumb { background: rgba(0,114,255,0.2); }
 html.light ::-webkit-scrollbar-thumb:hover { background: rgba(0,114,255,0.4); }
@@ -420,6 +441,47 @@ html.light .glass-card {
   -webkit-backdrop-filter: blur(20px) saturate(1.8);
   border: 1px solid rgba(0, 114, 255, 0.12);
   box-shadow: 0 4px 24px rgba(0, 80, 200, 0.08);
+}
+
+/* ─── NAVBAR STYLES ─── */
+.nav-glass {
+  background: rgba(5,6,14,0.65);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.07);
+}
+
+.nav-glass-scrolled {
+  background: rgba(5,6,14,0.92);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.45);
+}
+
+.mobile-nav-glass {
+  background: rgba(5,6,16,0.96);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+
+html.light .nav-glass {
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(0, 114, 255, 0.1);
+}
+
+html.light .nav-glass-scrolled {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(0, 114, 255, 0.15);
+  box-shadow: 0 8px 40px rgba(0, 80, 200, 0.08);
+}
+
+html.light .mobile-nav-glass {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(0, 114, 255, 0.2);
+  box-shadow: 0 20px 60px rgba(0, 80, 200, 0.12);
 }
 
 html.light .glass-card-glow {

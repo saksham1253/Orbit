@@ -113,23 +113,24 @@ const Connections = () => {
         <p className="text-white/40 mt-1 text-sm">Manage your network and connection requests.</p>
       </div>
 
-      <div className="flex gap-1.5 p-1 rounded-2xl"
-        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+      <div className="flex gap-1.5 p-1 rounded-2xl bg-white/5 border border-white/10">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className="flex-1 py-2.5 px-3 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2"
-            style={activeTab === tab.id
-              ? { background: 'rgba(0,198,255,0.15)', color: '#00c6ff', border: '1px solid rgba(0,198,255,0.35)' }
-              : { background: 'transparent', color: 'rgba(255,255,255,0.45)', border: '1px solid transparent' }}
+            className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+              activeTab === tab.id 
+                ? 'bg-accent/15 text-accent border border-accent/35' 
+                : 'bg-transparent text-white/45 border border-transparent'
+            }`}
           >
             {tab.label}
             {tab.count > 0 && (
-              <span className="px-1.5 py-0.5 rounded-full text-xs font-bold"
-                style={activeTab === tab.id
-                  ? { background: 'rgba(0,198,255,0.2)', color: '#00c6ff' }
-                  : { background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }}>
+              <span className={`px-1.5 py-0.5 rounded-full text-xs font-bold ${
+                activeTab === tab.id
+                  ? 'bg-accent/20 text-accent'
+                  : 'bg-white/10 text-white/50'
+              }`}>
                 {tab.count}
               </span>
             )}
