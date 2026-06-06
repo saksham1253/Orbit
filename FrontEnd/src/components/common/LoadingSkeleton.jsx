@@ -30,7 +30,7 @@ const TextSkeleton = () => (
 );
 
 const LoadingSkeleton = ({ count = 1, type = 'card' }) => (
-  <div className="space-y-4">
+  <div className={type === 'card' ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" : "space-y-4"}>
     {Array.from({ length: count }).map((_, i) =>
       type === 'card' ? <CardSkeleton key={i} /> : <TextSkeleton key={i} />
     )}
