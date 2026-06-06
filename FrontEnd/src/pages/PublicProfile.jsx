@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
-import { ShieldCheck, MapPin, Globe, Star, Mail, Github, Linkedin, Link as LinkIcon, Calendar } from 'lucide-react';
+import { ShieldCheck, MapPin, Globe, Star, Mail, Link as LinkIcon, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import api from '../services/api';
 import Avatar from '../components/common/Avatar';
@@ -95,14 +95,18 @@ const PublicProfile = () => {
           {/* Social Links */}
           {user.socialLinks && (user.socialLinks.github || user.socialLinks.linkedin || user.socialLinks.website) && (
             <div className="flex items-center justify-center md:justify-start gap-3 pt-2">
-              {user.socialLinks.github && (
-                <a href={user.socialLinks.github.startsWith('http') ? user.socialLinks.github : `https://${user.socialLinks.github}`} target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-white transition-colors">
-                  <Github size={18} />
+              {user.socialLinks?.github && (
+                <a href={user.socialLinks.github.startsWith('http') ? user.socialLinks.github : `https://${user.socialLinks.github}`} target="_blank" rel="noopener noreferrer" 
+                  className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110"
+                  style={{ background: 'rgba(255,255,255,0.05)', color: '#fff' }}>
+                  <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.2c3-.3 6-1.5 6-6.5a5.5 5.5 0 0 0-1.5-3.8 5.5 5.5 0 0 0-.1-3.8s-1.2-.4-3.9 1.4a13.4 13.4 0 0 0-7 0C6.2 3.4 5 3.8 5 3.8a5.5 5.5 0 0 0-.1 3.8A5.5 5.5 0 0 0 3.4 11.4c0 5 3 6.2 6 6.5a4.8 4.8 0 0 0-1 3.2v4"/><path d="M9 20a5.5 5.5 0 0 1-5-2.5"/></svg>
                 </a>
               )}
-              {user.socialLinks.linkedin && (
-                <a href={user.socialLinks.linkedin.startsWith('http') ? user.socialLinks.linkedin : `https://${user.socialLinks.linkedin}`} target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-[#0077b5] transition-colors">
-                  <Linkedin size={18} />
+              {user.socialLinks?.linkedin && (
+                <a href={user.socialLinks.linkedin.startsWith('http') ? user.socialLinks.linkedin : `https://${user.socialLinks.linkedin}`} target="_blank" rel="noopener noreferrer" 
+                  className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110"
+                  style={{ background: 'rgba(255,255,255,0.05)', color: '#0077b5' }}>
+                  <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
                 </a>
               )}
               {user.socialLinks.website && (
