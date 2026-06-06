@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Heart, Github, Twitter, Linkedin } from 'lucide-react';
+import { Heart, Github, Linkedin } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -25,7 +25,10 @@ const Footer = () => {
               <Github size={16} />
             </a>
             <a href="https://twitter.com" target="_blank" rel="noreferrer noopener" className="hover:text-white transition-colors" aria-label="Twitter">
-              <Twitter size={16} />
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 4l11.733 16h4.267l-11.733 -16z" />
+                <path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772" />
+              </svg>
             </a>
             <a href="https://linkedin.com" target="_blank" rel="noreferrer noopener" className="hover:text-white transition-colors" aria-label="LinkedIn">
               <Linkedin size={16} />
