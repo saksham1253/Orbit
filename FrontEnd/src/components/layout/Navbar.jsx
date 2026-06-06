@@ -5,9 +5,10 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../../store/authStore';
 import Avatar from '../common/Avatar';
 import api from '../../services/api';
+import ChatDrawer from '../chat/ChatDrawer';
 import {
   LogOut, Layers, Compass, Users, Map,
-  ShieldCheck, UserCircle, Menu, X, Handshake, Video, Settings as SettingsIcon,
+  ShieldCheck, UserCircle, Menu, X, Handshake, Video, Settings as SettingsIcon, MessageCircle,
 } from 'lucide-react';
 
 const NAV = [
@@ -26,6 +27,8 @@ const Navbar = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatInitialUser, setChatInitialUser] = useState(null);
   const drawerRef = useRef(null);
   const hamburgerRef = useRef(null);
 
@@ -42,8 +45,15 @@ const Navbar = () => {
     refetchInterval: 60000,
   });
 
+  const { data: unreadData } = useQuery({
+    queryKey: ['unread-count'],
+    queryFn: () => api.get('/messages/unread-count').then(res => res.data),
+    refetchInterval: 20000,
+  });
+
   const incomingCount = pending?.incomingCount || 0;
   const matchesCount = Array.isArray(matchesData) ? matchesData.length : 0;
+  const unreadCount = unreadData?.count || 0;
 
   const navWithBadges = NAV.map(item => {
     if (item.path === '/connections') return { ...item, badge: incomingCount };
@@ -88,6 +98,16 @@ const Navbar = () => {
 
   // Close drawer when route changes
   useEffect(() => { setMobileOpen(false); }, [location.pathname]);
+
+  // Listen for 'open-chat' custom event dispatched by ConnectionCard
+  useEffect(() => {
+    const handler = (e) => {
+      setChatInitialUser(e.detail);
+      setChatOpen(true);
+    };
+    window.addEventListener('open-chat', handler);
+    return () => window.removeEventListener('open-chat', handler);
+  }, []);
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
@@ -164,6 +184,23 @@ const Navbar = () => {
                 <Avatar name={user?.name} url={user?.avatar} size="xs" userId={user?._id} />
                 <span className="hidden md:block max-w-[80px] truncate">{user?.name?.split(' ')[0]}</span>
               </NavLink>
+              {/* Chat Button */}
+              <button
+                onClick={() => setChatOpen(true)}
+                aria-label="Messages"
+                title="Messages"
+                className="relative hidden sm:flex items-center justify-center w-8 h-8 rounded-xl text-white/40 hover:text-accent transition-all"
+                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
+              >
+                <MessageCircle size={15} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 flex items-center justify-center text-[10px] font-bold rounded-full"
+                    style={{ background: 'linear-gradient(135deg,#00c6ff,#0072ff)', color: '#fff', boxShadow: '0 2px 8px rgba(0,198,255,0.5)' }}
+                  >
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
               <NavLink to="/settings"
                 aria-label="Settings"
                 title="Settings"
@@ -256,6 +293,9 @@ const Navbar = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Chat Drawer */}
+      <ChatDrawer isOpen={chatOpen} onClose={() => { setChatOpen(false); setChatInitialUser(null); }} initialUser={chatInitialUser} />
     </>
   );
 };

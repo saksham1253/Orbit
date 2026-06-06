@@ -4,7 +4,7 @@ const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('../config/cloudinary');
 
-const { getProfile, updateProfile, getStats, uploadAvatar, updateAvatarUrl } = require("../controllers/userController");
+const { getProfile, getPublicProfile, updateProfile, getStats, uploadAvatar, updateAvatarUrl } = require("../controllers/userController");
 const auth = require("../middleware/auth");
 
 // Configure Cloudinary storage for multer
@@ -27,6 +27,9 @@ router.get("/stats", getStats);
 
 // Get my profile (protected)
 router.get("/profile", auth, getProfile);
+
+// Get public profile (public)
+router.get("/:id", getPublicProfile);
 
 // Update my profile (protected)
 router.put("/profile", auth, updateProfile);

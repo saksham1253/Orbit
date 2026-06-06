@@ -26,10 +26,16 @@ const userSchema = new mongoose.Schema({
         trim: true
     },
 
-    // Avatar URL (Cloudinary or preset)
+    // Avatar URL (Cloudinary, preset, or base64)
     avatar: {
         type: String,
         default: "" // Empty means use generated gradient avatar
+    },
+
+    socialLinks: {
+        github: { type: String, default: "" },
+        linkedin: { type: String, default: "" },
+        website: { type: String, default: "" }
     },
 
     location: {
@@ -113,7 +119,11 @@ const userSchema = new mongoose.Schema({
     bannedUntil: {
         type: Date,
         default: null
-    }
+    },
+
+    // Password Reset
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date }
 
 }, {
     timestamps: true

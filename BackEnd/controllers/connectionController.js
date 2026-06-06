@@ -5,7 +5,7 @@ const User = require("../models/user");
 // Send a connection request
 exports.requestConnection = async (req, res) => {
     try {
-        const { receiverId, skillId } = req.body;
+        const { receiverId, skillId, message } = req.body;
 
         if (!receiverId || !skillId) {
             return res.status(400).json({ message: "Receiver and Skill IDs are required" });
@@ -33,7 +33,8 @@ exports.requestConnection = async (req, res) => {
         const connection = new Connection({
             requester: req.user.id,
             receiver: receiverId,
-            skill: skillId
+            skill: skillId,
+            message: message || ""
         });
 
         await connection.save();
@@ -53,7 +54,8 @@ exports.requestConnection = async (req, res) => {
                 skill: {
                     skillOffered: skillData?.skillOffered || "a skill",
                     skillWanted: skillData?.skillWanted
-                }
+                },
+                message: message || ""
             });
         }
 
@@ -162,6 +164,31 @@ exports.respondConnection = async (req, res) => {
         }
 
         res.status(200).json({ message: `Request ${action}`, connection });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+// Cancel an outgoing connection request
+exports.cancelConnection = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const connection = await Connection.findOne({ _id: id, requester: req.user.id });
+
+        if (!connection) {
+            return res.status(404).json({ message: "Connection request not found" });
+        }
+
+        if (connection.status !== "pending") {
+            return res.status(400).json({ message: "Can only cancel pending requests" });
+        }
+
+        await connection.deleteOne();
+
+        res.status(200).json({ message: "Request cancelled successfully" });
 
     } catch (err) {
         console.error(err);

@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
-import { Check, UserCircle, Shield, Save, Camera, Upload, X } from 'lucide-react';
+import { Check, UserCircle, Shield, Save, Camera, Upload, X, Github, Linkedin, Link as LinkIcon } from 'lucide-react';
 import api from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
@@ -42,6 +42,9 @@ const Profile = () => {
       setValue('name',     profile.name     || '');
       setValue('bio',      profile.bio      || '');
       setValue('location', profile.location || '');
+      setValue('socialLinks.github', profile.socialLinks?.github || '');
+      setValue('socialLinks.linkedin', profile.socialLinks?.linkedin || '');
+      setValue('socialLinks.website', profile.socialLinks?.website || '');
       setLangs(profile.languages?.length ? profile.languages : ['English']);
     }
   }, [profile, setValue]);
@@ -64,7 +67,7 @@ const Profile = () => {
     onError: (e) => addToast(e.response?.data?.message || 'Save failed', 'error'),
   });
 
-  // Upload custom avatar
+  // Upload custom avatar (Base64)
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -75,34 +78,36 @@ const Profile = () => {
       return;
     }
 
-    // Validate file size (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
-      addToast('Image must be less than 5MB', 'error');
+    // Validate file size (2MB max for base64 to avoid payload too large)
+    if (file.size > 2 * 1024 * 1024) {
+      addToast('Image must be less than 2MB', 'error');
       return;
     }
 
     setUploading(true);
-    const formData = new FormData();
-    formData.append('avatar', file);
 
-    try {
-      const { data } = await api.post('/user/upload-avatar', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64String = reader.result;
       
-      // Update auth store with full user object from backend to ensure navbar updates
-      if (data.user) {
-        setUser(data.user);
+      try {
+        const { data } = await api.put('/user/avatar', { avatar: base64String });
+        
+        // Update auth store with full user object from backend to ensure navbar updates
+        if (data.user) {
+          setUser(data.user);
+        }
+        
+        addToast('Avatar uploaded!', 'success');
+        queryClient.invalidateQueries({ queryKey: ['profile'] });
+        setShowAvatarModal(false);
+      } catch (err) {
+        addToast(err.response?.data?.message || 'Upload failed', 'error');
+      } finally {
+        setUploading(false);
       }
-      
-      addToast('Avatar uploaded!', 'success');
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
-      setShowAvatarModal(false);
-    } catch (err) {
-      addToast(err.response?.data?.message || 'Upload failed', 'error');
-    } finally {
-      setUploading(false);
-    }
+    };
+    reader.readAsDataURL(file);
   };
 
   // Select preset avatar
@@ -241,6 +246,35 @@ const Profile = () => {
                 );
               })}
             </div>
+          </div>
+        </div>
+
+        <div className="p-6 rounded-2xl space-y-5"
+          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <h2 className="font-display font-bold text-white text-base flex items-center gap-2">
+            <LinkIcon size={15} className="text-accent" /> Social Links
+          </h2>
+          
+          <div>
+            <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2 flex items-center gap-2"><Github size={14}/> GitHub URL</label>
+            <input {...register('socialLinks.github', {
+              pattern: { value: /^(https?:\/\/)?(www\.)?github\.com\/[a-zA-Z0-9_-]+$/, message: 'Must be a valid GitHub URL' }
+            })} placeholder="https://github.com/username"
+              className="input-glass w-full px-4 py-3 text-sm text-white" />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2 flex items-center gap-2"><Linkedin size={14}/> LinkedIn URL</label>
+            <input {...register('socialLinks.linkedin', {
+              pattern: { value: /^(https?:\/\/)?(www\.)?linkedin\.com\/.*$/, message: 'Must be a valid LinkedIn URL' }
+            })} placeholder="https://linkedin.com/in/username"
+              className="input-glass w-full px-4 py-3 text-sm text-white" />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2 flex items-center gap-2"><Globe size={14}/> Personal Website</label>
+            <input {...register('socialLinks.website')} placeholder="https://yourwebsite.com"
+              className="input-glass w-full px-4 py-3 text-sm text-white" />
           </div>
         </div>
 

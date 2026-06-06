@@ -18,6 +18,7 @@ const trustRoutes = require("./routes/trustRoutes");
 const geoRoutes = require("./routes/geoRoutes");
 const videoRoutes = require("./routes/videoRoutes");
 const connectionRoutes = require("./routes/connectionRoutes");
+const messageRoutes = require("./routes/messageRoutes");
 
 // Middleware
 const errorHandler = require("./middleware/errorHandler");
@@ -152,6 +153,46 @@ io.on("connection", (socket) => {
     socket.on("call-user", ({ roomId, targetUserId, callerName }) => {
         io.to(`user_${targetUserId}`).emit("incoming-call", { roomId, callerName });
     });
+
+    // ===== REAL-TIME CHAT =====
+    socket.on("send-message", async ({ receiverId, content }) => {
+        if (!socket.userId || !receiverId || !content?.trim()) return;
+
+        try {
+            const Message = require("./models/Message");
+            const message = await Message.create({
+                sender: socket.userId,
+                receiver: receiverId,
+                content: content.trim()
+            });
+
+            const populated = await Message.findById(message._id)
+                .populate('sender', 'name avatar')
+                .populate('receiver', 'name avatar')
+                .lean();
+
+            // Emit to the receiver
+            io.to(`user_${receiverId}`).emit("new-message", populated);
+            // Echo back to the sender (so they see it in real-time too)
+            io.to(`user_${socket.userId}`).emit("new-message", populated);
+        } catch (err) {
+            console.error("Socket send-message error:", err);
+            socket.emit("message-error", { error: "Failed to send message" });
+        }
+    });
+
+    socket.on("mark-read", async ({ senderId }) => {
+        if (!socket.userId || !senderId) return;
+        try {
+            const Message = require("./models/Message");
+            await Message.updateMany(
+                { sender: senderId, receiver: socket.userId, read: false },
+                { $set: { read: true } }
+            );
+        } catch (err) {
+            console.error("mark-read error:", err);
+        }
+    });
 });
 
 // Listen for malicious detection from worker
@@ -167,7 +208,7 @@ app.use(helmet({
 }));
 app.use(cors());
 app.use(compression());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 // app.use(mongoSanitize()); // Disabled due to Express 5 compatibility issue (Cannot set property query of #<IncomingMessage> which has only a getter)
 app.use(generalLimiter); // Apply general rate limiter
 app.use(require('express-session')({ secret: process.env.JWT_SECRET || 'secret', resave: false, saveUninitialized: false }));
@@ -182,6 +223,7 @@ app.use("/api/trust", trustRoutes);
 app.use("/api/geo", geoRoutes);
 app.use("/api/video", videoRoutes);
 app.use("/api/connections", connectionRoutes);
+app.use("/api/messages", messageRoutes);
 
 // Serve Frontend statically (combined origin) if present
 const fs = require("fs");

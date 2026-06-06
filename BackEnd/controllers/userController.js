@@ -46,11 +46,28 @@ exports.getProfile = async (req, res) => {
     }
 };
 
+// ================= GET PUBLIC PROFILE =================
+exports.getPublicProfile = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id).select("-password -email -loginCount -lastLogin -reportCount -warningCount -banCount -bannedUntil -isFlagged -flagReason");
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json(user);
+
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
 
 // ================= UPDATE PROFILE =================
 exports.updateProfile = async (req, res) => {
     try {
-        const { name, bio, location, languages } = req.body || {};
+        const { name, bio, location, languages, socialLinks } = req.body || {};
 
         // --- BIO CONTENT MODERATION ---
         if (bio) {
@@ -67,7 +84,7 @@ exports.updateProfile = async (req, res) => {
 
         const updatedUser = await User.findByIdAndUpdate(
             req.user.id,
-            { name, bio, location, languages },
+            { name, bio, location, languages, socialLinks },
             { new: true, runValidators: true }
         ).select("-password");
 

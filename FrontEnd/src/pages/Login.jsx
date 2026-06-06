@@ -164,6 +164,11 @@ const Login = () => {
             {errors.password && (
               <p className="mt-1.5 text-xs text-danger">{errors.password.message}</p>
             )}
+            <div className="flex justify-end mt-1.5">
+              <Link to="/forgot-password" className="text-xs text-white/40 hover:text-accent transition-colors">
+                Forgot password?
+              </Link>
+            </div>
           </div>
 
           {/* Submit */}

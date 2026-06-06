@@ -16,6 +16,8 @@ import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import OAuthCallback from './pages/OAuthCallback';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 // Lazy loaded protected pages (code-split bundles)
 const MySkills     = lazy(() => import('./pages/MySkills'));
@@ -27,6 +29,7 @@ const NearbyMap    = lazy(() => import('./pages/NearbyMap'));
 const TrustScore   = lazy(() => import('./pages/TrustScore'));
 const VideoCall    = lazy(() => import('./pages/VideoCall'));
 const Settings     = lazy(() => import('./pages/Settings'));
+const PublicProfile = lazy(() => import('./pages/PublicProfile'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center py-24">
@@ -197,6 +200,8 @@ function AppInner() {
         <Route path="/login"          element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
         <Route path="/register"       element={<PublicOnlyRoute><Register /></PublicOnlyRoute>} />
         <Route path="/oauth/callback" element={<OAuthCallback />} />
+        <Route path="/forgot-password"         element={<ForgotPassword />} />
+        <Route path="/reset-password/:token"   element={<ResetPassword />} />
 
         {/* Protected (lazy-loaded) */}
         <Route path="/dashboard"   element={<ProtectedRoute><MySkills /></ProtectedRoute>} />
@@ -204,6 +209,7 @@ function AppInner() {
         <Route path="/matches"     element={<ProtectedRoute><Matches /></ProtectedRoute>} />
         <Route path="/connections" element={<ProtectedRoute><Connections /></ProtectedRoute>} />
         <Route path="/profile"     element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/profile/:userId" element={<Layout><Suspense fallback={<PageLoader />}><PublicProfile /></Suspense></Layout>} />
         <Route path="/nearby"      element={<ProtectedRoute><NearbyMap /></ProtectedRoute>} />
         <Route path="/trust"       element={<ProtectedRoute><TrustScore /></ProtectedRoute>} />
         <Route path="/settings"    element={<ProtectedRoute><Settings /></ProtectedRoute>} />

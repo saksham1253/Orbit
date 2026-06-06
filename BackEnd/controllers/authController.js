@@ -114,3 +114,85 @@ exports.login = async (req, res) => {
         });
     }
 };
+
+// ================= FORGOT PASSWORD =================
+exports.forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ message: "Email is required" });
+
+        const user = await User.findOne({ email: email.toLowerCase() });
+        // Always respond with success to prevent email enumeration
+        if (!user) {
+            return res.status(200).json({ message: "If an account exists, a reset link has been sent." });
+        }
+
+        // Generate a 32-char hex token and store a 1-hour expiry
+        const crypto = require('crypto');
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetExpires = Date.now() + 60 * 60 * 1000; // 1 hour
+
+        // Store hashed token in DB
+        user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+        user.resetPasswordExpires = resetExpires;
+        await user.save();
+
+        const resetUrl = `${process.env.FRONTEND_URL || 'https://react-skill-swap-fully-fledged.vercel.app'}/reset-password/${resetToken}`;
+
+        // Send email
+        try {
+            const { sendEmail } = require('../utils/sendEmail');
+            await sendEmail({
+                to: user.email,
+                subject: 'SkillSwap – Password Reset',
+                html: `<p>Hello ${user.name},</p><p>You requested a password reset. Click the link below (valid for 1 hour):</p><a href="${resetUrl}">${resetUrl}</a><p>If you did not request this, ignore this email.</p>`
+            });
+        } catch (mailErr) {
+            console.error('Forgot password email failed:', mailErr.message);
+        }
+
+        res.status(200).json({ message: "If an account exists, a reset link has been sent." });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+// ================= RESET PASSWORD =================
+exports.resetPassword = async (req, res) => {
+    try {
+        const { token } = req.params;
+        const { password } = req.body;
+
+        if (!token || !password) {
+            return res.status(400).json({ message: "Token and new password are required" });
+        }
+        if (password.length < 6) {
+            return res.status(400).json({ message: "Password must be at least 6 characters" });
+        }
+
+        const crypto = require('crypto');
+        const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+        const user = await User.findOne({
+            resetPasswordToken: hashedToken,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.status(400).json({ message: "Reset token is invalid or has expired." });
+        }
+
+        user.password = await require('bcrypt').hash(password, 10);
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save();
+
+        res.status(200).json({ message: "Password reset successfully. You can now log in." });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error" });
+    }
+};

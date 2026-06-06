@@ -33,11 +33,29 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller }) => {
 
     const initializeCall = async () => {
       try {
-        // 1. Get user media (camera + microphone)
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: 1280, height: 720 },
-          audio: true
-        });
+        let stream;
+        try {
+          // 1. Try get full user media (camera + microphone)
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { width: 1280, height: 720 },
+            audio: true
+          });
+        } catch (mediaErr) {
+          console.warn('Full media failed, trying fallback:', mediaErr.message);
+          try {
+            // Fallback 1: Try audio only
+            stream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
+            setIsVideoEnabled(false);
+            addToast('Camera unavailable. Using audio only.', 'warning');
+          } catch (audioErr) {
+            console.warn('Audio fallback failed:', audioErr.message);
+            // Fallback 2: Receive only (no local stream)
+            stream = new MediaStream(); // empty stream
+            setIsVideoEnabled(false);
+            setIsAudioEnabled(false);
+            addToast('No media devices found. You are in receive-only mode.', 'error');
+          }
+        }
 
         if (!mounted) {
           stream.getTracks().forEach(track => track.stop());
@@ -45,7 +63,7 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller }) => {
         }
 
         localStreamRef.current = stream;
-        if (localVideoRef.current) {
+        if (localVideoRef.current && stream.getTracks().length > 0) {
           localVideoRef.current.srcObject = stream;
         }
 

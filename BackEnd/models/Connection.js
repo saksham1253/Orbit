@@ -16,6 +16,10 @@ const connectionSchema = new mongoose.Schema({
         ref: "Skill",
         required: true
     },
+    message: {
+        type: String,
+        default: ""
+    },
     status: {
         type: String,
         enum: ["pending", "accepted", "declined"],

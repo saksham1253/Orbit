@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import { motion } from 'framer-motion';
-import { Check, X, Video, Star, Clock, UserCheck } from 'lucide-react';
+import { Check, X, Video, Star, Clock, UserCheck, Trash2, MessageSquare, MessageCircle } from 'lucide-react';
 import api from '../../services/api';
 import Avatar from '../common/Avatar';
 import { useUIStore } from '../../store/uiStore';
@@ -93,6 +93,21 @@ const ConnectionCard = ({ connection, type, onRate, onViewRatings }) => {
     onError: (err) => addToast(err.response?.data?.message || 'Failed', 'error'),
   });
 
+  const cancelMutation = useMutation({
+    mutationFn: () => api.delete(`/connections/cancel/${connection._id}`),
+    onSuccess: () => {
+      addToast('Request cancelled', 'success');
+      queryClient.invalidateQueries({ queryKey: ['connections'] });
+    },
+    onError: (err) => addToast(err.response?.data?.message || 'Failed to cancel', 'error'),
+  });
+
+  const handleCancel = () => {
+    if (window.confirm('Cancel this swap request?')) {
+      cancelMutation.mutate();
+    }
+  };
+
   return (
     <motion.div
       className="skill-card p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
@@ -129,6 +144,14 @@ const ConnectionCard = ({ connection, type, onRate, onViewRatings }) => {
             {isOutgoing && <>You requested to exchange{' '}<span className="text-secondary">{connection.skill?.skillOffered}</span></>}
             {isEstablished && <>Connected via{' '}<span className="text-white/70">{connection.skill?.skillOffered}</span></>}
           </p>
+
+          {/* Show swap request message */}
+          {connection.message && (isIncoming || isOutgoing) && (
+            <p className="text-xs text-white/30 mt-1 italic flex items-start gap-1">
+              <MessageSquare size={10} className="mt-0.5 flex-shrink-0" />
+              &ldquo;{connection.message}&rdquo;
+            </p>
+          )}
 
           <p className="text-xs text-white/25 mt-1 flex items-center gap-1">
             <Clock size={10} />
@@ -169,15 +192,54 @@ const ConnectionCard = ({ connection, type, onRate, onViewRatings }) => {
         )}
 
         {isOutgoing && (
-          <span className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium"
-            style={{ background: 'rgba(255,184,0,0.1)', border: '1px solid rgba(255,184,0,0.25)', color: '#ffb800' }}
-          >
-            <Clock size={14} /> Pending
-          </span>
+          <div className="flex items-center gap-2">
+            {/* Status badge */}
+            {connection.status === 'pending' && (
+              <span className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium"
+                style={{ background: 'rgba(255,184,0,0.1)', border: '1px solid rgba(255,184,0,0.25)', color: '#ffb800' }}
+              >
+                <Clock size={14} /> Pending
+              </span>
+            )}
+            {connection.status === 'accepted' && (
+              <span className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium"
+                style={{ background: 'rgba(0,229,160,0.1)', border: '1px solid rgba(0,229,160,0.25)', color: '#00e5a0' }}
+              >
+                <Check size={14} /> Accepted
+              </span>
+            )}
+            {connection.status === 'declined' && (
+              <span className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium"
+                style={{ background: 'rgba(255,75,75,0.1)', border: '1px solid rgba(255,75,75,0.25)', color: '#ff4b4b' }}
+              >
+                <X size={14} /> Declined
+              </span>
+            )}
+            {/* Cancel button only for pending */}
+            {connection.status === 'pending' && (
+              <button
+                onClick={handleCancel}
+                disabled={cancelMutation.isPending}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-white/50 hover:text-danger hover:bg-danger/10 border border-white/08 transition-all disabled:opacity-50"
+                title="Cancel this request"
+              >
+                <Trash2 size={14} /> Cancel
+              </button>
+            )}
+          </div>
         )}
 
         {isEstablished && (
           <>
+            <button
+              onClick={() => {
+                // Dispatch event so Navbar can open ChatDrawer with this user
+                window.dispatchEvent(new CustomEvent('open-chat', { detail: other }));
+              }}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-white/50 hover:text-accent hover:bg-accent/10 border border-white/08 transition-all"
+            >
+              <MessageCircle size={15} /> Chat
+            </button>
             <button
               onClick={() => onRate?.(other?._id)}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-white/60 hover:text-amber hover:bg-amber/10 border border-white/08 transition-all"
