@@ -18,7 +18,7 @@ const Settings = () => {
     reset,
   } = useAppearanceStore();
 
-  const { isDark, toggleTheme } = useThemeStore();
+  const { isDark, toggleTheme, setTheme: setGlobalMode } = useThemeStore();
   const { addToast } = useUIStore();
   const { toggle, isEnabled, playClick, playSuccess, toggleMusic, isMusicEnabled } = useSound();
   const [soundsEnabled, setSoundsEnabled] = useState(isEnabled());
@@ -63,17 +63,11 @@ const Settings = () => {
       {/* Header */}
       <div>
         <h1
-          className="text-3xl font-display font-bold"
-          style={{
-            background: 'linear-gradient(135deg,#00c6ff,#7c3aed)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-          }}
+          className="text-3xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500"
         >
           Appearance Settings
         </h1>
-        <p className="text-white/40 mt-1 text-sm">
+        <p className="text-slate-400 mt-1 text-sm">
           Customize your SkillSwap visual experience
         </p>
       </div>
@@ -82,13 +76,9 @@ const Settings = () => {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="p-6 rounded-2xl space-y-5"
-        style={{
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.08)',
-        }}
+        className="p-6 rounded-2xl space-y-5 bg-white/5 border border-white/10"
       >
-        <h2 className="font-display font-bold text-white text-base flex items-center gap-2">
+        <h2 className="font-display font-bold text-slate-900 dark:text-white text-base flex items-center gap-2">
           <Eye size={15} className="text-accent" /> Background Style
         </h2>
 
@@ -102,14 +92,12 @@ const Settings = () => {
                   playClick();
                   setBackgroundStyle(key);
                 }}
-                className="group relative p-4 rounded-xl text-left transition-all"
+                className="group relative p-4 rounded-xl text-left transition-all bg-white/5 border border-white/10"
                 style={{
                   background: active
                     ? 'rgba(0,198,255,0.1)'
-                    : 'rgba(255,255,255,0.03)',
-                  border: `1px solid ${
-                    active ? 'rgba(0,198,255,0.4)' : 'rgba(255,255,255,0.08)'
-                  }`,
+                    : undefined,
+                  border: active ? '1px solid rgba(0,198,255,0.4)' : undefined,
                 }}
               >
                 {active && (
@@ -153,11 +141,15 @@ const Settings = () => {
               return (
                 <button
                   key={key}
-                  onClick={() => { playClick(); setTheme(key); }}
-                  className="relative p-4 rounded-xl text-left transition-all"
+                  onClick={() => { 
+                    playClick(); 
+                    setTheme(key); 
+                    setGlobalMode(true); 
+                  }}
+                  className="relative p-4 rounded-xl text-left transition-all bg-white/5 border border-white/10"
                   style={{
-                    background: active ? 'rgba(0,198,255,0.1)' : 'rgba(255,255,255,0.03)',
-                    border: `1px solid ${active ? 'rgba(0,198,255,0.4)' : 'rgba(255,255,255,0.08)'}`,
+                    background: active ? 'rgba(0,198,255,0.1)' : undefined,
+                    border: active ? '1px solid rgba(0,198,255,0.4)' : undefined,
                   }}
                 >
                   {active && (
@@ -189,11 +181,15 @@ const Settings = () => {
               return (
                 <button
                   key={key}
-                  onClick={() => { playClick(); setTheme(key); }}
-                  className="relative p-4 rounded-xl text-left transition-all"
+                  onClick={() => { 
+                    playClick(); 
+                    setTheme(key); 
+                    setGlobalMode(false); 
+                  }}
+                  className="relative p-4 rounded-xl text-left transition-all bg-white/5 border border-white/10"
                   style={{
-                    background: active ? 'rgba(0,198,255,0.1)' : 'rgba(255,255,255,0.03)',
-                    border: `1px solid ${active ? 'rgba(0,198,255,0.4)' : 'rgba(255,255,255,0.08)'}`,
+                    background: active ? 'rgba(0,198,255,0.1)' : undefined,
+                    border: active ? '1px solid rgba(0,198,255,0.4)' : undefined,
                   }}
                 >
                   {active && (
@@ -240,14 +236,10 @@ const Settings = () => {
                   playClick();
                   setAnimationSpeed(key);
                 }}
-                className="relative p-3 rounded-xl text-center transition-all"
+                className="relative p-3 rounded-xl text-center transition-all bg-white/5 border border-white/10"
                 style={{
-                  background: active
-                    ? 'rgba(0,198,255,0.1)'
-                    : 'rgba(255,255,255,0.03)',
-                  border: `1px solid ${
-                    active ? 'rgba(0,198,255,0.4)' : 'rgba(255,255,255,0.08)'
-                  }`,
+                  background: active ? 'rgba(0,198,255,0.1)' : undefined,
+                  border: active ? '1px solid rgba(0,198,255,0.4)' : undefined,
                 }}
               >
                 {active && (

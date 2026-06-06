@@ -585,24 +585,28 @@ const BackgroundEffects = memo(() => {
         />
       )}
       
-      {/* Dynamic layer based on style */}
-      {backgroundStyle === 'constellation' && (
-        <ConstellationCanvas colors={colors} speedMultiplier={speedMultiplier} isDark={isDark} />
-      )}
-      {backgroundStyle === 'mesh' && (
-        <MeshBackground colors={colors} speedMultiplier={speedMultiplier} isDark={isDark} />
-      )}
-      {backgroundStyle === 'particles' && (
-        <ParticlesCanvas colors={colors} speedMultiplier={speedMultiplier} isDark={isDark} />
-      )}
-      {backgroundStyle === 'matrix' && (
-        <MatrixCanvas colors={colors} speedMultiplier={speedMultiplier} />
-      )}
-      {backgroundStyle === 'waves' && (
-        <WavesCanvas colors={colors} speedMultiplier={speedMultiplier} isDark={isDark} />
-      )}
-      {backgroundStyle === 'neural' && (
-        <NeuralCanvas colors={colors} speedMultiplier={speedMultiplier} isDark={isDark} />
+      {/* Dynamic layer based on style - ONLY IN DARK MODE */}
+      {isDark && (
+        <>
+          {backgroundStyle === 'constellation' && (
+            <ConstellationCanvas colors={colors} speedMultiplier={speedMultiplier} isDark={isDark} />
+          )}
+          {backgroundStyle === 'mesh' && (
+            <MeshBackground colors={colors} speedMultiplier={speedMultiplier} isDark={isDark} />
+          )}
+          {backgroundStyle === 'particles' && (
+            <ParticlesCanvas colors={colors} speedMultiplier={speedMultiplier} isDark={isDark} />
+          )}
+          {backgroundStyle === 'matrix' && (
+            <MatrixCanvas colors={colors} speedMultiplier={speedMultiplier} />
+          )}
+          {backgroundStyle === 'waves' && (
+            <WavesCanvas colors={colors} speedMultiplier={speedMultiplier} isDark={isDark} />
+          )}
+          {backgroundStyle === 'neural' && (
+            <NeuralCanvas colors={colors} speedMultiplier={speedMultiplier} isDark={isDark} />
+          )}
+        </>
       )}
     </>
   );
