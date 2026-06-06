@@ -95,8 +95,8 @@
 
 /* Optimized ripple - using transform and will-change */
 @keyframes ripple {
-  0%   { transform: scale(0.8) translateZ(0); opacity: 1; }
-  100% { transform: scale(2.5) translateZ(0); opacity: 0; }
+  0%   { transform: translate(-50%, -50%) scale(0.8) translateZ(0); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(2.5) translateZ(0); opacity: 0; }
 }
 
 @keyframes float {
@@ -395,7 +395,7 @@
   border: 2px solid rgba(0, 198, 255, 0.4);
   animation: ripple 4.5s ease-out infinite;
   will-change: transform, opacity;
-  transform: translateZ(0);
+  transform: translate(-50%, -50%) translateZ(0);
   backface-visibility: hidden;
 }
 
