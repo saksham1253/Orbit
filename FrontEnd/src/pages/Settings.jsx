@@ -142,52 +142,76 @@ const Settings = () => {
           <Palette size={15} className="text-accent" /> Color Theme
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {Object.entries(THEMES).map(([key, themeData]) => {
-            const active = theme === key;
-            return (
-              <button
-                key={key}
-                onClick={() => {
-                  playClick();
-                  setTheme(key);
-                }}
-                className="relative p-4 rounded-xl text-left transition-all"
-                style={{
-                  background: active
-                    ? 'rgba(0,198,255,0.1)'
-                    : 'rgba(255,255,255,0.03)',
-                  border: `1px solid ${
-                    active ? 'rgba(0,198,255,0.4)' : 'rgba(255,255,255,0.08)'
-                  }`,
-                }}
-              >
-                {active && (
-                  <div className="absolute top-3 right-3">
-                    <Check size={14} className="text-accent" strokeWidth={3} />
+        {/* Dark Themes */}
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'rgba(255,255,255,0.3)' }}>
+            🌑 Dark Themes
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {Object.entries(THEMES).filter(([, t]) => t.mode === 'dark').map(([key, themeData]) => {
+              const active = theme === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => { playClick(); setTheme(key); }}
+                  className="relative p-4 rounded-xl text-left transition-all"
+                  style={{
+                    background: active ? 'rgba(0,198,255,0.1)' : 'rgba(255,255,255,0.03)',
+                    border: `1px solid ${active ? 'rgba(0,198,255,0.4)' : 'rgba(255,255,255,0.08)'}`,
+                  }}
+                >
+                  {active && (
+                    <div className="absolute top-3 right-3">
+                      <Check size={14} className="text-accent" strokeWidth={3} />
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 mb-3">
+                    {themeData.colors.map((color, i) => (
+                      <div key={i} className="w-6 h-6 rounded-full shadow-md" style={{ background: color }} />
+                    ))}
                   </div>
-                )}
-                
-                {/* Color swatches */}
-                <div className="flex items-center gap-2 mb-3">
-                  {themeData.colors.map((color, i) => (
-                    <div
-                      key={i}
-                      className="w-6 h-6 rounded-full"
-                      style={{ background: color }}
-                    />
-                  ))}
-                </div>
+                  <div className="text-sm font-bold text-white mb-1">{themeData.name}</div>
+                  <div className="text-xs text-white/40">{themeData.description}</div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-                <div className="text-sm font-bold text-white mb-1">
-                  {themeData.name}
-                </div>
-                <div className="text-xs text-white/40">
-                  {themeData.description}
-                </div>
-              </button>
-            );
-          })}
+        {/* Light Themes */}
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'rgba(255,255,255,0.3)' }}>
+            ☀️ Light Themes
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {Object.entries(THEMES).filter(([, t]) => t.mode === 'light').map(([key, themeData]) => {
+              const active = theme === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => { playClick(); setTheme(key); }}
+                  className="relative p-4 rounded-xl text-left transition-all"
+                  style={{
+                    background: active ? 'rgba(0,198,255,0.1)' : 'rgba(255,255,255,0.03)',
+                    border: `1px solid ${active ? 'rgba(0,198,255,0.4)' : 'rgba(255,255,255,0.08)'}`,
+                  }}
+                >
+                  {active && (
+                    <div className="absolute top-3 right-3">
+                      <Check size={14} className="text-accent" strokeWidth={3} />
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 mb-3">
+                    {themeData.colors.map((color, i) => (
+                      <div key={i} className="w-6 h-6 rounded-full shadow-md" style={{ background: color, border: '1px solid rgba(0,0,0,0.08)' }} />
+                    ))}
+                  </div>
+                  <div className="text-sm font-bold text-white mb-1">{themeData.name}</div>
+                  <div className="text-xs text-white/40">{themeData.description}</div>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </motion.div>
 

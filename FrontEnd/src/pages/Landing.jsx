@@ -158,23 +158,28 @@ const Landing = () => {
         {/* Floating skill pills */}
         {PILLS.map((p) => <FloatingPill key={p.label} {...p} />)}
 
-        {/* Ripple rings positioned to the side (not center) */}
-        <div className="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div
-              key={i}
-              className="ripple-ring absolute"
-              style={{
-                width: 150 + i * 150,
-                height: 150 + i * 150,
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                animationDelay: `${(i - 1) * 0.8}s`,
-                opacity: 0.06,
-              }}
-            />
-          ))}
+        {/* Ripple rings — centered with negative margins so CSS animation (transform) doesn't break centering */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {[1, 2, 3, 4, 5].map((i) => {
+            const size = 120 + i * 120;
+            return (
+              <div
+                key={i}
+                className="ripple-ring"
+                style={{
+                  width: size,
+                  height: size,
+                  position: 'absolute',
+                  top: '50%',
+                  left: '30%',
+                  marginTop: -(size / 2),
+                  marginLeft: -(size / 2),
+                  animationDelay: `${(i - 1) * 0.9}s`,
+                  opacity: 0.12,
+                }}
+              />
+            );
+          })}
         </div>
 
         {/* Hero content - removed scroll transforms for performance */}

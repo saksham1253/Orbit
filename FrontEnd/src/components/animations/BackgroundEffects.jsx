@@ -1,5 +1,6 @@
 import { useEffect, useRef, memo } from 'react';
 import useAppearanceStore from '../../store/appearanceStore';
+import { useThemeStore } from '../../store/themeStore';
 
 /* ─────────────────────────────────────────────────────
    Constellation: Dynamic animated graph with nodes
@@ -537,18 +538,27 @@ NeuralCanvas.displayName = 'NeuralCanvas';
 ───────────────────────────────────────────────────── */
 const BackgroundEffects = memo(() => {
   const { backgroundStyle, getColors, getSpeedMultiplier } = useAppearanceStore();
+  const { isDark } = useThemeStore();
   const colors = getColors();
   const speedMultiplier = getSpeedMultiplier();
 
-  // Create gradient from colors
-  const gradientBg = `
+  // Dark mode: deep space gradient. Light mode: airy pastel gradient.
+  const darkGradientBg = `
     radial-gradient(ellipse 100% 70% at 50% 0%, ${colors[0]}14 0%, transparent 50%),
     radial-gradient(ellipse 80% 60% at 20% 100%, ${colors[1]}10 0%, transparent 50%),
     radial-gradient(ellipse 80% 60% at 80% 100%, ${colors[2]}10 0%, transparent 50%),
     #060810
   `;
 
-  const minimalBg = '#060810';
+  const lightGradientBg = `
+    radial-gradient(ellipse 120% 60% at 50% -10%, ${colors[0]}22 0%, transparent 55%),
+    radial-gradient(ellipse 70% 50% at 10% 80%, ${colors[1]}18 0%, transparent 50%),
+    radial-gradient(ellipse 70% 50% at 90% 70%, ${colors[2]}18 0%, transparent 50%),
+    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(255,255,255,0.6) 0%, transparent 80%),
+    #eef2ff
+  `;
+
+  const minimalBg = isDark ? '#060810' : '#f0f4ff';
 
   return (
     <>
@@ -557,28 +567,42 @@ const BackgroundEffects = memo(() => {
         className="fixed inset-0 pointer-events-none"
         style={{
           zIndex: -1,
-          background: backgroundStyle === 'minimal' ? minimalBg : gradientBg,
+          background: backgroundStyle === 'minimal' ? minimalBg : (isDark ? darkGradientBg : lightGradientBg),
         }}
       />
+
+      {/* Noise texture overlay for depth - only in light mode */}
+      {!isDark && (
+        <div
+          className="fixed inset-0 pointer-events-none"
+          style={{
+            zIndex: -1,
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E")`,
+            backgroundRepeat: 'repeat',
+            backgroundSize: '256px 256px',
+            opacity: 0.6,
+          }}
+        />
+      )}
       
       {/* Dynamic layer based on style */}
       {backgroundStyle === 'constellation' && (
-        <ConstellationCanvas colors={colors} speedMultiplier={speedMultiplier} />
+        <ConstellationCanvas colors={colors} speedMultiplier={speedMultiplier} isDark={isDark} />
       )}
       {backgroundStyle === 'mesh' && (
-        <MeshBackground colors={colors} speedMultiplier={speedMultiplier} />
+        <MeshBackground colors={colors} speedMultiplier={speedMultiplier} isDark={isDark} />
       )}
       {backgroundStyle === 'particles' && (
-        <ParticlesCanvas colors={colors} speedMultiplier={speedMultiplier} />
+        <ParticlesCanvas colors={colors} speedMultiplier={speedMultiplier} isDark={isDark} />
       )}
       {backgroundStyle === 'matrix' && (
         <MatrixCanvas colors={colors} speedMultiplier={speedMultiplier} />
       )}
       {backgroundStyle === 'waves' && (
-        <WavesCanvas colors={colors} speedMultiplier={speedMultiplier} />
+        <WavesCanvas colors={colors} speedMultiplier={speedMultiplier} isDark={isDark} />
       )}
       {backgroundStyle === 'neural' && (
-        <NeuralCanvas colors={colors} speedMultiplier={speedMultiplier} />
+        <NeuralCanvas colors={colors} speedMultiplier={speedMultiplier} isDark={isDark} />
       )}
     </>
   );
