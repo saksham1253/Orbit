@@ -165,8 +165,8 @@ const Landing = () => {
               key={i}
               className="ripple-ring absolute"
               style={{
-                width: 400 + i * 250,
-                height: 400 + i * 250,
+                width: 150 + i * 150,
+                height: 150 + i * 150,
                 top: '50%',
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
