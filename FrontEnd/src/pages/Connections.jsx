@@ -140,7 +140,7 @@ const Connections = () => {
       <div className="space-y-4">
         {activeTab === 'established' && (
           <>
-            {loadingEstablished && <LoadingSkeleton count={3} type="text" />}
+            {loadingEstablished && <LoadingSkeleton count={3} type="connection" />}
             {establishedError && <ErrorState message="Failed to load connections." onRetry={refetchEstablished} />}
             {!loadingEstablished && !establishedError && connectionsList.length === 0 && (
               <EmptyState
@@ -163,7 +163,7 @@ const Connections = () => {
 
         {activeTab === 'incoming' && (
           <>
-            {loadingPending && <LoadingSkeleton count={3} type="text" />}
+            {loadingPending && <LoadingSkeleton count={3} type="connection" />}
             {pendingError && <ErrorState message="Failed to load requests." onRetry={refetchPending} />}
             {!loadingPending && !pendingError && incomingReqs.length === 0 && (
               <EmptyState
@@ -186,7 +186,7 @@ const Connections = () => {
 
         {activeTab === 'outgoing' && (
           <>
-            {loadingPending && <LoadingSkeleton count={3} type="text" />}
+            {loadingPending && <LoadingSkeleton count={3} type="connection" />}
             {pendingError && <ErrorState message="Failed to load requests." onRetry={refetchPending} />}
             {!loadingPending && !pendingError && outgoingReqs.length === 0 && (
               <EmptyState
@@ -206,7 +206,7 @@ const Connections = () => {
 
         {activeTab === 'completed' && (
           <>
-            {loadingCompleted && <LoadingSkeleton count={3} type="text" />}
+            {loadingCompleted && <LoadingSkeleton count={3} type="connection" />}
             {completedError && <ErrorState message="Failed to load completed swaps." onRetry={refetchCompleted} />}
             {!loadingCompleted && !completedError && completedList.length === 0 && (
               <EmptyState

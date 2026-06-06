@@ -158,28 +158,56 @@ const Landing = () => {
         {/* Floating skill pills */}
         {PILLS.map((p) => <FloatingPill key={p.label} {...p} />)}
 
-        {/* Ripple rings — shifting origins, bottom-right of hero */}
+        {/* ── Ripples: Apple-level composition ─────────────────────────────
+            Two ripple origins create diagonal tension across the canvas.
+            Primary: just beyond the right edge — sweeping arcs flow inward.
+            Secondary: top-left corner, partially off-screen — a ghost arc.
+            Like two stones dropped in still water at opposite corners.
+        ─────────────────────────────────────────────────────────────────── */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {[1, 2, 3, 4, 5].map((i) => {
-            const size = 100 + i * 110;
-            // Each ring shifts its origin slightly to create an organic "spreading" feel
-            const shiftX = (i - 1) * 18;
-            const shiftY = (i - 1) * -14;
+
+          {/* PRIMARY — right edge origin, larger rings, prominent */}
+          {[1, 2, 3, 4, 5, 6].map((i) => {
+            const size = 140 + i * 105;
             return (
               <div
-                key={i}
+                key={`r-${i}`}
                 className="ripple-ring"
                 style={{
                   width: size,
                   height: size,
                   position: 'absolute',
-                  // Anchor: right side, just above the bottom of the hero section
-                  bottom: `12%`,
-                  right: `8%`,
-                  marginBottom: -(size / 2) + shiftY,
-                  marginRight: -(size / 2) + shiftX,
-                  animationDelay: `${(i - 1) * 0.85}s`,
-                  opacity: 0.15,
+                  top: '58%',
+                  right: '-2%',
+                  marginTop: -(size / 2),
+                  marginRight: -(size / 2),
+                  animationDelay: `${(i - 1) * 0.75}s`,
+                  opacity: 0.13 - i * 0.01,
+                  borderColor: 'rgba(0, 198, 255, 0.55)',
+                }}
+              />
+            );
+          })}
+
+          {/* SECONDARY — top-left ghost, much smaller + subtler */}
+          {[1, 2, 3].map((i) => {
+            const size = 180 + i * 120;
+            return (
+              <div
+                key={`l-${i}`}
+                className="ripple-ring"
+                style={{
+                  width: size,
+                  height: size,
+                  position: 'absolute',
+                  top: '-5%',
+                  left: '-4%',
+                  marginTop: -(size / 2),
+                  marginLeft: -(size / 2),
+                  animationDelay: `${i * 1.1}s`,
+                  opacity: 0.06,
+                  borderColor: 'rgba(124, 58, 237, 0.5)',
+                  borderWidth: '1px',
                 }}
               />
             );
