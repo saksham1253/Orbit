@@ -204,90 +204,79 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black flex flex-col">
-      {/* Remote video (large) */}
-      <div className="flex-1 relative">
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#000', display: 'flex', flexDirection: 'column', zIndex: 9999 }}>
+      {/* Remote video area */}
+      <div style={{ flex: 1, position: 'relative', overflow: 'hidden', minHeight: 0 }}>
         <video
           ref={remoteVideoRef}
           autoPlay
           playsInline
-          className="w-full h-full object-cover"
+          style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#111' }}
         />
         
         {/* Connecting overlay */}
         {isConnecting && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/80">
-            <div className="text-center">
-              <div className="w-16 h-16 border-4 border-white/20 border-t-accent rounded-full animate-spin mx-auto mb-4" />
-              <p className="text-white text-lg">Connecting...</p>
-              <p className="text-white/50 text-sm mt-2">Waiting for camera permissions</p>
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.88)' }}>
+            <div style={{ textAlign: 'center' }}>
+              <div className="animate-spin" style={{ width: 60, height: 60, border: '4px solid rgba(255,255,255,0.15)', borderTopColor: '#00c6ff', borderRadius: '50%', margin: '0 auto 16px' }} />
+              <p style={{ color: '#fff', fontSize: 18, marginBottom: 8, fontWeight: 600 }}>Connecting...</p>
+              <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 13 }}>Waiting for the other person to join</p>
             </div>
           </div>
         )}
 
-        {/* Local video (small, corner) */}
-        <div className="absolute top-4 right-4 w-48 h-36 rounded-xl overflow-hidden border-2 border-white/20 shadow-2xl">
+        {/* Local video PiP — bottom-right */}
+        <div style={{ position: 'absolute', bottom: 16, right: 16, width: 160, height: 120, borderRadius: 12, overflow: 'hidden', border: '2px solid rgba(255,255,255,0.25)', boxShadow: '0 8px 32px rgba(0,0,0,0.6)', zIndex: 10 }}>
           <video
             ref={localVideoRef}
             autoPlay
             playsInline
             muted
-            className="w-full h-full object-cover mirror"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }}
           />
           {!isVideoEnabled && (
-            <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
-              <VideoOff size={32} className="text-white/50" />
+            <div style={{ position: 'absolute', inset: 0, background: '#1a1a2e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <VideoOff size={28} color="rgba(255,255,255,0.4)" />
             </div>
           )}
         </div>
 
-        {/* Connection status */}
-        <div className="absolute top-4 left-4 flex items-center gap-2 px-4 py-2 rounded-full"
-          style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)' }}>
-          <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-400 animate-pulse' : 'bg-amber'}`} />
-          <span className="text-white text-sm font-medium">
-            {isConnected ? 'Connected' : 'Connecting...'}
+        {/* Connection status badge */}
+        <div style={{ position: 'absolute', top: 16, left: 16, display: 'flex', alignItems: 'center', gap: 8, padding: '6px 14px', borderRadius: 999, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)', zIndex: 10 }}>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: isConnected ? '#22c55e' : '#f59e0b', display: 'inline-block' }} />
+          <span style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>
+            {isConnected ? `Connected · ${otherUser?.name || 'User'}` : 'Waiting for peer...'}
           </span>
         </div>
       </div>
 
-      {/* Controls (bottom) */}
-      <div className="p-6 flex items-center justify-center gap-4"
-        style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)' }}>
-        {/* Mic toggle */}
+      {/* Controls bar — always visible at bottom */}
+      <div style={{ flexShrink: 0, padding: '18px 24px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20, background: 'rgba(0,0,0,0.92)', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+        {/* Mic */}
         <button
           onClick={toggleAudio}
-          className="w-14 h-14 rounded-full flex items-center justify-center transition-all"
-          style={{
-            background: isAudioEnabled ? 'rgba(255,255,255,0.1)' : 'rgba(255,75,75,0.8)',
-            border: '2px solid rgba(255,255,255,0.2)'
-          }}
+          title={isAudioEnabled ? 'Mute mic' : 'Unmute mic'}
+          style={{ width: 56, height: 56, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: isAudioEnabled ? 'rgba(255,255,255,0.12)' : '#ef4444', border: '2px solid rgba(255,255,255,0.18)', cursor: 'pointer', transition: 'background 0.2s' }}
         >
-          {isAudioEnabled ? <Mic size={24} className="text-white" /> : <MicOff size={24} className="text-white" />}
+          {isAudioEnabled ? <Mic size={22} color="#fff" /> : <MicOff size={22} color="#fff" />}
         </button>
 
         {/* End call */}
         <button
           onClick={handleCallEnd}
-          className="w-16 h-16 rounded-full flex items-center justify-center transition-all"
-          style={{
-            background: 'linear-gradient(135deg, #ff0076, #ff4b4b)',
-            boxShadow: '0 4px 20px rgba(255,0,118,0.4)'
-          }}
+          title="End call"
+          style={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #ff0076, #ff4b4b)', boxShadow: '0 4px 24px rgba(255,0,118,0.5)', border: 'none', cursor: 'pointer' }}
         >
-          <PhoneOff size={28} className="text-white" />
+          <PhoneOff size={26} color="#fff" />
         </button>
 
-        {/* Video toggle */}
+        {/* Camera */}
         <button
           onClick={toggleVideo}
-          className="w-14 h-14 rounded-full flex items-center justify-center transition-all"
-          style={{
-            background: isVideoEnabled ? 'rgba(255,255,255,0.1)' : 'rgba(255,75,75,0.8)',
-            border: '2px solid rgba(255,255,255,0.2)'
-          }}
+          title={isVideoEnabled ? 'Turn off camera' : 'Turn on camera'}
+          style={{ width: 56, height: 56, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: isVideoEnabled ? 'rgba(255,255,255,0.12)' : '#ef4444', border: '2px solid rgba(255,255,255,0.18)', cursor: 'pointer', transition: 'background 0.2s' }}
         >
-          {isVideoEnabled ? <VideoIcon size={24} className="text-white" /> : <VideoOff size={24} className="text-white" />}
+          {isVideoEnabled ? <VideoIcon size={22} color="#fff" /> : <VideoOff size={22} color="#fff" />}
         </button>
       </div>
     </div>

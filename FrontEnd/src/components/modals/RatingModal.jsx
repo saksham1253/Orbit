@@ -18,7 +18,6 @@ const RatingModal = ({ isOpen, onClose, otherUser, callDuration }) => {
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const submitRatingMutation = useMutation({
     mutationFn: (data) => api.post('/trust/rate', data),
@@ -43,13 +42,17 @@ const RatingModal = ({ isOpen, onClose, otherUser, callDuration }) => {
       return;
     }
 
-    setIsSubmitting(true);
     submitRatingMutation.mutate({
       userId: otherUser._id,
       rating,
       comment: comment.trim(),
       callDuration,
     });
+  };
+
+  const handleSkip = () => {
+    addToast('Rating skipped.', 'info');
+    onClose();
   };
 
   const handleRatingClick = (value) => {
@@ -162,10 +165,10 @@ const RatingModal = ({ isOpen, onClose, otherUser, callDuration }) => {
         {/* Submit Button */}
         <button
           onClick={handleSubmit}
-          disabled={rating === 0 || comment.trim().length < 10 || isSubmitting}
+          disabled={rating === 0 || comment.trim().length < 10 || submitRatingMutation.isPending}
           className="btn-gradient w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed group"
         >
-          {isSubmitting ? (
+          {submitRatingMutation.isPending ? (
             <>
               <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               Submitting...
@@ -178,9 +181,18 @@ const RatingModal = ({ isOpen, onClose, otherUser, callDuration }) => {
           )}
         </button>
 
+        {/* Skip option */}
+        <button
+          onClick={handleSkip}
+          disabled={submitRatingMutation.isPending}
+          className="w-full text-center text-xs text-white/35 hover:text-white/60 mt-3 py-1 transition-colors"
+        >
+          Skip for now
+        </button>
+
         {/* Required Notice */}
-        <p className="text-center text-xs text-white/40 mt-4">
-          Rating is required to continue using SkillSwap
+        <p className="text-center text-xs text-white/25 mt-2">
+          Rating helps improve the SkillSwap community
         </p>
       </motion.div>
     </div>

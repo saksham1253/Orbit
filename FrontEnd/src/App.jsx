@@ -1,5 +1,5 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { lazy, Suspense, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { lazy, Suspense, useEffect, useState, useCallback } from 'react';
 import { useAuthStore } from './store/authStore';
 import { useNotificationStore } from './store/notificationStore';
 import Layout from './components/layout/Layout';
@@ -7,6 +7,7 @@ import BackgroundEffects from './components/animations/BackgroundEffects';
 import ToastContainer from './components/common/Toast';
 import NotificationSystem from './components/notifications/NotificationSystem';
 import RatingModal from './components/modals/RatingModal';
+import IncomingCallOverlay from './components/modals/IncomingCallOverlay';
 import io from 'socket.io-client';
 
 // Eagerly loaded (first paint)
@@ -49,7 +50,9 @@ const ProtectedRoute = ({ children }) => {
   );
 };
 
-function App() {
+// Inner component so useNavigate is inside Router context
+function AppInner() {
+  const navigate = useNavigate();
   const { user, token } = useAuthStore();
   const {
     notifications,
@@ -62,8 +65,17 @@ function App() {
     notifyUserOffline,
     notifyCallEnded,
     notifySkillMatch,
-    notifyIncomingCall,
   } = useNotificationStore();
+
+  // Incoming call state — drives the full-screen overlay
+  const [incomingCall, setIncomingCall] = useState(null); // { callerName, roomId }
+
+  // Auto-dismiss after 30 s
+  useEffect(() => {
+    if (!incomingCall) return;
+    const timer = setTimeout(() => setIncomingCall(null), 30000);
+    return () => clearTimeout(timer);
+  }, [incomingCall]);
 
   // Socket.IO connection and event listeners
   useEffect(() => {
@@ -76,7 +88,7 @@ function App() {
     socket.emit('register', user._id);
 
     // ──────── Listen to notification events ────────
-    
+
     // Skill match found
     socket.on('skill-match', (data) => {
       notifySkillMatch(data.matchedUser, data.skill);
@@ -97,9 +109,9 @@ function App() {
       notifyUserOffline(data.userName);
     });
 
-    // Incoming video call
+    // Incoming video call — show full-screen overlay instead of a notification
     socket.on('incoming-call', (data) => {
-      notifyIncomingCall(data.callerName, data.roomId);
+      setIncomingCall({ callerName: data.callerName, roomId: data.roomId });
     });
 
     // Call ended - trigger rating modal
@@ -121,19 +133,43 @@ function App() {
     return () => {
       socket.disconnect();
     };
-  }, [token, user, notifyConnectionRequest, notifyConnectionAccepted, notifyUserOffline, notifyCallEnded, notifySkillMatch, notifyIncomingCall]);
+  }, [token, user, notifyConnectionRequest, notifyConnectionAccepted, notifyUserOffline, notifyCallEnded, notifySkillMatch]);
+
+  const handleAcceptCall = useCallback(() => {
+    if (!incomingCall) return;
+    const { roomId } = incomingCall;
+    setIncomingCall(null);
+    navigate(`/call/${roomId}`, { state: { isCaller: false } });
+  }, [incomingCall, navigate]);
+
+  const handleDeclineCall = useCallback(() => {
+    setIncomingCall(null);
+    // Optionally notify caller — for now just dismiss
+  }, []);
+
+  const handleIgnoreCall = useCallback(() => {
+    setIncomingCall(null);
+  }, []);
 
   return (
     <>
       {/* Global background — rendered once, stays behind everything */}
       <BackgroundEffects />
       <ToastContainer />
-      
+
       {/* Notification System */}
       <NotificationSystem
         notifications={notifications}
         onDismiss={dismissNotification}
         onAction={handleNotificationAction}
+      />
+
+      {/* Full-Screen Incoming Call Overlay */}
+      <IncomingCallOverlay
+        call={incomingCall}
+        onAccept={handleAcceptCall}
+        onDecline={handleDeclineCall}
+        onIgnore={handleIgnoreCall}
       />
 
       {/* Rating Modal */}
@@ -146,30 +182,36 @@ function App() {
         />
       )}
 
-      <Router>
-        <Routes>
-          {/* Public */}
-          <Route path="/"               element={<Landing />} />
-          <Route path="/login"          element={<Login />} />
-          <Route path="/register"       element={<Register />} />
-          <Route path="/oauth/callback" element={<OAuthCallback />} />
+      <Routes>
+        {/* Public */}
+        <Route path="/"               element={<Landing />} />
+        <Route path="/login"          element={<Login />} />
+        <Route path="/register"       element={<Register />} />
+        <Route path="/oauth/callback" element={<OAuthCallback />} />
 
-          {/* Protected (lazy-loaded) */}
-          <Route path="/dashboard"   element={<ProtectedRoute><MySkills /></ProtectedRoute>} />
-          <Route path="/browse"      element={<ProtectedRoute><BrowseSkills /></ProtectedRoute>} />
-          <Route path="/matches"     element={<ProtectedRoute><Matches /></ProtectedRoute>} />
-          <Route path="/connections" element={<ProtectedRoute><Connections /></ProtectedRoute>} />
-          <Route path="/profile"     element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          <Route path="/nearby"      element={<ProtectedRoute><NearbyMap /></ProtectedRoute>} />
-          <Route path="/trust"       element={<ProtectedRoute><TrustScore /></ProtectedRoute>} />
-          <Route path="/settings"    element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-          <Route path="/video"       element={<ProtectedRoute><VideoCall /></ProtectedRoute>} />
-          <Route path="/call/:roomId" element={<ProtectedRoute><VideoCall /></ProtectedRoute>} />
+        {/* Protected (lazy-loaded) */}
+        <Route path="/dashboard"   element={<ProtectedRoute><MySkills /></ProtectedRoute>} />
+        <Route path="/browse"      element={<ProtectedRoute><BrowseSkills /></ProtectedRoute>} />
+        <Route path="/matches"     element={<ProtectedRoute><Matches /></ProtectedRoute>} />
+        <Route path="/connections" element={<ProtectedRoute><Connections /></ProtectedRoute>} />
+        <Route path="/profile"     element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/nearby"      element={<ProtectedRoute><NearbyMap /></ProtectedRoute>} />
+        <Route path="/trust"       element={<ProtectedRoute><TrustScore /></ProtectedRoute>} />
+        <Route path="/settings"    element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="/video"       element={<ProtectedRoute><VideoCall /></ProtectedRoute>} />
+        <Route path="/call/:roomId" element={<ProtectedRoute><VideoCall /></ProtectedRoute>} />
 
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Router>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppInner />
+    </Router>
   );
 }
 
