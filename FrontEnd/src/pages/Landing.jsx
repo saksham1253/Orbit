@@ -129,7 +129,14 @@ const Landing = () => {
         <title>SkillSwap — Exchange Skills, Grow Together</title>
         <meta name="description" content="Peer-to-peer skill exchange platform. Teach what you know, learn what you don't. Completely free." />
         <meta property="og:title" content="SkillSwap — Exchange Skills, Grow Together" />
+        <meta property="og:description" content="Join the world's most vibrant peer-to-peer skill exchange network. Share your expertise, unlock new skills, and build genuine connections — completely free." />
+        <meta property="og:image" content="https://react-skill-swap-fully-fledged.vercel.app/og-image.png" />
         <meta property="og:url" content="https://react-skill-swap-fully-fledged.vercel.app/" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="SkillSwap — Exchange Skills, Grow Together" />
+        <meta name="twitter:description" content="Peer-to-peer skill exchange platform. Teach what you know, learn what you don't." />
+        <meta name="twitter:image" content="https://react-skill-swap-fully-fledged.vercel.app/og-image.png" />
         <link rel="canonical" href="https://react-skill-swap-fully-fledged.vercel.app/" />
       </Helmet>
 

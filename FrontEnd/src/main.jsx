@@ -4,6 +4,10 @@ import { HelmetProvider } from 'react-helmet-async';
 import './index.css';
 import App from './App.jsx';
 import ErrorBoundary from './components/common/ErrorBoundary.jsx';
+import { useThemeStore } from './store/themeStore.js';
+
+// Initialize theme on app load
+useThemeStore.getState().initializeTheme();
 
 const queryClient = new QueryClient({
   defaultOptions: {

@@ -78,6 +78,8 @@ const Connections = () => {
         <title>Connections | SkillSwap</title>
         <meta name="description" content="Manage your SkillSwap connections and connection requests." />
         <meta property="og:title" content="Connections | SkillSwap" />
+        <meta property="og:description" content="Manage your network and connection requests on SkillSwap." />
+        <meta property="og:image" content="https://react-skill-swap-fully-fledged.vercel.app/og-image.png" />
         <meta property="og:url" content="https://react-skill-swap-fully-fledged.vercel.app/connections" />
         <link rel="canonical" href="https://react-skill-swap-fully-fledged.vercel.app/connections" />
       </Helmet>

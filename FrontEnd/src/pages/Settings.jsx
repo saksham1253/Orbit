@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
-import { Palette, Zap, Eye, RotateCcw, Check, Volume2, VolumeX } from 'lucide-react';
+import { Palette, Zap, Eye, RotateCcw, Check, Volume2, VolumeX, Moon, Sun } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import useAppearanceStore, { THEMES, BACKGROUND_STYLES, ANIMATION_SPEEDS } from '../store/appearanceStore';
+import { useThemeStore } from '../store/themeStore';
 import { useUIStore } from '../store/uiStore';
 import { useSound } from '../utils/soundManager';
 import { useState } from 'react';
@@ -17,6 +18,7 @@ const Settings = () => {
     reset,
   } = useAppearanceStore();
 
+  const { isDark, toggleTheme } = useThemeStore();
   const { addToast } = useUIStore();
   const { toggle, isEnabled, playClick, playSuccess, toggleMusic, isMusicEnabled } = useSound();
   const [soundsEnabled, setSoundsEnabled] = useState(isEnabled());
@@ -41,6 +43,12 @@ const Settings = () => {
     setMusicEnabled(newState);
     playClick();
     addToast(newState ? 'Ambient music enabled' : 'Ambient music disabled', 'success');
+  };
+
+  const handleToggleDarkMode = () => {
+    const newMode = toggleTheme();
+    playClick();
+    addToast(newMode ? 'Dark mode enabled' : 'Light mode enabled', 'success');
   };
 
   return (
@@ -235,6 +243,33 @@ const Settings = () => {
           Controls background animation speed. "Off" disables animations for better performance.
         </p>
       </motion.div>
+
+      {/* Dark Mode Toggle */}
+      <motion.button
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25 }}
+        onClick={handleToggleDarkMode}
+        className="w-full flex items-center justify-between px-6 py-4 rounded-xl border transition-all"
+        style={{
+          background: isDark ? 'rgba(0,198,255,0.1)' : 'rgba(255,255,255,0.03)',
+          borderColor: isDark ? 'rgba(0,198,255,0.3)' : 'rgba(255,255,255,0.1)',
+        }}
+      >
+        <div className="flex items-center gap-3">
+          {isDark ? <Moon size={18} className="text-accent" /> : <Sun size={18} className="text-amber" />}
+          <div className="text-left">
+            <div className="text-sm font-semibold text-white">Dark Mode</div>
+            <div className="text-xs text-white/40">Toggle between dark and light theme</div>
+          </div>
+        </div>
+        <div className={`w-12 h-6 rounded-full transition-all relative ${isDark ? 'bg-accent' : 'bg-white/10'}`}>
+          <div
+            className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
+            style={{ left: isDark ? '26px' : '2px' }}
+          />
+        </div>
+      </motion.button>
 
       {/* Sound Toggle */}
       <motion.button

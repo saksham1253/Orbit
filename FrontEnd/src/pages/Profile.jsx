@@ -157,6 +157,8 @@ const Profile = () => {
         <title>Your Profile | SkillSwap</title>
         <meta name="description" content="Manage your SkillSwap profile, avatar, and personal details." />
         <meta property="og:title" content="Your Profile | SkillSwap" />
+        <meta property="og:description" content="Customize your SkillSwap profile and connect with learners worldwide." />
+        <meta property="og:image" content="https://react-skill-swap-fully-fledged.vercel.app/og-image.png" />
         <meta property="og:url" content="https://react-skill-swap-fully-fledged.vercel.app/profile" />
         <link rel="canonical" href="https://react-skill-swap-fully-fledged.vercel.app/profile" />
       </Helmet>

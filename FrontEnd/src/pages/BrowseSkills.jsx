@@ -96,7 +96,10 @@ const BrowseSkills = () => {
         <title>Browse Skills | SkillSwap</title>
         <meta name="description" content="Browse and discover skills being taught and learned in the SkillSwap community." />
         <meta property="og:title" content="Browse Skills | SkillSwap" />
+        <meta property="og:description" content="Discover thousands of skills from our global community. Find the perfect skill swap partner." />
+        <meta property="og:image" content="https://react-skill-swap-fully-fledged.vercel.app/og-image.png" />
         <meta property="og:url" content="https://react-skill-swap-fully-fledged.vercel.app/browse" />
+        <meta name="twitter:card" content="summary_large_image" />
         <link rel="canonical" href="https://react-skill-swap-fully-fledged.vercel.app/browse" />
       </Helmet>
       
