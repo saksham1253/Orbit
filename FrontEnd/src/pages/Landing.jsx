@@ -158,10 +158,13 @@ const Landing = () => {
         {/* Floating skill pills */}
         {PILLS.map((p) => <FloatingPill key={p.label} {...p} />)}
 
-        {/* Ripple rings — centered with negative margins so CSS animation (transform) doesn't break centering */}
+        {/* Ripple rings — shifting origins, bottom-right of hero */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           {[1, 2, 3, 4, 5].map((i) => {
-            const size = 120 + i * 120;
+            const size = 100 + i * 110;
+            // Each ring shifts its origin slightly to create an organic "spreading" feel
+            const shiftX = (i - 1) * 18;
+            const shiftY = (i - 1) * -14;
             return (
               <div
                 key={i}
@@ -170,12 +173,13 @@ const Landing = () => {
                   width: size,
                   height: size,
                   position: 'absolute',
-                  top: '50%',
-                  left: '30%',
-                  marginTop: -(size / 2),
-                  marginLeft: -(size / 2),
-                  animationDelay: `${(i - 1) * 0.9}s`,
-                  opacity: 0.12,
+                  // Anchor: right side, just above the bottom of the hero section
+                  bottom: `12%`,
+                  right: `8%`,
+                  marginBottom: -(size / 2) + shiftY,
+                  marginRight: -(size / 2) + shiftX,
+                  animationDelay: `${(i - 1) * 0.85}s`,
+                  opacity: 0.15,
                 }}
               />
             );
