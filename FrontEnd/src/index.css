@@ -403,3 +403,118 @@
 .mirror {
   transform: scaleX(-1);
 }
+
+/* ─── CUSTOM SCROLLBAR ─── */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.12) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.12);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0,198,255,0.4);
+}
+
+/* ─── MOBILE RESPONSIVE ENHANCEMENTS ─── */
+@media (max-width: 640px) {
+  /* Adjust card padding on mobile */
+  .skill-card {
+    padding: 1rem;
+  }
+
+  /* Make glass cards more opaque on mobile for better readability */
+  .glass-card, .skill-card {
+    background: rgba(10, 12, 30, 0.7);
+  }
+
+  /* Smaller font sizes for mobile */
+  .hero-pill {
+    font-size: 11px;
+    padding: 6px 14px;
+  }
+
+  /* Touch-friendly button sizes */
+  .btn-gradient, .btn-gradient-secondary {
+    min-height: 44px;
+    padding: 0.75rem 1.5rem;
+  }
+
+  /* Better input sizing on mobile */
+  .input-glass {
+    font-size: 16px; /* Prevents zoom on iOS */
+    min-height: 44px;
+  }
+
+  /* Auth card takes full width on mobile */
+  .auth-card {
+    max-width: 100%;
+    margin: 1rem;
+  }
+
+  /* Reduce blur effects on mobile for better performance */
+  .glass-card, .auth-card, .input-glass {
+    backdrop-filter: blur(12px) saturate(1.2);
+    -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  }
+}
+
+@media (max-width: 768px) {
+  /* Reduce animation complexity on tablets/mobile */
+  .ripple-ring {
+    animation-duration: 6s;
+  }
+
+  .hero-pill {
+    animation-duration: 6s;
+  }
+
+  /* Smaller glow effects on mobile */
+  .btn-gradient:hover, .btn-gradient-secondary:hover {
+    box-shadow: 0 0 15px rgba(0, 198, 255, 0.3);
+  }
+}
+
+/* ─── SAFE AREA INSETS (for notched devices) ─── */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+}
+
+/* ─── FIX OVERFLOW ISSUES ON MOBILE ─── */
+body, html {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+* {
+  max-width: 100%;
+}
+
+/* ─── TOUCH-FRIENDLY INTERACTIONS ─── */
+@media (hover: none) and (pointer: coarse) {
+  /* Remove hover effects on touch devices */
+  .skill-card:hover {
+    transform: none;
+  }
+
+  /* Make click targets larger */
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}

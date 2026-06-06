@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, MessageCircle, Search, ArrowLeft } from 'lucide-react';
+import { X, Send, MessageCircle, Search, ArrowLeft, Check, CheckCheck, Clock } from 'lucide-react';
 import { formatDistanceToNow, format, isToday, isYesterday } from 'date-fns';
 import api from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
@@ -32,7 +32,8 @@ const ConversationList = ({ onSelect, selectedId }) => {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-4 border-b border-white/10">
+      {/* Search Bar */}
+      <div className="p-4 border-b border-white/8 flex-shrink-0">
         <div className="relative">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
           <input
@@ -40,53 +41,69 @@ const ConversationList = ({ onSelect, selectedId }) => {
             placeholder="Search conversations…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="input-glass w-full pl-9 pr-3 py-2 text-sm text-white"
+            className="input-glass w-full pl-9 pr-3 py-2.5 text-sm text-white placeholder:text-white/30"
+            aria-label="Search conversations"
           />
         </div>
       </div>
 
+      {/* Conversation List */}
       <div className="flex-1 overflow-y-auto custom-scrollbar">
         {isLoading && (
           <div className="flex items-center justify-center py-12 text-white/30 text-sm">
+            <div className="w-5 h-5 border-2 border-white/10 border-t-accent rounded-full animate-spin mr-2"></div>
             Loading…
           </div>
         )}
         {!isLoading && filtered.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-12 gap-3 text-center px-6">
-            <MessageCircle size={32} className="text-white/20" />
-            <p className="text-sm text-white/40">No conversations yet.</p>
-            <p className="text-xs text-white/25">Accept a connection to start chatting.</p>
+          <div className="flex flex-col items-center justify-center py-16 gap-3 text-center px-6">
+            <div className="w-14 h-14 rounded-full flex items-center justify-center bg-white/5 mb-2">
+              <MessageCircle size={24} className="text-white/20" />
+            </div>
+            <p className="text-sm font-medium text-white/50">No conversations yet</p>
+            <p className="text-xs text-white/25 max-w-[200px]">Connect with others to start messaging</p>
           </div>
         )}
-        {filtered.map(convo => (
-          <button
-            key={convo.user._id}
-            onClick={() => onSelect(convo.user)}
-            className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-white/5 ${selectedId === convo.user._id ? 'bg-accent/10 border-l-2 border-accent' : ''}`}
-          >
-            <div className="relative flex-shrink-0">
-              <Avatar name={convo.user.name} url={convo.user.avatar} size="md" userId={convo.user._id} />
-              {convo.unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-accent rounded-full flex items-center justify-center text-xs font-bold text-white">
-                  {convo.unreadCount > 9 ? '9+' : convo.unreadCount}
-                </span>
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-baseline justify-between gap-2">
-                <p className={`font-semibold text-sm truncate ${convo.unreadCount > 0 ? 'text-white' : 'text-white/80'}`}>
-                  {convo.user.name}
-                </p>
-                <span className="text-xs text-white/30 flex-shrink-0">
-                  {convo.lastMessage?.createdAt ? formatTimestamp(convo.lastMessage.createdAt) : ''}
-                </span>
+        {filtered.map(convo => {
+          const isSelected = selectedId === convo.user._id;
+          return (
+            <button
+              key={convo.user._id}
+              onClick={() => onSelect(convo.user)}
+              className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all duration-200 relative ${
+                isSelected 
+                  ? 'bg-accent/10 border-l-2 border-accent' 
+                  : 'hover:bg-white/4 border-l-2 border-transparent'
+              }`}
+              aria-label={`Chat with ${convo.user.name}`}
+            >
+              <div className="relative flex-shrink-0">
+                <Avatar name={convo.user.name} url={convo.user.avatar} size="md" userId={convo.user._id} />
+                {convo.unreadCount > 0 && (
+                  <span 
+                    className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-accent rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-lg"
+                    aria-label={`${convo.unreadCount} unread message${convo.unreadCount > 1 ? 's' : ''}`}
+                  >
+                    {convo.unreadCount > 9 ? '9+' : convo.unreadCount}
+                  </span>
+                )}
               </div>
-              <p className={`text-xs truncate mt-0.5 ${convo.unreadCount > 0 ? 'text-white/60 font-medium' : 'text-white/35'}`}>
-                {convo.lastMessage?.content || ''}
-              </p>
-            </div>
-          </button>
-        ))}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-baseline justify-between gap-2 mb-0.5">
+                  <p className={`font-semibold text-sm truncate ${convo.unreadCount > 0 ? 'text-white' : 'text-white/80'}`}>
+                    {convo.user.name}
+                  </p>
+                  <span className="text-[10px] text-white/30 flex-shrink-0">
+                    {convo.lastMessage?.createdAt ? formatTimestamp(convo.lastMessage.createdAt) : ''}
+                  </span>
+                </div>
+                <p className={`text-xs truncate ${convo.unreadCount > 0 ? 'text-white/70 font-medium' : 'text-white/35'}`}>
+                  {convo.lastMessage?.content || 'No messages yet'}
+                </p>
+              </div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -177,54 +194,77 @@ const ChatWindow = ({ otherUser, onBack }) => {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3.5 border-b border-white/10 flex-shrink-0">
-        <button onClick={onBack} className="sm:hidden text-white/50 hover:text-white transition-colors p-1">
+      <div className="flex items-center gap-3 px-4 py-4 border-b border-white/8 flex-shrink-0 bg-black/20">
+        <button 
+          onClick={onBack} 
+          className="sm:hidden text-white/50 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/10"
+          aria-label="Back to conversations"
+        >
           <ArrowLeft size={18} />
         </button>
-        <Avatar name={otherUser.name} url={otherUser.avatar} size="sm" userId={otherUser._id} />
-        <div className="min-w-0">
+        <Avatar name={otherUser.name} url={otherUser.avatar} size="md" userId={otherUser._id} />
+        <div className="min-w-0 flex-1">
           <p className="font-semibold text-white text-sm truncate">{otherUser.name}</p>
+          <p className="text-[11px] text-white/40">Active now</p>
         </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
         {isLoading && (
-          <div className="flex justify-center py-8 text-white/30 text-sm">Loading messages…</div>
+          <div className="flex justify-center py-12 text-white/30 text-sm">
+            <div className="w-5 h-5 border-2 border-white/10 border-t-accent rounded-full animate-spin mr-2"></div>
+            Loading messages…
+          </div>
         )}
         {!isLoading && messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
-            <MessageCircle size={28} className="text-white/20" />
-            <p className="text-sm text-white/40">No messages yet. Say hello! 👋</p>
+          <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
+            <div className="w-16 h-16 rounded-full flex items-center justify-center bg-white/5 mb-2">
+              <MessageCircle size={28} className="text-white/20" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-white/50 mb-1">No messages yet</p>
+              <p className="text-xs text-white/30">Send a message to start the conversation</p>
+            </div>
           </div>
         )}
         {messages.map((msg, i) => {
           const isMe = msg.sender?._id === user?._id || msg.sender === user?._id;
           const showAvatar = !isMe && (i === 0 || (messages[i - 1]?.sender?._id || messages[i - 1]?.sender) !== (msg.sender?._id || msg.sender));
+          const isLastInGroup = i === messages.length - 1 || 
+            (messages[i + 1]?.sender?._id || messages[i + 1]?.sender) !== (msg.sender?._id || msg.sender);
+          
           return (
             <div key={msg._id || i} className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
               {!isMe && (
-                <div className="w-6 flex-shrink-0">
+                <div className="w-7 flex-shrink-0">
                   {showAvatar && <Avatar name={otherUser.name} url={otherUser.avatar} size="xs" userId={otherUser._id} />}
                 </div>
               )}
-              <div className={`max-w-[75%] flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+              <div className={`max-w-[75%] sm:max-w-[70%] flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
                 <div
-                  className={`px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
+                  className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
                     isMe
-                      ? 'rounded-br-sm text-white'
-                      : 'rounded-bl-sm text-white/90'
+                      ? `rounded-br-sm text-white shadow-lg ${isLastInGroup ? 'rounded-br-md' : ''}`
+                      : `rounded-bl-sm text-white/90 ${isLastInGroup ? 'rounded-bl-md' : ''}`
                   }`}
                   style={isMe
-                    ? { background: 'linear-gradient(135deg,#0072ff,#00c6ff)' }
+                    ? { background: 'linear-gradient(135deg,#0072ff,#00c6ff)', boxShadow: '0 2px 8px rgba(0,114,255,0.3)' }
                     : { background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.08)' }
                   }
                 >
                   {msg.content}
                 </div>
-                <span className="text-xs text-white/25 mt-1 px-1">
-                  {msg.createdAt ? formatTimestamp(msg.createdAt) : ''}
-                </span>
+                {isLastInGroup && (
+                  <div className="flex items-center gap-1 mt-1 px-1">
+                    <span className="text-[10px] text-white/25">
+                      {msg.createdAt ? formatTimestamp(msg.createdAt) : ''}
+                    </span>
+                    {isMe && (
+                      <CheckCheck size={12} className="text-white/25" />
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           );
@@ -233,21 +273,23 @@ const ChatWindow = ({ otherUser, onBack }) => {
       </div>
 
       {/* Input */}
-      <div className="flex items-center gap-3 px-4 py-3.5 border-t border-white/10 flex-shrink-0">
+      <div className="flex items-end gap-3 px-4 py-4 border-t border-white/8 flex-shrink-0 bg-black/20">
         <textarea
           ref={inputRef}
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Type a message… (Enter to send)"
+          placeholder="Type a message…"
           rows={1}
-          className="flex-1 input-glass px-4 py-2.5 text-sm text-white resize-none leading-relaxed"
-          style={{ maxHeight: 100, overflowY: 'auto' }}
+          className="flex-1 input-glass px-4 py-3 text-sm text-white resize-none leading-relaxed placeholder:text-white/30"
+          style={{ maxHeight: 120, overflowY: 'auto' }}
+          aria-label="Message input"
         />
         <button
           onClick={handleSend}
           disabled={!input.trim()}
-          className="w-10 h-10 rounded-xl btn-gradient flex items-center justify-center flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
+          className="w-11 h-11 rounded-xl btn-gradient flex items-center justify-center flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95"
+          aria-label="Send message"
         >
           <Send size={16} />
         </button>
@@ -270,17 +312,30 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
     if (!isOpen) setSelectedUser(null);
   }, [isOpen]);
 
+  // Prevent body scroll when drawer is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   return (
     <AnimatePresence>
       {isOpen && (
         <>
           {/* Backdrop */}
           <motion.div
-            className="fixed inset-0 bg-black/40 z-[90]"
+            className="fixed inset-0 bg-black/50 z-[90] backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
+            aria-hidden="true"
           />
 
           {/* Drawer */}
@@ -288,22 +343,30 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
             className="fixed right-0 top-0 bottom-0 z-[95] flex flex-col overflow-hidden shadow-2xl"
             style={{
               width: 'min(100vw, 480px)',
-              background: 'rgba(10,10,20,0.97)',
-              backdropFilter: 'blur(24px)',
+              background: 'rgba(8,10,20,0.98)',
+              backdropFilter: 'blur(32px)',
               borderLeft: '1px solid rgba(255,255,255,0.08)',
             }}
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            transition={{ type: 'spring', damping: 35, stiffness: 350 }}
+            role="dialog"
+            aria-label="Chat drawer"
           >
             {/* Drawer Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 flex-shrink-0">
-              <div className="flex items-center gap-2">
-                <MessageCircle size={18} className="text-accent" />
-                <h2 className="font-display font-bold text-white">Messages</h2>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-white/8 flex-shrink-0 bg-black/30">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-accent/10">
+                  <MessageCircle size={16} className="text-accent" />
+                </div>
+                <h2 className="font-display font-bold text-white text-lg">Messages</h2>
               </div>
-              <button onClick={onClose} className="p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors">
+              <button 
+                onClick={onClose} 
+                className="p-2 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-all"
+                aria-label="Close chat"
+              >
                 <X size={18} />
               </button>
             </div>
@@ -311,7 +374,7 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
             {/* Body: two-panel layout on wider widths, single panel on mobile */}
             <div className="flex-1 flex overflow-hidden">
               {/* Left: Conversation List */}
-              <div className={`flex flex-col border-r border-white/10 ${selectedUser ? 'hidden sm:flex sm:w-[45%]' : 'flex w-full sm:w-[45%]'}`}>
+              <div className={`flex flex-col border-r border-white/8 bg-black/20 ${selectedUser ? 'hidden sm:flex sm:w-[45%]' : 'flex w-full sm:w-[45%]'}`}>
                 <ConversationList
                   onSelect={setSelectedUser}
                   selectedId={selectedUser?._id}
@@ -327,8 +390,13 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
                   />
                 ) : (
                   <div className="hidden sm:flex flex-col items-center justify-center h-full gap-4 text-center px-6">
-                    <MessageCircle size={36} className="text-white/15" />
-                    <p className="text-sm text-white/40">Select a conversation to start chatting</p>
+                    <div className="w-16 h-16 rounded-full flex items-center justify-center bg-white/5">
+                      <MessageCircle size={32} className="text-white/15" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-white/50 mb-1">Select a conversation</p>
+                      <p className="text-xs text-white/30">Choose a contact to start chatting</p>
+                    </div>
                   </div>
                 )}
               </div>

@@ -89,6 +89,8 @@ const FeatureCard = ({ icon, title, description, color, delay }) => {
 
 /* ── Main Landing ── */
 const Landing = () => {
+  const navigate = useNavigate();
+  const { token } = useAuthStore();
   const heroRef = useRef(null);
   const { startMusic, stopMusic, isMusicEnabled } = useSound();
   const [quoteIndex, setQuoteIndex] = useState(0);
@@ -281,32 +283,52 @@ const Landing = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.45, duration: 0.6 }}
           >
-            <Link
-              to="/register"
-              className="btn-gradient w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl text-white font-semibold text-base group relative overflow-hidden"
-            >
-              <span className="relative z-10 flex items-center gap-2">
-                Start Your Learning Journey
-                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-              </span>
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                initial={{ x: '-100%' }}
-                animate={{ x: '200%' }}
-                transition={{ duration: 3, repeat: Infinity, repeatDelay: 1 }}
-              />
-            </Link>
-            <Link
-              to="/login"
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl text-white/80 font-medium text-base transition-all hover:text-white hover:border-accent/40"
-              style={{
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                backdropFilter: 'blur(12px)',
-              }}
-            >
-              Sign In
-            </Link>
+            {token ? (
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="btn-gradient w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl text-white font-semibold text-base group relative overflow-hidden"
+              >
+                <span className="relative z-10 flex items-center gap-2">
+                  Go to Dashboard
+                  <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                </span>
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                  initial={{ x: '-100%' }}
+                  animate={{ x: '200%' }}
+                  transition={{ duration: 3, repeat: Infinity, repeatDelay: 1 }}
+                />
+              </button>
+            ) : (
+              <Link
+                to="/register"
+                className="btn-gradient w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl text-white font-semibold text-base group relative overflow-hidden"
+              >
+                <span className="relative z-10 flex items-center gap-2">
+                  Start Your Learning Journey
+                  <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                </span>
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                  initial={{ x: '-100%' }}
+                  animate={{ x: '200%' }}
+                  transition={{ duration: 3, repeat: Infinity, repeatDelay: 1 }}
+                />
+              </Link>
+            )}
+            {!token && (
+              <Link
+                to="/login"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl text-white/80 font-medium text-base transition-all hover:text-white hover:border-accent/40"
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  backdropFilter: 'blur(12px)',
+                }}
+              >
+                Sign In
+              </Link>
+            )}
           </motion.div>
 
           {/* Creative animated skill categories instead of loading stats */}
@@ -475,28 +497,48 @@ const Landing = () => {
               </p>
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link
-                  to="/register"
-                  className="btn-gradient flex items-center gap-2 px-8 py-4 rounded-2xl font-semibold text-white text-base group w-full sm:w-auto justify-center relative overflow-hidden"
-                >
-                  <span className="relative z-10 flex items-center gap-2">
-                    Start Learning Today — Free Forever
-                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                  </span>
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                    initial={{ x: '-100%' }}
-                    animate={{ x: '200%' }}
-                    transition={{ duration: 3, repeat: Infinity, repeatDelay: 1 }}
-                  />
-                </Link>
-                <Link
-                  to="/login"
-                  className="flex items-center gap-2 px-8 py-4 rounded-2xl font-medium text-white/70 hover:text-white text-base transition-all w-full sm:w-auto justify-center hover:border-accent/40"
-                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
-                >
-                  Sign In
-                </Link>
+                {token ? (
+                  <button
+                    onClick={() => navigate('/dashboard')}
+                    className="btn-gradient flex items-center gap-2 px-8 py-4 rounded-2xl font-semibold text-white text-base group w-full sm:w-auto justify-center relative overflow-hidden"
+                  >
+                    <span className="relative z-10 flex items-center gap-2">
+                      Go to Dashboard
+                      <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                    </span>
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                      initial={{ x: '-100%' }}
+                      animate={{ x: '200%' }}
+                      transition={{ duration: 3, repeat: Infinity, repeatDelay: 1 }}
+                    />
+                  </button>
+                ) : (
+                  <>
+                    <Link
+                      to="/register"
+                      className="btn-gradient flex items-center gap-2 px-8 py-4 rounded-2xl font-semibold text-white text-base group w-full sm:w-auto justify-center relative overflow-hidden"
+                    >
+                      <span className="relative z-10 flex items-center gap-2">
+                        Start Learning Today — Free Forever
+                        <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                      </span>
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                        initial={{ x: '-100%' }}
+                        animate={{ x: '200%' }}
+                        transition={{ duration: 3, repeat: Infinity, repeatDelay: 1 }}
+                      />
+                    </Link>
+                    <Link
+                      to="/login"
+                      className="flex items-center gap-2 px-8 py-4 rounded-2xl font-medium text-white/70 hover:text-white text-base transition-all w-full sm:w-auto justify-center hover:border-accent/40"
+                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+                    >
+                      Sign In
+                    </Link>
+                  </>
+                )}
               </div>
 
               {/* Trust badges with enhanced visuals */}
@@ -530,6 +572,9 @@ const Landing = () => {
           </motion.div>
         </div>
       </section>
+
+      {/* ══════════════ FOOTER ══════════════ */}
+      <Footer />
     </div>
   );
 };
