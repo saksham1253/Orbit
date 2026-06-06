@@ -132,10 +132,10 @@ exports.getUserRatings = async (req, res) => {
     try {
         const userId  = req.params.userId;
         const ratings = await Rating.find({ toUser: userId })
-            .populate("fromUser", "name")
+            .populate("fromUser", "name avatar")
             .sort({ createdAt: -1 });
 
-        const user = await User.findById(userId).select("name trustScore averageRating totalRatings isFlagged");
+        const user = await User.findById(userId).select("name avatar trustScore averageRating totalRatings isFlagged");
 
         if (!user) return res.status(404).json({ message: "User not found" });
 
@@ -161,7 +161,7 @@ exports.getMyTrustScore = async (req, res) => {
 
         // Get recent ratings for breakdown
         const ratings = await Rating.find({ toUser: req.user.id })
-            .populate("fromUser", "name")
+            .populate("fromUser", "name avatar")
             .sort({ createdAt: -1 })
             .limit(5);
 

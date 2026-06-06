@@ -3,6 +3,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { motion } from 'framer-motion';
 import api from '../services/api';
 import LoadingSkeleton from '../components/common/LoadingSkeleton';
+import Avatar from '../components/common/Avatar';
 import { Star, ShieldAlert, ShieldCheck, TrendingUp, Activity, Clock, Award } from 'lucide-react';
 
 /* ── SVG ring gauge ── */
@@ -102,9 +103,8 @@ const ReviewCard = ({ r, idx }) => (
     className="p-4 rounded-xl flex gap-4"
     style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
   >
-    <div className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm"
-      style={{ background: 'linear-gradient(135deg,#00c6ff,#7c3aed)', color: 'white' }}>
-      {(r.fromUser?.name || '?')[0].toUpperCase()}
+    <div className="flex-shrink-0 mt-0.5">
+      <Avatar name={r.fromUser?.name || '?'} url={r.fromUser?.avatar} size="md" userId={r.fromUser?._id} />
     </div>
     <div className="flex-1 min-w-0">
       <div className="flex items-center justify-between gap-2 mb-1.5">

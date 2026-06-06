@@ -142,7 +142,7 @@ const UserRatingsModal = ({ user, isOpen, onClose }) => {
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <Avatar name={r.fromUser?.name || '?'} size="sm" userId={r.fromUser?._id} />
+                          <Avatar name={r.fromUser?.name || '?'} url={r.fromUser?.avatar} size="sm" userId={r.fromUser?._id} />
                           <span style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>
                             {r.fromUser?.name || 'Anonymous'}
                           </span>
