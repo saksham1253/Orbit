@@ -121,9 +121,10 @@ const ConnectionCard = ({ connection, type, onRate, onViewRatings }) => {
       <div className="flex items-center gap-4 min-w-0">
         <div className="relative flex-shrink-0">
           <Avatar name={other?.name} url={other?.avatar} size="lg" userId={other?._id} />
-          {isEstablished && (
+          {isEstablished && isOtherUserOnline && (
             <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green rounded-full border-2 border-background"
               style={{ background: '#00e5a0' }}
+              title="Online"
             />
           )}
         </div>
