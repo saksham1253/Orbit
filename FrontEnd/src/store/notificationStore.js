@@ -134,6 +134,24 @@ export const useNotificationStore = create((set, get) => ({
     });
   },
 
+  notifyIncomingCall: (callerName, roomId) => {
+    get().addNotification({
+      type: 'incoming_call',
+      title: 'Incoming Call',
+      message: `${callerName} is calling you for a video session...`,
+      actions: [
+        {
+          label: 'Accept Call',
+          primary: true,
+          handler: () => {
+            window.location.href = `/call/${roomId}`;
+          },
+        },
+      ],
+      duration: 30000, // Ring for 30 seconds
+    });
+  },
+
   notifyCallEnded: (otherUser, callDuration) => {
     // Show notification first
     get().addNotification({

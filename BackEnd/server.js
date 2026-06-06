@@ -41,7 +41,7 @@ const io = new Server(server, {
 app.set("io", io);
 
 // Track online users
-const onlineUsers = new Set();
+const onlineUsers = new Map();
 
 // Socket.IO connection handling
 io.on("connection", (socket) => {
@@ -52,13 +52,17 @@ io.on("connection", (socket) => {
         if (userId) {
             socket.join(`user_${userId}`);
             socket.userId = userId;
-            onlineUsers.add(userId);
+            
+            const currentCount = onlineUsers.get(userId) || 0;
+            onlineUsers.set(userId, currentCount + 1);
             
             // Broadcast updated online users list
-            io.emit("users-online", Array.from(onlineUsers));
-            io.emit("user-online", userId);
+            io.emit("users-online", Array.from(onlineUsers.keys()));
+            if (currentCount === 0) {
+                io.emit("user-online", userId);
+            }
             
-            console.log(`User ${userId} registered on socket ${socket.id}`);
+            console.log(`User ${userId} registered on socket ${socket.id} (count: ${currentCount + 1})`);
         }
     });
 
@@ -108,11 +112,45 @@ io.on("connection", (socket) => {
         
         // Remove user from online list
         if (socket.userId) {
-            onlineUsers.delete(socket.userId);
-            io.emit("users-online", Array.from(onlineUsers));
-            io.emit("user-offline-status", socket.userId);
-            console.log(`User ${socket.userId} went offline`);
+            const currentCount = onlineUsers.get(socket.userId) || 0;
+            if (currentCount > 1) {
+                onlineUsers.set(socket.userId, currentCount - 1);
+                console.log(`User ${socket.userId} disconnected one socket (count: ${currentCount - 1})`);
+            } else {
+                onlineUsers.delete(socket.userId);
+                io.emit("users-online", Array.from(onlineUsers.keys()));
+                io.emit("user-offline-status", socket.userId);
+                console.log(`User ${socket.userId} went offline`);
+            }
         }
+    });
+
+    // WebRTC Signaling
+    socket.on("join-video-room", ({ roomId, userId }) => {
+        socket.join(roomId);
+        socket.to(roomId).emit("user-joined", { userId });
+        console.log(`User ${userId} joined video room ${roomId}`);
+    });
+
+    socket.on("video-offer", ({ roomId, offer }) => {
+        socket.to(roomId).emit("video-offer", { offer });
+    });
+
+    socket.on("video-answer", ({ roomId, answer }) => {
+        socket.to(roomId).emit("video-answer", { answer });
+    });
+
+    socket.on("ice-candidate", ({ roomId, candidate }) => {
+        socket.to(roomId).emit("ice-candidate", { candidate });
+    });
+
+    socket.on("leave-video-room", ({ roomId }) => {
+        socket.leave(roomId);
+        socket.to(roomId).emit("user-left");
+    });
+    
+    socket.on("call-user", ({ roomId, targetUserId, callerName }) => {
+        io.to(`user_${targetUserId}`).emit("incoming-call", { roomId, callerName });
     });
 });
 

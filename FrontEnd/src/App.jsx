@@ -62,6 +62,7 @@ function App() {
     notifyUserOffline,
     notifyCallEnded,
     notifySkillMatch,
+    notifyIncomingCall,
   } = useNotificationStore();
 
   // Socket.IO connection and event listeners
@@ -96,6 +97,11 @@ function App() {
       notifyUserOffline(data.userName);
     });
 
+    // Incoming video call
+    socket.on('incoming-call', (data) => {
+      notifyIncomingCall(data.callerName, data.roomId);
+    });
+
     // Call ended - trigger rating modal
     socket.on('call-ended', (data) => {
       notifyCallEnded(data.otherUser, data.callDuration);
@@ -115,7 +121,7 @@ function App() {
     return () => {
       socket.disconnect();
     };
-  }, [token, user, notifyConnectionRequest, notifyConnectionAccepted, notifyUserOffline, notifyCallEnded, notifySkillMatch]);
+  }, [token, user, notifyConnectionRequest, notifyConnectionAccepted, notifyUserOffline, notifyCallEnded, notifySkillMatch, notifyIncomingCall]);
 
   return (
     <>

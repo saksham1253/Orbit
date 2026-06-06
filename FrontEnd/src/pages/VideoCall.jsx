@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { PhoneOff, Video, Clock, Phone, PhoneIncoming, PhoneMissed, Mic, MicOff, VideoIcon, VideoOff } from 'lucide-react';
@@ -12,7 +12,7 @@ import Avatar from '../components/common/Avatar';
 import io from 'socket.io-client';
 
 /* ── Direct WebRTC Video Call Component ── */
-const DirectVideoCall = ({ roomId, onEnd, otherUser }) => {
+const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller }) => {
   const { user } = useAuthStore();
   const { addToast } = useUIStore();
   
@@ -91,6 +91,14 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser }) => {
 
         // Join room
         socketRef.current.emit('join-video-room', { roomId, userId: user?._id });
+
+        if (isCaller && otherUser) {
+          socketRef.current.emit('call-user', {
+            roomId,
+            targetUserId: otherUser._id,
+            callerName: user?.name
+          });
+        }
 
         // Handle signaling
         socketRef.current.on('user-joined', async ({ userId }) => {
@@ -302,11 +310,13 @@ const CallStatusIcon = ({ status }) => {
 const VideoCall = () => {
   const { roomId } = useParams();
   const navigate   = useNavigate();
+  const location   = useLocation();
   const { user }   = useAuthStore();
   const { addToast } = useUIStore();
   const { openRatingModal, notifyUserOffline } = useNotificationStore();
   const [activeRoom, setActiveRoom] = useState(roomId || null);
-  const [currentOtherUser, setCurrentOtherUser] = useState(null);
+  const [currentOtherUser, setCurrentOtherUser] = useState(location.state?.otherUser || null);
+  const [isCallerState, setIsCallerState] = useState(location.state?.isCaller || false);
   const [onlineUsers, setOnlineUsers] = useState(new Set());
 
   /* Fetch call history */
@@ -372,12 +382,13 @@ const VideoCall = () => {
     }
 
     setCurrentOtherUser(other);
+    setIsCallerState(true);
     setActiveRoom(Date.now().toString()); // Generate unique room ID
   };
 
   /* In an active call */
   if (activeRoom) {
-    return <DirectVideoCall roomId={activeRoom} onEnd={handleEnd} otherUser={currentOtherUser} />;
+    return <DirectVideoCall roomId={activeRoom} onEnd={handleEnd} otherUser={currentOtherUser} isCaller={isCallerState} />;
   }
 
   /* Lobby */

@@ -74,7 +74,7 @@ const ConnectionCard = ({ connection, type, onRate }) => {
       return;
     }
 
-    navigate(`/call/${connection._id}`);
+    navigate(`/call/${connection._id}`, { state: { otherUser: other, isCaller: true } });
   };
 
   const ts = other?.trustScore;
