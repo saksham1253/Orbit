@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
@@ -10,6 +10,8 @@ import {
 import TypeWriter from '../components/animations/TypeWriter';
 import api from '../services/api';
 import { useSound } from '../utils/soundManager';
+import { useAuthStore } from '../store/authStore';
+import Footer from '../components/layout/Footer';
 
 /* ── Motivational quotes that rotate (clean, no emojis) ── */
 const MOTIVATIONAL_QUOTES = [
