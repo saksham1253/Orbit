@@ -26,6 +26,7 @@ const { moderationQueue } = require("./services/queueService");
 const eventEmitter = require("./utils/events");
 
 const app = express();
+app.set("trust proxy", 1); // Trust first proxy (needed for express-rate-limit on Render)
 const server = http.createServer(app);
 
 // Socket.IO setup
