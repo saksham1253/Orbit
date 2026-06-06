@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { ShieldCheck, MapPin, Globe, Star, Mail, Link as LinkIcon, Calendar } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import api from '../services/api';
 import Avatar from '../components/common/Avatar';
 import LoadingSkeleton from '../components/common/LoadingSkeleton';
