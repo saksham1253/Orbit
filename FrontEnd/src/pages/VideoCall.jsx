@@ -312,7 +312,7 @@ const VideoCall = () => {
   const { data: historyData, isLoading } = useQuery({
     queryKey: ['call-history'],
     queryFn: () => api.get('/video/history').then(r => r.data),
-    staleTime: 30_000,
+    refetchInterval: 3000, // Update in real-time
   });
   const calls = historyData?.calls || [];
 

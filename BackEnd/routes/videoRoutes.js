@@ -174,8 +174,8 @@ router.get("/history", auth, async (req, res) => {
         })
             .sort({ createdAt: -1 })
             .limit(50)
-            .populate("caller", "name email")
-            .populate("receiver", "name email");
+            .populate("caller", "name email avatar")
+            .populate("receiver", "name email avatar");
 
         // Mark any old "ringing" calls as "missed" (older than 60s)
         const now = new Date();

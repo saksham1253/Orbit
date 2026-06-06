@@ -72,13 +72,13 @@ exports.requestConnection = async (req, res) => {
 exports.getPendingConnections = async (req, res) => {
     try {
         const incoming = await Connection.find({ receiver: req.user.id, status: "pending" })
-            .populate("requester", "name email trustScore location")
+            .populate("requester", "name email trustScore location avatar")
             .populate("skill", "skillOffered skillWanted level")
             .sort({ createdAt: -1 })
             .lean();
 
         const outgoing = await Connection.find({ requester: req.user.id })
-            .populate("receiver", "name trustScore email")
+            .populate("receiver", "name email trustScore location avatar")
             .populate("skill", "skillOffered")
             .sort({ createdAt: -1 })
             .lean();

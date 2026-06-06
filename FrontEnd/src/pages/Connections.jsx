@@ -43,19 +43,23 @@ const Connections = () => {
     });
   }, [established, user]);
 
-  // Deduplicate incoming/outgoing by connection _id
-  const dedupeById = (list) => {
+  // Deduplicate incoming/outgoing by other user's _id
+  const dedupeByOtherUser = (list) => {
     if (!Array.isArray(list)) return [];
     const seen = new Set();
     return list.filter(item => {
-      if (seen.has(item._id)) return false;
-      seen.add(item._id);
+      const otherId = item.requester?._id?.toString() === user?._id?.toString()
+        ? (item.receiver?._id || item.receiver)
+        : (item.requester?._id || item.requester);
+      const key = otherId?.toString() || item._id;
+      if (seen.has(key)) return false;
+      seen.add(key);
       return true;
     });
   };
 
-  const incomingReqs = dedupeById(pending?.incoming || []);
-  const outgoingReqs = dedupeById(pending?.outgoing || []);
+  const incomingReqs = dedupeByOtherUser(pending?.incoming || []);
+  const outgoingReqs = dedupeByOtherUser(pending?.outgoing || []);
   const connectionsList = establishedList;
 
   const tabs = [
