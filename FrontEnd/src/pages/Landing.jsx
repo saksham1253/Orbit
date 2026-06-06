@@ -130,7 +130,7 @@ const Landing = () => {
       </Helmet>
 
       {/* ══════════════ HERO SECTION ══════════════ */}
-      <section ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-4">
+      <section ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center px-4">
 
         {/* Extra hero gradient burst */}
         <div
