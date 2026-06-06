@@ -1,9 +1,11 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
+import { Helmet } from 'react-helmet-async';
 import api from '../services/api';
 import SkillCard from '../components/skills/SkillCard';
 import LoadingSkeleton from '../components/common/LoadingSkeleton';
+import ErrorState from '../components/common/ErrorState';
 import { useUIStore } from '../store/uiStore';
 import { Search, Compass, SlidersHorizontal, X } from 'lucide-react';
 import UserRatingsModal from '../components/modals/UserRatingsModal';
@@ -16,7 +18,7 @@ const BrowseSkills = () => {
   const [viewRatingsUser, setViewRatingsUser] = useState(null); // { _id, name }
   const { addToast }                  = useUIStore();
 
-  const { data: skills = [], isLoading } = useQuery({
+  const { data: skills = [], isLoading, error, refetch } = useQuery({
     queryKey: ['skills', 'all'],
     queryFn: () => api.get('/skills/all').then(r => r.data),
   });
@@ -44,6 +46,13 @@ const BrowseSkills = () => {
 
   return (
     <div className="space-y-7">
+      <Helmet>
+        <title>Browse Skills | SkillSwap</title>
+        <meta name="description" content="Browse and discover skills being taught and learned in the SkillSwap community." />
+        <meta property="og:title" content="Browse Skills | SkillSwap" />
+        <meta property="og:url" content="https://react-skill-swap-fully-fledged.vercel.app/browse" />
+        <link rel="canonical" href="https://react-skill-swap-fully-fledged.vercel.app/browse" />
+      </Helmet>
       {/* Header */}
       <div>
         <h1 className="text-3xl font-display font-bold flex items-center gap-3"
@@ -91,6 +100,9 @@ const BrowseSkills = () => {
       {!isLoading && (
         <p className="text-xs text-white/30">{filtered.length} skill{filtered.length !== 1 ? 's' : ''} found</p>
       )}
+
+      {/* Error state */}
+      {error && <ErrorState message="Failed to load skills." onRetry={refetch} />}
 
       {/* Grid */}
       {isLoading ? (

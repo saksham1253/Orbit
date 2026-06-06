@@ -1,15 +1,17 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
+import { Helmet } from 'react-helmet-async';
 import api from '../services/api';
 import SkillCard from '../components/skills/SkillCard';
 import LoadingSkeleton from '../components/common/LoadingSkeleton';
+import ErrorState from '../components/common/ErrorState';
 import { useUIStore } from '../store/uiStore';
 import { Handshake, Sparkles } from 'lucide-react';
 
 const Matches = () => {
   const { addToast } = useUIStore();
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['skills', 'matches'],
     queryFn: () => api.get('/skills/matches').then(r => r.data),
   });
@@ -24,6 +26,13 @@ const Matches = () => {
 
   return (
     <div className="space-y-7">
+      <Helmet>
+        <title>Your Matches | SkillSwap</title>
+        <meta name="description" content="See your perfect skill-swap matches — people who teach what you want and want what you teach." />
+        <meta property="og:title" content="Your Matches | SkillSwap" />
+        <meta property="og:url" content="https://react-skill-swap-fully-fledged.vercel.app/matches" />
+        <link rel="canonical" href="https://react-skill-swap-fully-fledged.vercel.app/matches" />
+      </Helmet>
       <div>
         <h1 className="text-3xl font-display font-bold flex items-center gap-3"
           style={{ background: 'linear-gradient(135deg,#00e5a0,#00c6ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
@@ -40,6 +49,9 @@ const Matches = () => {
           <Sparkles size={13} /> {matches.length} perfect match{matches.length !== 1 ? 'es' : ''} found
         </div>
       )}
+
+      {/* Error state */}
+      {error && <ErrorState message="Failed to load matches." onRetry={refetch} />}
 
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

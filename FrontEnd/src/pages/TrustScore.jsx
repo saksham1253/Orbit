@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import { motion } from 'framer-motion';
+import { Helmet } from 'react-helmet-async';
 import api from '../services/api';
 import LoadingSkeleton from '../components/common/LoadingSkeleton';
 import Avatar from '../components/common/Avatar';
@@ -145,6 +146,13 @@ const TrustScore = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
+      <Helmet>
+        <title>Trust & Reputation | SkillSwap</title>
+        <meta name="description" content="View your SkillSwap trust score, reputation metrics, and community feedback." />
+        <meta property="og:title" content="Trust & Reputation | SkillSwap" />
+        <meta property="og:url" content="https://react-skill-swap-fully-fledged.vercel.app/trust" />
+        <link rel="canonical" href="https://react-skill-swap-fully-fledged.vercel.app/trust" />
+      </Helmet>
 
       {/* Header */}
       <div>

@@ -1,12 +1,16 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Helmet } from 'react-helmet-async';
 import api from '../services/api';
 import ConnectionCard from '../components/connections/ConnectionCard';
 import LoadingSkeleton from '../components/common/LoadingSkeleton';
 import Modal from '../components/common/Modal';
 import RatingForm from '../components/trust/RatingForm';
+import ErrorState from '../components/common/ErrorState';
+import EmptyState from '../components/common/EmptyState';
 import { useAuthStore } from '../store/authStore';
 import UserRatingsModal from '../components/modals/UserRatingsModal';
+import { Users, Inbox, Send } from 'lucide-react';
 
 const Connections = () => {
   const [activeTab, setActiveTab] = useState('established');
@@ -14,12 +18,12 @@ const Connections = () => {
   const [viewRatingsUser, setViewRatingsUser] = useState(null); // { _id, name }
   const { user } = useAuthStore();
 
-  const { data: pending, isLoading: loadingPending } = useQuery({
+  const { data: pending, isLoading: loadingPending, error: pendingError, refetch: refetchPending } = useQuery({
     queryKey: ['connections', 'pending'],
     queryFn: () => api.get('/connections/pending').then(res => res.data)
   });
 
-  const { data: established, isLoading: loadingEstablished } = useQuery({
+  const { data: established, isLoading: loadingEstablished, error: establishedError, refetch: refetchEstablished } = useQuery({
     queryKey: ['connections', 'all'],
     queryFn: () => api.get('/connections/all').then(res => res.data)
   });
@@ -70,6 +74,13 @@ const Connections = () => {
 
   return (
     <div className="space-y-6">
+      <Helmet>
+        <title>Connections | SkillSwap</title>
+        <meta name="description" content="Manage your SkillSwap connections and connection requests." />
+        <meta property="og:title" content="Connections | SkillSwap" />
+        <meta property="og:url" content="https://react-skill-swap-fully-fledged.vercel.app/connections" />
+        <link rel="canonical" href="https://react-skill-swap-fully-fledged.vercel.app/connections" />
+      </Helmet>
       <div>
         <h1 className="text-3xl font-display font-bold"
           style={{ background: 'linear-gradient(135deg,#00c6ff,#a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
@@ -106,10 +117,14 @@ const Connections = () => {
         {activeTab === 'established' && (
           <>
             {loadingEstablished && <LoadingSkeleton count={3} type="text" />}
-            {!loadingEstablished && connectionsList.length === 0 && (
-              <div className="py-12 text-center">
-                <p className="text-gray-400">You don't have any established connections yet.</p>
-              </div>
+            {establishedError && <ErrorState message="Failed to load connections." onRetry={refetchEstablished} />}
+            {!loadingEstablished && !establishedError && connectionsList.length === 0 && (
+              <EmptyState
+                icon={<Users size={26} />}
+                title="No connections yet"
+                description="Accept incoming requests or connect with people whose skills align with yours."
+                accentColor="#00c6ff"
+              />
             )}
             {!loadingEstablished && connectionsList.map(conn => (
               <ConnectionCard 
@@ -125,10 +140,14 @@ const Connections = () => {
         {activeTab === 'incoming' && (
           <>
             {loadingPending && <LoadingSkeleton count={3} type="text" />}
-            {!loadingPending && incomingReqs.length === 0 && (
-              <div className="py-12 text-center">
-                <p className="text-gray-400">No pending incoming requests.</p>
-              </div>
+            {pendingError && <ErrorState message="Failed to load requests." onRetry={refetchPending} />}
+            {!loadingPending && !pendingError && incomingReqs.length === 0 && (
+              <EmptyState
+                icon={<Inbox size={26} />}
+                title="No incoming requests"
+                description="When someone sends you a connection request, it will appear here."
+                accentColor="#a855f7"
+              />
             )}
             {!loadingPending && incomingReqs.map(conn => (
               <ConnectionCard
@@ -144,10 +163,16 @@ const Connections = () => {
         {activeTab === 'outgoing' && (
           <>
             {loadingPending && <LoadingSkeleton count={3} type="text" />}
-            {!loadingPending && outgoingReqs.length === 0 && (
-              <div className="py-12 text-center">
-                <p className="text-gray-400">You haven't sent any connection requests.</p>
-              </div>
+            {pendingError && <ErrorState message="Failed to load requests." onRetry={refetchPending} />}
+            {!loadingPending && !pendingError && outgoingReqs.length === 0 && (
+              <EmptyState
+                icon={<Send size={26} />}
+                title="No sent requests"
+                description="Browse skills and send connection requests to start swapping."
+                ctaLabel="Browse Skills"
+                onCta={() => window.location.assign('/browse')}
+                accentColor="#00e5a0"
+              />
             )}
             {!loadingPending && outgoingReqs.map(conn => (
               <ConnectionCard key={conn._id} connection={conn} type="outgoing" />

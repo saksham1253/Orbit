@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
@@ -26,37 +26,70 @@ const Navbar = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const drawerRef = useRef(null);
+  const hamburgerRef = useRef(null);
 
   // Fetch counts for badges
   const { data: pending } = useQuery({
     queryKey: ['connections', 'pending'],
     queryFn: () => api.get('/connections/pending').then(res => res.data),
-    refetchInterval: 30000, // Refresh every 30s
+    refetchInterval: 30000,
   });
 
   const { data: matchesData } = useQuery({
     queryKey: ['matches'],
     queryFn: () => api.get('/skills/matches').then(res => res.data),
-    refetchInterval: 60000, // Refresh every 60s
+    refetchInterval: 60000,
   });
 
   const incomingCount = pending?.incomingCount || 0;
   const matchesCount = Array.isArray(matchesData) ? matchesData.length : 0;
 
-  // Update NAV with badges
   const navWithBadges = NAV.map(item => {
     if (item.path === '/connections') return { ...item, badge: incomingCount };
     if (item.path === '/matches') return { ...item, badge: matchesCount };
     return item;
   });
 
+  // Scroll detection
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', fn, { passive: true });
     return () => window.removeEventListener('scroll', fn);
   }, []);
 
-  const handleLogout = () => { logout(); navigate('/login'); setMobileOpen(false); };
+  // Close on Escape key
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setMobileOpen(false);
+        hamburgerRef.current?.focus(); // return focus to trigger
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [mobileOpen]);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onPointerDown = (e) => {
+      if (
+        drawerRef.current && !drawerRef.current.contains(e.target) &&
+        hamburgerRef.current && !hamburgerRef.current.contains(e.target)
+      ) {
+        setMobileOpen(false);
+      }
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, [mobileOpen]);
+
+  // Close drawer when route changes
+  useEffect(() => { setMobileOpen(false); }, [location.pathname]);
+
+  const handleLogout = () => { logout(); navigate('/login'); };
 
   return (
     <>
@@ -86,7 +119,7 @@ const Navbar = () => {
             </NavLink>
 
             {/* ── Desktop nav pills ── */}
-            <nav className="hidden xl:flex items-center gap-0.5 flex-1 justify-center">
+            <nav className="hidden xl:flex items-center gap-0.5 flex-1 justify-center" aria-label="Main navigation">
               {navWithBadges.map(({ name, path, Icon, badge }) => {
                 const active = location.pathname === path || (path !== '/dashboard' && location.pathname.startsWith(path));
                 return (
@@ -105,7 +138,9 @@ const Navbar = () => {
                     {name}
                     {badge > 0 && (
                       <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 flex items-center justify-center text-[10px] font-bold rounded-full"
-                        style={{ background: 'linear-gradient(135deg,#ff0076,#7c3aed)', color: '#fff', boxShadow: '0 2px 8px rgba(255,0,118,0.4)' }}>
+                        style={{ background: 'linear-gradient(135deg,#ff0076,#7c3aed)', color: '#fff', boxShadow: '0 2px 8px rgba(255,0,118,0.4)' }}
+                        aria-label={`${badge} notification${badge !== 1 ? 's' : ''}`}
+                      >
                         {badge > 99 ? '99+' : badge}
                       </span>
                     )}
@@ -129,19 +164,31 @@ const Navbar = () => {
                 <Avatar name={user?.name} url={user?.avatar} size="xs" userId={user?._id} />
                 <span className="hidden md:block max-w-[80px] truncate">{user?.name?.split(' ')[0]}</span>
               </NavLink>
-              <NavLink to="/settings" title="Settings"
+              <NavLink to="/settings"
+                aria-label="Settings"
+                title="Settings"
                 className="hidden sm:flex items-center justify-center w-8 h-8 rounded-xl text-white/40 hover:text-white transition-all"
                 style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
               >
                 <SettingsIcon size={15} />
               </NavLink>
-              <button onClick={handleLogout} title="Logout"
+              <button
+                onClick={handleLogout}
+                aria-label="Logout"
+                title="Logout"
                 className="flex items-center justify-center w-8 h-8 rounded-xl text-white/40 hover:text-danger transition-all"
                 style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
               >
                 <LogOut size={15} />
               </button>
-              <button onClick={() => setMobileOpen(v => !v)}
+
+              {/* Hamburger */}
+              <button
+                ref={hamburgerRef}
+                onClick={() => setMobileOpen(v => !v)}
+                aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+                aria-expanded={mobileOpen}
+                aria-controls="mobile-nav-drawer"
                 className="xl:hidden flex items-center justify-center w-8 h-8 rounded-xl text-white/60 hover:text-white transition-all"
                 style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
               >
@@ -152,11 +199,18 @@ const Navbar = () => {
         </div>
       </header>
 
-      {/* ── Mobile menu ── */}
+      {/* ── Mobile drawer ── */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+            ref={drawerRef}
+            id="mobile-nav-drawer"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Mobile navigation menu"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.18 }}
             className="fixed top-[72px] left-3 right-3 z-40 rounded-2xl overflow-hidden xl:hidden"
             style={{ background: 'rgba(5,6,16,0.96)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 20px 60px rgba(0,0,0,0.6)' }}
@@ -172,7 +226,9 @@ const Navbar = () => {
                   <Icon size={15} /> {name}
                   {badge > 0 && (
                     <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 flex items-center justify-center text-[10px] font-bold rounded-full"
-                      style={{ background: 'linear-gradient(135deg,#ff0076,#7c3aed)', color: '#fff' }}>
+                      style={{ background: 'linear-gradient(135deg,#ff0076,#7c3aed)', color: '#fff' }}
+                      aria-label={`${badge} notification${badge !== 1 ? 's' : ''}`}
+                    >
                       {badge > 99 ? '99+' : badge}
                     </span>
                   )}

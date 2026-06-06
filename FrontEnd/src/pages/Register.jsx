@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { Link, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
+import { Helmet } from 'react-helmet-async';
 import { Eye, EyeOff, ArrowRight, Sparkles, Check } from 'lucide-react';
 import api from '../services/api';
 import { useUIStore } from '../store/uiStore';
@@ -36,6 +37,7 @@ const registerSchema = z.object({
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm({
     resolver: zodResolver(registerSchema),
+    mode: 'onBlur',
   });
 
   const password = watch('password', '');
@@ -70,6 +72,16 @@ const registerSchema = z.object({
   });
 
   return (
+    <>
+    <Helmet>
+      <title>Create Account | SkillSwap</title>
+      <meta name="description" content="Join SkillSwap and start exchanging skills with peers around the world." />
+      <meta property="og:title" content="Create Account | SkillSwap" />
+      <meta property="og:description" content="Join SkillSwap — peer-to-peer skill exchange platform." />
+      <meta property="og:url" content="https://react-skill-swap-fully-fledged.vercel.app/register" />
+      <meta name="twitter:title" content="Create Account | SkillSwap" />
+      <link rel="canonical" href="https://react-skill-swap-fully-fledged.vercel.app/register" />
+    </Helmet>
     <div className="min-h-screen flex items-center justify-center p-4 relative">
 
       <div className="absolute inset-0 pointer-events-none"
@@ -147,10 +159,14 @@ const registerSchema = z.object({
           </div>
           {/* Name */}
           <div>
-            <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Full Name</label>
+            <label htmlFor="reg-name" className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+              Full Name <span className="text-danger" aria-hidden="true">*</span>
+            </label>
             <input
+              id="reg-name"
               type="text"
               autoComplete="name"
+              aria-required="true"
               {...register('name')}
               className="input-glass w-full px-4 py-3 text-sm text-white"
             />
@@ -159,10 +175,14 @@ const registerSchema = z.object({
 
           {/* Email */}
           <div>
-            <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Email Address</label>
+            <label htmlFor="reg-email" className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+              Email Address <span className="text-danger" aria-hidden="true">*</span>
+            </label>
             <input
+              id="reg-email"
               type="email"
               autoComplete="email"
+              aria-required="true"
               {...register('email')}
               className="input-glass w-full px-4 py-3 text-sm text-white"
             />
@@ -171,11 +191,15 @@ const registerSchema = z.object({
 
           {/* Password + strength + requirements */}
           <div>
-            <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Password</label>
+            <label htmlFor="reg-password" className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+              Password <span className="text-danger" aria-hidden="true">*</span>
+            </label>
             <div className="relative">
               <input
+                id="reg-password"
                 type={showPass ? 'text' : 'password'}
                 autoComplete="new-password"
+                aria-required="true"
                 {...register('password')}
                 className="input-glass w-full px-4 py-3 pr-11 text-sm text-white"
               />
@@ -232,11 +256,15 @@ const registerSchema = z.object({
 
           {/* Confirm Password */}
           <div>
-            <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Confirm Password</label>
+            <label htmlFor="reg-confirm-password" className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+              Confirm Password <span className="text-danger" aria-hidden="true">*</span>
+            </label>
             <div className="relative">
               <input
+                id="reg-confirm-password"
                 type={showConfirmPass ? 'text' : 'password'}
                 autoComplete="new-password"
+                aria-required="true"
                 {...register('confirmPassword')}
                 className="input-glass w-full px-4 py-3 pr-11 text-sm text-white"
               />
@@ -308,6 +336,7 @@ const registerSchema = z.object({
         </p>
       </motion.div>
     </div>
+    </>
   );
 };
 

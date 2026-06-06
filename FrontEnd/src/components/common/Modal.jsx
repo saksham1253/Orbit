@@ -1,8 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Modal = ({ isOpen, onClose, title, children, maxWidth = 'max-w-lg' }) => {
+  const titleId = useId();
+
   useEffect(() => {
     const onEsc = (e) => { if (e.key === 'Escape') onClose(); };
     if (isOpen) {
@@ -27,10 +29,14 @@ const Modal = ({ isOpen, onClose, title, children, maxWidth = 'max-w-lg' }) => {
             className="fixed inset-0"
             style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
             onClick={onClose}
+            aria-hidden="true"
           />
 
           {/* Modal panel */}
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
             initial={{ opacity: 0, scale: 0.94, y: 24 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 16 }}
@@ -53,9 +59,10 @@ const Modal = ({ isOpen, onClose, title, children, maxWidth = 'max-w-lg' }) => {
             <div className="flex items-center justify-between px-6 py-4"
               style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
             >
-              <h3 className="text-lg font-semibold text-white">{title}</h3>
+              <h3 id={titleId} className="text-lg font-semibold text-white">{title}</h3>
               <button
                 onClick={onClose}
+                aria-label="Close dialog"
                 className="p-1.5 rounded-lg text-white/35 hover:text-white hover:bg-white/08 transition-all"
               >
                 <X size={18} />

@@ -1,22 +1,31 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
+import { Helmet } from 'react-helmet-async';
 import api from '../services/api';
 import SkillCard from '../components/skills/SkillCard';
 import SkillForm from '../components/skills/SkillForm';
 import LoadingSkeleton from '../components/common/LoadingSkeleton';
+import ErrorState from '../components/common/ErrorState';
 import { Plus, Layers, Sparkles } from 'lucide-react';
 
 const MySkills = () => {
   const [formOpen, setFormOpen] = useState(false);
 
-  const { data: skills = [], isLoading } = useQuery({
+  const { data: skills = [], isLoading, error, refetch } = useQuery({
     queryKey: ['skills', 'my'],
     queryFn: () => api.get('/skills/my').then(r => r.data),
   });
 
   return (
     <div className="space-y-7">
+      <Helmet>
+        <title>My Skills | SkillSwap</title>
+        <meta name="description" content="Manage the skills you teach and want to learn on SkillSwap." />
+        <meta property="og:title" content="My Skills | SkillSwap" />
+        <meta property="og:url" content="https://react-skill-swap-fully-fledged.vercel.app/dashboard" />
+        <link rel="canonical" href="https://react-skill-swap-fully-fledged.vercel.app/dashboard" />
+      </Helmet>
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -35,8 +44,11 @@ const MySkills = () => {
         </button>
       </div>
 
+      {/* Error state */}
+      {error && <ErrorState message="Failed to load your skills." onRetry={refetch} />}
+
       {/* Grid */}
-      {isLoading ? (
+      {error ? null : isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           <LoadingSkeleton count={3} type="card" />
         </div>

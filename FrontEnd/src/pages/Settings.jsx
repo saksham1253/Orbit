@@ -1,9 +1,10 @@
 import { motion } from 'framer-motion';
 import { Palette, Zap, Eye, RotateCcw, Check, Volume2, VolumeX } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 import useAppearanceStore, { THEMES, BACKGROUND_STYLES, ANIMATION_SPEEDS } from '../store/appearanceStore';
 import { useUIStore } from '../store/uiStore';
 import { useSound } from '../utils/soundManager';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 const Settings = () => {
   const {
@@ -44,6 +45,13 @@ const Settings = () => {
 
   return (
     <div className="max-w-3xl mx-auto space-y-7">
+      <Helmet>
+        <title>Settings | SkillSwap</title>
+        <meta name="description" content="Manage your SkillSwap account settings, notifications, and security." />
+        <meta property="og:title" content="Settings | SkillSwap" />
+        <meta property="og:url" content="https://react-skill-swap-fully-fledged.vercel.app/settings" />
+        <link rel="canonical" href="https://react-skill-swap-fully-fledged.vercel.app/settings" />
+      </Helmet>
       {/* Header */}
       <div>
         <h1

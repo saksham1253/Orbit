@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { Link, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
+import { Helmet } from 'react-helmet-async';
 import { Eye, EyeOff, ArrowRight, Sparkles } from 'lucide-react';
 import api from '../services/api';
 import { useAuthStore } from '../store/authStore';
@@ -25,6 +26,7 @@ const Login = () => {
 
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: zodResolver(loginSchema),
+    mode: 'onBlur',
   });
 
   const loginMutation = useMutation({
@@ -48,6 +50,16 @@ const Login = () => {
   });
 
   return (
+    <>
+    <Helmet>
+      <title>Sign In | SkillSwap</title>
+      <meta name="description" content="Sign in to your SkillSwap account to start exchanging skills with peers worldwide." />
+      <meta property="og:title" content="Sign In | SkillSwap" />
+      <meta property="og:description" content="Sign in to your SkillSwap account." />
+      <meta property="og:url" content="https://react-skill-swap-fully-fledged.vercel.app/login" />
+      <meta name="twitter:title" content="Sign In | SkillSwap" />
+      <link rel="canonical" href="https://react-skill-swap-fully-fledged.vercel.app/login" />
+    </Helmet>
     <div className="min-h-screen flex items-center justify-center p-4 relative">
 
       {/* Extra hero glow for auth page */}
@@ -111,12 +123,14 @@ const Login = () => {
         <form onSubmit={handleSubmit((d) => loginMutation.mutate(d))} className="space-y-4">
           {/* Email */}
           <div>
-            <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
-              Email Address
+            <label htmlFor="login-email" className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+              Email Address <span className="text-danger" aria-hidden="true">*</span>
             </label>
             <input
+              id="login-email"
               type="email"
               autoComplete="email"
+              aria-required="true"
               {...register('email')}
               className="input-glass w-full px-4 py-3 text-sm text-white"
             />
@@ -127,13 +141,15 @@ const Login = () => {
 
           {/* Password */}
           <div>
-            <label className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
-              Password
+            <label htmlFor="login-password" className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+              Password <span className="text-danger" aria-hidden="true">*</span>
             </label>
             <div className="relative">
               <input
+                id="login-password"
                 type={showPass ? 'text' : 'password'}
                 autoComplete="current-password"
+                aria-required="true"
                 {...register('password')}
                 className="input-glass w-full px-4 py-3 pr-11 text-sm text-white"
               />
@@ -226,6 +242,7 @@ const Login = () => {
         </div>
       </motion.div>
     </div>
+    </>
   );
 };
 

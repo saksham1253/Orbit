@@ -8,6 +8,7 @@ import ToastContainer from './components/common/Toast';
 import NotificationSystem from './components/notifications/NotificationSystem';
 import RatingModal from './components/modals/RatingModal';
 import IncomingCallOverlay from './components/modals/IncomingCallOverlay';
+import NotFound from './pages/NotFound';
 import io from 'socket.io-client';
 
 // Eagerly loaded (first paint)
@@ -38,6 +39,14 @@ const PageLoader = () => (
   </div>
 );
 
+/** Redirect authenticated users away from public-only pages (login, register) */
+const PublicOnlyRoute = ({ children }) => {
+  const token = useAuthStore((state) => state.token);
+  if (token) return <Navigate to="/dashboard" replace />;
+  return children;
+};
+
+/** Require authentication; redirect to login if not logged in */
 const ProtectedRoute = ({ children }) => {
   const token = useAuthStore((state) => state.token);
   if (!token) return <Navigate to="/login" replace />;
@@ -183,10 +192,10 @@ function AppInner() {
       )}
 
       <Routes>
-        {/* Public */}
+        {/* Public — redirect logged-in users away */}
         <Route path="/"               element={<Landing />} />
-        <Route path="/login"          element={<Login />} />
-        <Route path="/register"       element={<Register />} />
+        <Route path="/login"          element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
+        <Route path="/register"       element={<PublicOnlyRoute><Register /></PublicOnlyRoute>} />
         <Route path="/oauth/callback" element={<OAuthCallback />} />
 
         {/* Protected (lazy-loaded) */}
@@ -201,7 +210,8 @@ function AppInner() {
         <Route path="/video"       element={<ProtectedRoute><VideoCall /></ProtectedRoute>} />
         <Route path="/call/:roomId" element={<ProtectedRoute><VideoCall /></ProtectedRoute>} />
 
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* 404 — catch-all */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </>
   );

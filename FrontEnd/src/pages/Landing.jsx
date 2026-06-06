@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
+import { Helmet } from 'react-helmet-async';
 import {
   ArrowRight, BookOpen, Users, Award, Map,
   Star, ShieldCheck, Zap, ChevronDown, TrendingUp, Lightbulb,
@@ -120,6 +121,13 @@ const Landing = () => {
 
   return (
     <div className="relative overflow-hidden">
+      <Helmet>
+        <title>SkillSwap — Exchange Skills, Grow Together</title>
+        <meta name="description" content="Peer-to-peer skill exchange platform. Teach what you know, learn what you don't. Completely free." />
+        <meta property="og:title" content="SkillSwap — Exchange Skills, Grow Together" />
+        <meta property="og:url" content="https://react-skill-swap-fully-fledged.vercel.app/" />
+        <link rel="canonical" href="https://react-skill-swap-fully-fledged.vercel.app/" />
+      </Helmet>
 
       {/* ══════════════ HERO SECTION ══════════════ */}
       <section ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-4">

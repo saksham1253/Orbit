@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /browse
+Disallow: /matches
+Disallow: /connections
+Disallow: /profile
+Disallow: /settings
+Disallow: /nearby
+Disallow: /trust
+Disallow: /video
+Disallow: /call/
+
+Sitemap: https://react-skill-swap-fully-fledged.vercel.app/sitemap.xml

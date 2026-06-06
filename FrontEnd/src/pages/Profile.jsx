@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
+import { Helmet } from 'react-helmet-async';
 import { Check, UserCircle, Shield, Save, Camera, Upload, X } from 'lucide-react';
 import api from '../services/api';
 import { useAuthStore } from '../store/authStore';
@@ -147,6 +148,13 @@ const Profile = () => {
 
   return (
     <div className="max-w-2xl mx-auto space-y-7">
+      <Helmet>
+        <title>Your Profile | SkillSwap</title>
+        <meta name="description" content="Manage your SkillSwap profile, avatar, and personal details." />
+        <meta property="og:title" content="Your Profile | SkillSwap" />
+        <meta property="og:url" content="https://react-skill-swap-fully-fledged.vercel.app/profile" />
+        <link rel="canonical" href="https://react-skill-swap-fully-fledged.vercel.app/profile" />
+      </Helmet>
       {/* Header */}
       <div>
         <h1 className="text-3xl font-display font-bold"

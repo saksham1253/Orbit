@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
+import { Helmet } from 'react-helmet-async';
 import api from '../services/api';
 import LoadingSkeleton from '../components/common/LoadingSkeleton';
 import { useUIStore } from '../store/uiStore';
@@ -111,6 +112,13 @@ const NearbyMap = () => {
 
   return (
     <div className="space-y-6">
+      <Helmet>
+        <title>Nearby Skill Swappers | SkillSwap</title>
+        <meta name="description" content="Find peers nearby to exchange skills in person. Check the map for local connections." />
+        <meta property="og:title" content="Nearby Skill Swappers | SkillSwap" />
+        <meta property="og:url" content="https://react-skill-swap-fully-fledged.vercel.app/nearby" />
+        <link rel="canonical" href="https://react-skill-swap-fully-fledged.vercel.app/nearby" />
+      </Helmet>
       {/* Header */}
       <div>
         <h1 className="text-3xl font-display font-bold flex items-center gap-3"
