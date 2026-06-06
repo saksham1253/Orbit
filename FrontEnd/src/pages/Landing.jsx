@@ -164,7 +164,7 @@ const Landing = () => {
             Secondary: top-left corner, partially off-screen — a ghost arc.
             Like two stones dropped in still water at opposite corners.
         ─────────────────────────────────────────────────────────────────── */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
 
           {/* PRIMARY — right edge origin, larger rings, prominent */}
           {[1, 2, 3, 4, 5, 6].map((i) => {
@@ -215,7 +215,7 @@ const Landing = () => {
         </div>
 
         {/* Hero content - removed scroll transforms for performance */}
-        <div className="relative text-center max-w-4xl mx-auto pt-24 pb-16 z-10">
+        <div className="relative text-center max-w-4xl mx-auto pt-24 pb-32 sm:pb-16 z-10 w-full">
           {/* Status pill with rotating motivational quote */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -324,7 +324,7 @@ const Landing = () => {
 
           {/* CTA buttons with enhanced motivation */}
           <motion.div
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12 sm:mb-16"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.45, duration: 0.6 }}
@@ -379,7 +379,7 @@ const Landing = () => {
 
           {/* Creative animated skill categories instead of loading stats */}
           <motion.div
-            className="flex flex-wrap justify-center gap-6 sm:gap-8"
+            className="grid grid-cols-2 sm:flex sm:flex-wrap justify-center gap-y-8 gap-x-2 sm:gap-8 w-full max-w-xs sm:max-w-none mx-auto"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.65, duration: 0.6 }}
@@ -426,12 +426,12 @@ const Landing = () => {
                   </div>
                 </motion.div>
                 <div 
-                  className="text-xl font-bold transition-colors mb-0.5"
+                  className="text-lg sm:text-xl font-bold transition-colors mb-0.5"
                   style={{ color }}
                 >
                   {count}
                 </div>
-                <div className="text-xs text-white/50 font-medium">{category}</div>
+                <div className="text-[10px] sm:text-xs text-white/50 font-medium tracking-wide">{category}</div>
               </motion.div>
             ))}
           </motion.div>
