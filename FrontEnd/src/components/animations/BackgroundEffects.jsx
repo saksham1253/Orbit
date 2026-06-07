@@ -542,23 +542,23 @@ const BackgroundEffects = memo(() => {
   const colors = getColors();
   const speedMultiplier = getSpeedMultiplier();
 
-  // Dark mode: deep space gradient. Light mode: airy pastel gradient.
+  // Dark mode: deep space gradient. Light mode: airy pastel gradient using theme's bg color.
   const darkGradientBg = `
     radial-gradient(ellipse 100% 70% at 50% 0%, ${colors[0]}14 0%, transparent 50%),
     radial-gradient(ellipse 80% 60% at 20% 100%, ${colors[1]}10 0%, transparent 50%),
     radial-gradient(ellipse 80% 60% at 80% 100%, ${colors[2]}10 0%, transparent 50%),
-    #060810
+    var(--bg-app)
   `;
 
   const lightGradientBg = `
-    radial-gradient(ellipse 120% 60% at 50% -10%, ${colors[0]}22 0%, transparent 55%),
-    radial-gradient(ellipse 70% 50% at 10% 80%, ${colors[1]}18 0%, transparent 50%),
-    radial-gradient(ellipse 70% 50% at 90% 70%, ${colors[2]}18 0%, transparent 50%),
-    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(255,255,255,0.6) 0%, transparent 80%),
-    #eef2ff
+    radial-gradient(ellipse 120% 60% at 50% -10%, ${colors[0]}28 0%, transparent 55%),
+    radial-gradient(ellipse 70% 50% at 10% 80%, ${colors[1]}20 0%, transparent 50%),
+    radial-gradient(ellipse 70% 50% at 90% 70%, ${colors[2]}20 0%, transparent 50%),
+    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(255,255,255,0.5) 0%, transparent 80%),
+    var(--bg-app)
   `;
 
-  const minimalBg = isDark ? '#060810' : '#f0f4ff';
+  const minimalBg = 'var(--bg-app)';
 
   return (
     <>
