@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import api from '../services/api';
 import ConnectionCard from '../components/connections/ConnectionCard';
-import LoadingSkeleton from '../components/common/LoadingSkeleton';
+import { ConnectionListSkeleton } from '../components/skeletons';
 import Modal from '../components/common/Modal';
 import RatingForm from '../components/trust/RatingForm';
 import ErrorState from '../components/common/ErrorState';
@@ -141,7 +141,7 @@ const Connections = () => {
       <div className="space-y-4">
         {activeTab === 'established' && (
           <>
-            {loadingEstablished && <LoadingSkeleton count={3} type="connection" />}
+            {loadingEstablished && <ConnectionListSkeleton count={3} />}
             {establishedError && <ErrorState message="Failed to load connections." onRetry={refetchEstablished} />}
             {!loadingEstablished && !establishedError && connectionsList.length === 0 && (
               <EmptyState
@@ -164,7 +164,7 @@ const Connections = () => {
 
         {activeTab === 'incoming' && (
           <>
-            {loadingPending && <LoadingSkeleton count={3} type="connection" />}
+            {loadingPending && <ConnectionListSkeleton count={3} />}
             {pendingError && <ErrorState message="Failed to load requests." onRetry={refetchPending} />}
             {!loadingPending && !pendingError && incomingReqs.length === 0 && (
               <EmptyState
@@ -187,7 +187,7 @@ const Connections = () => {
 
         {activeTab === 'outgoing' && (
           <>
-            {loadingPending && <LoadingSkeleton count={3} type="connection" />}
+            {loadingPending && <ConnectionListSkeleton count={3} />}
             {pendingError && <ErrorState message="Failed to load requests." onRetry={refetchPending} />}
             {!loadingPending && !pendingError && outgoingReqs.length === 0 && (
               <EmptyState
@@ -207,7 +207,7 @@ const Connections = () => {
 
         {activeTab === 'completed' && (
           <>
-            {loadingCompleted && <LoadingSkeleton count={3} type="connection" />}
+            {loadingCompleted && <ConnectionListSkeleton count={3} />}
             {completedError && <ErrorState message="Failed to load completed swaps." onRetry={refetchCompleted} />}
             {!loadingCompleted && !completedError && completedList.length === 0 && (
               <EmptyState

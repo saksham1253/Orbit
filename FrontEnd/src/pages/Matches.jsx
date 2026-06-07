@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import api from '../services/api';
 import SkillCard from '../components/skills/SkillCard';
-import LoadingSkeleton from '../components/common/LoadingSkeleton';
+import { SkillGridSkeleton } from '../components/skeletons';
 import ErrorState from '../components/common/ErrorState';
 import { useUIStore } from '../store/uiStore';
 import { Handshake, Sparkles } from 'lucide-react';
@@ -54,9 +54,7 @@ const Matches = () => {
       {error && <ErrorState message="Failed to load matches." onRetry={refetch} />}
 
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          <LoadingSkeleton count={3} type="card" />
-        </div>
+        <SkillGridSkeleton count={3} />
       ) : matches.length === 0 ? (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
           className="py-20 text-center rounded-2xl"

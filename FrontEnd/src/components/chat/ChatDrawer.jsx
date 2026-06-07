@@ -7,6 +7,7 @@ import api from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import Avatar from '../common/Avatar';
 import useSocket from '../../hooks/useSocket';
+import { ChatListSkeleton, ChatMessagesSkeleton } from '../skeletons';
 
 const formatTimestamp = (date) => {
   const d = new Date(date);
@@ -49,12 +50,7 @@ const ConversationList = ({ onSelect, selectedId }) => {
 
       {/* Conversation List */}
       <div className="flex-1 overflow-y-auto custom-scrollbar">
-        {isLoading && (
-          <div className="flex items-center justify-center py-12 text-white/30 text-sm">
-            <div className="w-5 h-5 border-2 border-white/10 border-t-accent rounded-full animate-spin mr-2"></div>
-            Loading…
-          </div>
-        )}
+        {isLoading && <ChatListSkeleton count={6} />}
         {!isLoading && filtered.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 gap-3 text-center px-6">
             <div className="w-14 h-14 rounded-full flex items-center justify-center bg-white/5 mb-2">
@@ -211,12 +207,7 @@ const ChatWindow = ({ otherUser, onBack }) => {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
-        {isLoading && (
-          <div className="flex justify-center py-12 text-white/30 text-sm">
-            <div className="w-5 h-5 border-2 border-white/10 border-t-accent rounded-full animate-spin mr-2"></div>
-            Loading messages…
-          </div>
-        )}
+        {isLoading && <ChatMessagesSkeleton />}
         {!isLoading && messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
             <div className="w-16 h-16 rounded-full flex items-center justify-center bg-white/5 mb-2">

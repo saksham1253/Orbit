@@ -3,7 +3,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import api from '../services/api';
-import LoadingSkeleton from '../components/common/LoadingSkeleton';
+import { TrustPageSkeleton } from '../components/skeletons';
 import Avatar from '../components/common/Avatar';
 import { Star, ShieldAlert, ShieldCheck, TrendingUp, Activity, Clock, Award } from 'lucide-react';
 
@@ -134,12 +134,7 @@ const TrustScore = () => {
     queryFn: () => api.get('/trust/my-score').then(r => r.data),
   });
 
-  if (isLoading) return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <LoadingSkeleton count={1} type="card" />
-      <LoadingSkeleton count={1} type="card" />
-    </div>
-  );
+  if (isLoading) return <TrustPageSkeleton />;
 
   const { trustScore = 0, totalRatings = 0, averageRating = 0, isFlagged, flagReason, breakdown = {}, recentRatings = [] } = data || {};
   const bd = breakdown;

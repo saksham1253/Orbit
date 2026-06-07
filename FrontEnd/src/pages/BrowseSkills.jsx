@@ -6,7 +6,7 @@ import { useDebounce } from 'use-debounce';
 import { useInView } from 'react-intersection-observer';
 import api from '../services/api';
 import SkillCard from '../components/skills/SkillCard';
-import LoadingSkeleton from '../components/common/LoadingSkeleton';
+import { SkillGridSkeleton } from '../components/skeletons';
 import ErrorState from '../components/common/ErrorState';
 import EmptyState from '../components/common/EmptyState';
 import { useUIStore } from '../store/uiStore';
@@ -178,9 +178,7 @@ const BrowseSkills = () => {
 
       {/* Grid */}
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          <LoadingSkeleton count={6} type="card" />
-        </div>
+        <SkillGridSkeleton count={6} />
       ) : filteredAndSorted.length === 0 ? (
         <EmptyState 
           icon={Search} 

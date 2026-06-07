@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Star, ShieldCheck, MessageSquare } from 'lucide-react';
 import api from '../../services/api';
 import Avatar from '../common/Avatar';
+import { SkelBox, SkelCircle } from '../ui/SkeletonPrimitives';
 
 /**
  * UserRatingsModal
@@ -115,8 +116,27 @@ const UserRatingsModal = ({ user, isOpen, onClose }) => {
             {/* Reviews list */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px 24px' }}>
               {isLoading ? (
-                <div style={{ display: 'flex', justifyContent: 'center', padding: 32 }}>
-                  <div className="animate-spin" style={{ width: 32, height: 32, border: '3px solid rgba(255,255,255,0.1)', borderTopColor: '#00c6ff', borderRadius: '50%' }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {[1, 2, 3].map(i => (
+                    <div
+                      key={i}
+                      style={{
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        borderRadius: 14, padding: '14px 16px',
+                        display: 'flex', flexDirection: 'column', gap: 10
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                          <SkelCircle size={28} />
+                          <SkelBox w={100} h={12} r={4} />
+                        </div>
+                        <SkelBox w={60} h={10} r={4} />
+                      </div>
+                      <SkelBox w="80%" h={10} r={4} />
+                    </div>
+                  ))}
                 </div>
               ) : ratings.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '40px 0' }}>

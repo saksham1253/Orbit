@@ -8,7 +8,7 @@ import api from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
 import Avatar from '../components/common/Avatar';
-import LoadingSkeleton from '../components/common/LoadingSkeleton';
+import { ProfileHeaderSkeleton } from '../components/skeletons';
 
 const LANGUAGES = ['English','Spanish','French','Hindi','German','Mandarin','Japanese','Arabic','Portuguese','Korean'];
 
@@ -146,7 +146,7 @@ const Profile = () => {
     }
   };
 
-  if (isLoading) return <LoadingSkeleton count={1} type="card" />;
+  if (isLoading) return <ProfileHeaderSkeleton />;
 
   const trust = profile?.trustScore ?? 0;
   const trustColor = trust >= 70 ? '#00e5a0' : trust >= 40 ? '#ffb800' : '#ff4b4b';

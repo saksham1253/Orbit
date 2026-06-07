@@ -6,7 +6,7 @@ import { ShieldCheck, MapPin, Globe, Star, Mail, Link as LinkIcon, Calendar } fr
 import { format, formatDistanceToNow } from 'date-fns';
 import api from '../services/api';
 import Avatar from '../components/common/Avatar';
-import LoadingSkeleton from '../components/common/LoadingSkeleton';
+import { ProfileHeaderSkeleton, SkillGridSkeleton } from '../components/skeletons';
 import ErrorState from '../components/common/ErrorState';
 
 const PublicProfile = () => {
@@ -33,8 +33,8 @@ const PublicProfile = () => {
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto space-y-7">
-        <LoadingSkeleton type="profile" />
+      <div className="max-w-4xl mx-auto space-y-8">
+        <ProfileHeaderSkeleton />
       </div>
     );
   }
@@ -134,7 +134,7 @@ const PublicProfile = () => {
       <div className="space-y-4">
         <h2 className="text-xl font-display font-semibold">Skills</h2>
         {isLoadingSkills ? (
-          <LoadingSkeleton type="card" count={2} />
+          <SkillGridSkeleton count={2} />
         ) : skills.length === 0 ? (
           <div className="card-glass p-8 text-center text-white/40">
             This user hasn't posted any skills yet.
@@ -167,7 +167,7 @@ const PublicProfile = () => {
         <div id="ratings-section" className="space-y-4 scroll-mt-24">
           <h2 className="text-xl font-display font-semibold">Reviews & Ratings</h2>
           {isLoadingRatings ? (
-            <LoadingSkeleton type="card" count={2} />
+            <SkillGridSkeleton count={2} />
           ) : ratingsData?.ratings?.length > 0 ? (
             <div className="space-y-4">
               {/* Ratings summary */}

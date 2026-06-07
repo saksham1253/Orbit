@@ -5,7 +5,7 @@ import { Helmet } from 'react-helmet-async';
 import api from '../services/api';
 import SkillCard from '../components/skills/SkillCard';
 import SkillForm from '../components/skills/SkillForm';
-import LoadingSkeleton from '../components/common/LoadingSkeleton';
+import { SkillGridSkeleton } from '../components/skeletons';
 import ErrorState from '../components/common/ErrorState';
 import { Plus, Layers, Sparkles } from 'lucide-react';
 
@@ -49,9 +49,7 @@ const MySkills = () => {
 
       {/* Grid */}
       {error ? null : isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          <LoadingSkeleton count={3} type="card" />
-        </div>
+        <SkillGridSkeleton count={3} />
       ) : skills.length === 0 ? (
         <motion.div
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}

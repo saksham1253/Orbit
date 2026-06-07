@@ -9,6 +9,7 @@ import { useNotificationStore } from '../store/notificationStore';
 import api from '../services/api';
 import { formatDistanceToNow } from 'date-fns';
 import Avatar from '../components/common/Avatar';
+import { VideoCallHistorySkeleton } from '../components/skeletons';
 import io from 'socket.io-client';
 
 /* ── Direct WebRTC Video Call Component ── */
@@ -435,9 +436,7 @@ const VideoCall = () => {
         </h2>
 
         {isLoading ? (
-          <div className="py-8 flex justify-center">
-            <div className="w-8 h-8 border-2 border-white/10 border-t-accent rounded-full animate-spin" />
-          </div>
+          <VideoCallHistorySkeleton count={4} />
         ) : calls.length === 0 ? (
           <div className="py-12 text-center rounded-2xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.08)' }}>
             <Video size={32} className="mx-auto text-white/10 mb-3" />

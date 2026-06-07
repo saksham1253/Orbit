@@ -3,7 +3,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import api from '../services/api';
-import LoadingSkeleton from '../components/common/LoadingSkeleton';
+import { NearbyListSkeleton } from '../components/skeletons';
 import { useUIStore } from '../store/uiStore';
 import { MapPin, Search, Navigation, Users, Sliders } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
@@ -246,7 +246,7 @@ const NearbyMap = () => {
 
           {/* Skill list */}
           {isLoading ? (
-            <LoadingSkeleton count={3} type="card" />
+            <NearbyListSkeleton count={3} />
           ) : skills.length === 0 ? (
             <div className="py-12 text-center rounded-2xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.08)' }}>
               <Users size={32} className="mx-auto text-white/15 mb-3" />
