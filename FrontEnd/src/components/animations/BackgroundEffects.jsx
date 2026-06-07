@@ -1,4 +1,4 @@
-import { useEffect, useRef, memo } from 'react';
+import { useEffect, useRef, memo, useState } from 'react';
 import useAppearanceStore from '../../store/appearanceStore';
 import { useThemeStore } from '../../store/themeStore';
 
@@ -534,13 +534,183 @@ const NeuralCanvas = memo(({ colors, speedMultiplier }) => {
 NeuralCanvas.displayName = 'NeuralCanvas';
 
 /* ─────────────────────────────────────────────────────
+   LIGHT MODE ANIMATIONS: Airy Aurora Blobs
+   Soft floating gradient orbs with gentle drift & morph
+───────────────────────────────────────────────────── */
+const LightAuroraCanvas = memo(({ colors, speedMultiplier, themeName }) => {
+  const canvasRef = useRef(null);
+  const animRef = useRef(null);
+  const mouseRef = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+
+  useEffect(() => {
+    if (speedMultiplier === 0) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d', { alpha: true });
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const onMouseMove = (e) => {
+      mouseRef.current = { x: e.clientX, y: e.clientY };
+    };
+    window.addEventListener('mousemove', onMouseMove);
+
+    const hexToRgba = (hex) => {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return { r, g, b };
+    };
+
+    const COLORS = colors.map(hexToRgba);
+    
+    // Theme-specific motifs
+    const getOrbConfig = () => {
+      switch(themeName) {
+        case 'spring-garden':
+          return { count: 6, size: 280, opacity: 0.18, blur: 140, speed: 0.3 }; // Blooming petals
+        case 'golden-hour':
+          return { count: 5, size: 320, opacity: 0.22, blur: 160, speed: 0.25 }; // Warm sunlight
+        case 'lavender-dream':
+          return { count: 7, size: 260, opacity: 0.16, blur: 130, speed: 0.28 }; // Soft wisps
+        case 'ocean-breeze':
+          return { count: 6, size: 300, opacity: 0.2, blur: 150, speed: 0.32 }; // Flowing waves
+        default: // morning-sky
+          return { count: 5, size: 300, opacity: 0.2, blur: 150, speed: 0.3 }; // Airy clouds
+      }
+    };
+
+    const config = getOrbConfig();
+    const orbs = Array.from({ length: config.count }, (_, i) => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * config.speed * speedMultiplier,
+      vy: (Math.random() - 0.5) * config.speed * speedMultiplier,
+      size: config.size + Math.random() * 60,
+      color: COLORS[i % COLORS.length],
+      pulsePhase: Math.random() * Math.PI * 2,
+      pulseSpeed: (Math.random() * 0.008 + 0.004) * speedMultiplier,
+      morphPhase: Math.random() * Math.PI * 2,
+      morphSpeed: (Math.random() * 0.006 + 0.003) * speedMultiplier,
+    }));
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const mx = mouseRef.current.x;
+      const my = mouseRef.current.y;
+
+      orbs.forEach((orb, i) => {
+        // Gentle mouse parallax
+        const dx = orb.x - mx;
+        const dy = orb.y - my;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const parallaxFactor = 0.015 * speedMultiplier;
+        
+        if (dist < 400) {
+          const force = (400 - dist) / 400;
+          orb.vx += (dx / dist) * force * parallaxFactor;
+          orb.vy += (dy / dist) * force * parallaxFactor;
+        }
+
+        // Gentle friction
+        orb.vx *= 0.998;
+        orb.vy *= 0.998;
+        
+        // Move
+        orb.x += orb.vx;
+        orb.y += orb.vy;
+
+        // Wrap edges
+        if (orb.x < -orb.size) orb.x = canvas.width + orb.size;
+        if (orb.x > canvas.width + orb.size) orb.x = -orb.size;
+        if (orb.y < -orb.size) orb.y = canvas.height + orb.size;
+        if (orb.y > canvas.height + orb.size) orb.y = -orb.size;
+
+        // Pulse & morph
+        orb.pulsePhase += orb.pulseSpeed;
+        orb.morphPhase += orb.morphSpeed;
+        
+        const pulse = 0.85 + 0.15 * Math.sin(orb.pulsePhase);
+        const morph = 0.9 + 0.1 * Math.sin(orb.morphPhase);
+        const currentSize = orb.size * pulse * morph;
+        const currentOpacity = config.opacity * pulse;
+
+        // Draw soft gradient orb
+        const gradient = ctx.createRadialGradient(
+          orb.x, orb.y, 0,
+          orb.x, orb.y, currentSize
+        );
+        gradient.addColorStop(0, `rgba(${orb.color.r}, ${orb.color.g}, ${orb.color.b}, ${currentOpacity})`);
+        gradient.addColorStop(0.5, `rgba(${orb.color.r}, ${orb.color.g}, ${orb.color.b}, ${currentOpacity * 0.5})`);
+        gradient.addColorStop(1, `rgba(${orb.color.r}, ${orb.color.g}, ${orb.color.b}, 0)`);
+
+        ctx.beginPath();
+        ctx.arc(orb.x, orb.y, currentSize, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+      });
+
+      animRef.current = requestAnimationFrame(draw);
+    };
+
+    draw();
+
+    return () => {
+      cancelAnimationFrame(animRef.current);
+      window.removeEventListener('resize', resize);
+      window.removeEventListener('mousemove', onMouseMove);
+    };
+  }, [colors, speedMultiplier, themeName]);
+
+  if (speedMultiplier === 0) return null;
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 pointer-events-none"
+      style={{ zIndex: 0, filter: 'blur(60px)' }}
+    />
+  );
+});
+
+LightAuroraCanvas.displayName = 'LightAuroraCanvas';
+
+/* ─────────────────────────────────────────────────────
    BackgroundEffects: Dynamic background system
 ───────────────────────────────────────────────────── */
 const BackgroundEffects = memo(() => {
-  const { backgroundStyle, getColors, getSpeedMultiplier } = useAppearanceStore();
+  const { backgroundStyle, getColors, getSpeedMultiplier, theme } = useAppearanceStore();
   const { isDark } = useThemeStore();
   const colors = getColors();
   const speedMultiplier = getSpeedMultiplier();
+
+  // Respect prefers-reduced-motion
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [isTabVisible, setIsTabVisible] = useState(true);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefersReducedMotion(mediaQuery.matches);
+    
+    const handler = (e) => setPrefersReducedMotion(e.matches);
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, []);
+
+  useEffect(() => {
+    const handleVisibility = () => setIsTabVisible(!document.hidden);
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, []);
+
+  const effectiveSpeed = (prefersReducedMotion || !isTabVisible) ? 0 : speedMultiplier;
 
   // Dark mode: deep space gradient. Light mode: airy pastel gradient using theme's bg color.
   const darkGradientBg = `
@@ -589,24 +759,29 @@ const BackgroundEffects = memo(() => {
       {isDark && (
         <>
           {backgroundStyle === 'constellation' && (
-            <ConstellationCanvas colors={colors} speedMultiplier={speedMultiplier} isDark={isDark} />
+            <ConstellationCanvas colors={colors} speedMultiplier={effectiveSpeed} isDark={isDark} />
           )}
           {backgroundStyle === 'mesh' && (
-            <MeshBackground colors={colors} speedMultiplier={speedMultiplier} isDark={isDark} />
+            <MeshBackground colors={colors} speedMultiplier={effectiveSpeed} isDark={isDark} />
           )}
           {backgroundStyle === 'particles' && (
-            <ParticlesCanvas colors={colors} speedMultiplier={speedMultiplier} isDark={isDark} />
+            <ParticlesCanvas colors={colors} speedMultiplier={effectiveSpeed} isDark={isDark} />
           )}
           {backgroundStyle === 'matrix' && (
-            <MatrixCanvas colors={colors} speedMultiplier={speedMultiplier} />
+            <MatrixCanvas colors={colors} speedMultiplier={effectiveSpeed} />
           )}
           {backgroundStyle === 'waves' && (
-            <WavesCanvas colors={colors} speedMultiplier={speedMultiplier} isDark={isDark} />
+            <WavesCanvas colors={colors} speedMultiplier={effectiveSpeed} isDark={isDark} />
           )}
           {backgroundStyle === 'neural' && (
-            <NeuralCanvas colors={colors} speedMultiplier={speedMultiplier} isDark={isDark} />
+            <NeuralCanvas colors={colors} speedMultiplier={effectiveSpeed} isDark={isDark} />
           )}
         </>
+      )}
+
+      {/* LIGHT MODE: Aurora orbs animation */}
+      {!isDark && backgroundStyle !== 'minimal' && backgroundStyle !== 'gradient' && (
+        <LightAuroraCanvas colors={colors} speedMultiplier={effectiveSpeed} themeName={theme} />
       )}
     </>
   );

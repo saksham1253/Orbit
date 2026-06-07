@@ -82,6 +82,12 @@
     --toggle-off-bg: rgba(255, 255, 255, 0.08);
     --toggle-off-border: rgba(255, 255, 255, 0.12);
     --toggle-on-bg: var(--accent-1);
+
+    /* Toast notification tokens for dark mode */
+    --toast-bg: rgba(6, 8, 16, 0.9);
+    --toast-text: #ffffff;
+    --toast-border: rgba(255, 255, 255, 0.1);
+    --toast-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   }
 
   html[data-mode="light"] {
@@ -115,6 +121,24 @@
     --toggle-off-bg: rgba(0, 0, 0, 0.12);
     --toggle-off-border: rgba(0, 0, 0, 0.18);
     --toggle-on-bg: var(--accent-1);
+
+    /* Toast notification tokens for light mode */
+    --toast-bg: rgba(255, 255, 255, 0.98);
+    --toast-text: #0f172a;
+    --toast-border: rgba(0, 0, 0, 0.12);
+    --toast-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+
+    /* Darker heading text variants (same hue, lower lightness) */
+    --heading-teal: #047857;     /* Deep emerald-green for "Your Matches" */
+    --heading-cyan: #0369a1;     /* Deep sky blue companion */
+    --heading-pink: #be185d;     /* Deep rose for "Browse Skills" */
+    --heading-purple: #7e22ce;   /* Deep purple companion */
+    
+    /* Darker skill/label text variants */
+    --skill-cyan-text: #0369a1;
+    --skill-pink-text: #be185d;
+    --skill-green-text: #047857;
+    --skill-amber-text: #c2410c;
   }
 
   /* Morning Sky (Default Pastel - acts as fallback if a dark theme name is active in light mode) */
@@ -544,6 +568,36 @@
 html.light body {
   background: #f0f4ff;
   color: #1a1a2e;
+}
+
+/* Light-mode heading gradients (darker shades) */
+html[data-mode="light"] .heading-teal-gradient {
+  background: linear-gradient(135deg, var(--heading-teal), var(--heading-cyan)) !important;
+}
+
+html[data-mode="light"] .heading-pink-gradient {
+  background: linear-gradient(135deg, var(--heading-pink), var(--heading-purple)) !important;
+}
+
+html[data-mode="light"] .icon-teal {
+  color: var(--heading-teal) !important;
+  -webkit-text-fill-color: var(--heading-teal) !important;
+}
+
+html[data-mode="light"] .icon-pink {
+  color: var(--heading-pink) !important;
+  -webkit-text-fill-color: var(--heading-pink) !important;
+}
+
+/* Light-mode skill text colors (darker for readability) */
+html[data-mode="light"] .pill-offer {
+  color: var(--skill-cyan-text) !important;
+  border-color: var(--skill-cyan-text) !important;
+}
+
+html[data-mode="light"] .pill-want {
+  color: var(--skill-pink-text) !important;
+  border-color: var(--skill-pink-text) !important;
 }
 
 /* Comprehensive text color overrides for Light Mode */

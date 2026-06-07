@@ -64,21 +64,22 @@ const ToastContainer = () => {
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
               className="pointer-events-auto flex items-center gap-3 px-4 py-3.5 rounded-2xl shadow-2xl max-w-[340px]"
               style={{
-                background: `rgba(6,8,16,0.9)`,
+                background: 'var(--toast-bg)',
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
                 border: `1px solid ${cfg.border}`,
-                boxShadow: `0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)`,
+                boxShadow: 'var(--toast-shadow)',
               }}
             >
               {/* Left color bar */}
               <div className="w-0.5 h-8 rounded-full flex-shrink-0" style={{ background: cfg.color }} />
 
               <Icon size={18} style={{ color: cfg.color, flexShrink: 0 }} />
-              <p className="text-sm font-medium text-text-primary flex-1 leading-snug">{toast.message}</p>
+              <p className="text-sm font-medium flex-1 leading-snug" style={{ color: 'var(--toast-text)' }}>{toast.message}</p>
               <button
                 onClick={() => removeToast(toast.id)}
-                className="flex-shrink-0 p-1 rounded-lg text-text-muted hover:text-text-primary transition-colors"
+                className="flex-shrink-0 p-1 rounded-lg transition-colors"
+                style={{ color: 'var(--text-muted)' }}
               >
                 <X size={14} />
               </button>
