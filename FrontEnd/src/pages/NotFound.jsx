@@ -52,10 +52,10 @@ const NotFound = () => (
           <Compass size={28} style={{ color: '#a78bfa' }} />
         </div>
 
-        <h1 className="text-3xl font-display font-bold text-white mb-3">
+        <h1 className="text-3xl font-display font-bold text-text-primary mb-3">
           Page Not Found
         </h1>
-        <p className="text-white/45 text-sm leading-relaxed mb-8 max-w-sm mx-auto">
+        <p className="text-text-muted text-sm leading-relaxed mb-8 max-w-sm mx-auto">
           The page you're looking for doesn't exist or may have been moved.
           Let's get you back on track.
         </p>
@@ -70,7 +70,7 @@ const NotFound = () => (
           </Link>
           <Link
             to="/browse"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white/65 hover:text-white transition-all"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-text-secondary hover:text-text-primary transition-all"
             style={{
               background: 'rgba(255,255,255,0.04)',
               border: '1px solid rgba(255,255,255,0.08)',

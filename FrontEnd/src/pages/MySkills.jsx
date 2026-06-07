@@ -34,7 +34,7 @@ const MySkills = () => {
             <Layers size={26} style={{ color: '#00c6ff', WebkitTextFillColor: '#00c6ff' }} />
             My Skills
           </h1>
-          <p className="text-white/40 mt-1 text-sm">What you teach and what you want to learn.</p>
+          <p className="text-text-muted mt-1 text-sm">What you teach and what you want to learn.</p>
         </div>
         <button
           onClick={() => setFormOpen(true)}
@@ -60,8 +60,8 @@ const MySkills = () => {
             style={{ background: 'rgba(0,198,255,0.1)', border: '1px solid rgba(0,198,255,0.2)' }}>
             <Sparkles size={24} className="text-accent" />
           </div>
-          <h3 className="text-lg font-bold text-white mb-2">No skills yet</h3>
-          <p className="text-white/40 text-sm mb-6 max-w-xs">Add what you can teach and what you want to learn to start matching.</p>
+          <h3 className="text-lg font-bold text-text-primary mb-2">No skills yet</h3>
+          <p className="text-text-muted text-sm mb-6 max-w-xs">Add what you can teach and what you want to learn to start matching.</p>
           <button onClick={() => setFormOpen(true)}
             className="btn-gradient flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm">
             <Plus size={15} /> Add Your First Skill

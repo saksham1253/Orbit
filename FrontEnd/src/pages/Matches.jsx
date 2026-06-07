@@ -39,7 +39,7 @@ const Matches = () => {
           <Handshake size={26} style={{ color: '#00e5a0', WebkitTextFillColor: '#00e5a0' }} />
           Your Matches
         </h1>
-        <p className="text-white/40 mt-1 text-sm">People whose skills perfectly align with yours — mutual exchanges.</p>
+        <p className="text-text-muted mt-1 text-sm">People whose skills perfectly align with yours — mutual exchanges.</p>
       </div>
 
       {/* Count badge */}
@@ -60,8 +60,8 @@ const Matches = () => {
           className="py-20 text-center rounded-2xl"
           style={{ background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(0,229,160,0.15)' }}>
           <Handshake size={36} className="mx-auto mb-4" style={{ color: 'rgba(0,229,160,0.25)' }} />
-          <h3 className="text-lg font-bold text-white mb-2">No matches yet</h3>
-          <p className="text-white/40 text-sm max-w-xs mx-auto">
+          <h3 className="text-lg font-bold text-text-primary mb-2">No matches yet</h3>
+          <p className="text-text-muted text-sm max-w-xs mx-auto">
             Add more skills or browse the community. Matches appear when someone offers what you want and wants what you offer.
           </p>
         </motion.div>

@@ -26,6 +26,22 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <!-- Poppins: Modern, friendly headings | Open Sans: Clean, readable body text -->
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&family=Poppins:wght@600;700;800;900&display=swap" rel="stylesheet" />
+    
+    <!-- Anti-FOUC script to set mode and theme before React renders -->
+    <script>
+      try {
+        const themeState = JSON.parse(localStorage.getItem('skillswap-theme-mode'));
+        const isDark = themeState?.state?.isDark ?? true; // default to dark
+        document.documentElement.setAttribute('data-mode', isDark ? 'dark' : 'light');
+        
+        const appearanceState = JSON.parse(localStorage.getItem('skillswap-appearance'));
+        const theme = appearanceState?.state?.theme || 'cyan-purple';
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (e) {
+        document.documentElement.setAttribute('data-mode', 'dark');
+        document.documentElement.setAttribute('data-theme', 'cyan-purple');
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

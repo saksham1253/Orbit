@@ -76,7 +76,7 @@ const FactorBar = ({ label, value, max, color, icon: Icon, delay }) => {
       className="space-y-2"
     >
       <div className="flex justify-between items-center">
-        <span className="flex items-center gap-2 text-sm text-white/60">
+        <span className="flex items-center gap-2 text-sm text-text-secondary">
           <Icon size={13} style={{ color }} /> {label}
         </span>
         <span className="text-sm font-bold" style={{ color }}>
@@ -110,7 +110,7 @@ const ReviewCard = ({ r, idx }) => (
     <div className="flex-1 min-w-0">
       <div className="flex items-center justify-between gap-2 mb-1.5">
         <div className="flex items-center gap-1.5">
-          <span className="text-sm font-semibold text-white">{r.fromUser?.name || 'Anonymous'}</span>
+          <span className="text-sm font-semibold text-text-primary">{r.fromUser?.name || 'Anonymous'}</span>
           <div className="flex gap-0.5">
             {[...Array(5)].map((_, i) => (
               <Star key={i} size={11} fill={i < r.score ? '#ffb800' : 'transparent'}
@@ -118,11 +118,11 @@ const ReviewCard = ({ r, idx }) => (
             ))}
           </div>
         </div>
-        <span className="text-xs text-white/30 flex-shrink-0">
+        <span className="text-xs text-text-muted flex-shrink-0">
           {formatDistanceToNow(new Date(r.createdAt), { addSuffix: true })}
         </span>
       </div>
-      {r.review && <p className="text-sm text-white/55 italic">"{r.review}"</p>}
+      {r.review && <p className="text-sm text-text-secondary italic">"{r.review}"</p>}
     </div>
   </motion.div>
 );
@@ -151,12 +151,12 @@ const TrustScore = () => {
 
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-display font-bold text-white flex items-center gap-3">
+        <h1 className="text-3xl font-display font-bold text-text-primary flex items-center gap-3">
           <span style={{ background: 'linear-gradient(135deg,#00c6ff,#a855f7)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>
             Trust & Reputation
           </span>
         </h1>
-        <p className="text-white/40 mt-1 text-sm">Your community standing based on interactions and feedback.</p>
+        <p className="text-text-muted mt-1 text-sm">Your community standing based on interactions and feedback.</p>
       </div>
 
       {/* Flagged warning */}
@@ -165,7 +165,7 @@ const TrustScore = () => {
           <ShieldAlert className="text-danger flex-shrink-0 mt-0.5" size={20} />
           <div>
             <p className="font-semibold text-danger text-sm">Account Flagged</p>
-            <p className="text-white/50 text-xs mt-0.5">{flagReason || 'Safety policy violation detected.'}</p>
+            <p className="text-text-secondary text-xs mt-0.5">{flagReason || 'Safety policy violation detected.'}</p>
           </div>
         </div>
       )}
@@ -184,12 +184,12 @@ const TrustScore = () => {
                 {[...Array(5)].map((_, i) => <Star key={i} size={10} fill={i < Math.round(averageRating) ? '#ffb800' : 'transparent'} style={{ color: '#ffb800' }} />)}
               </div>
               <span className="text-lg font-bold text-amber">{averageRating?.toFixed(1) || '0.0'}</span>
-              <span className="text-[10px] text-white/35">avg rating</span>
+              <span className="text-[10px] text-text-muted">avg rating</span>
             </div>
             <div className="flex flex-col items-center p-3 rounded-xl" style={{ background: 'rgba(0,198,255,0.08)', border: '1px solid rgba(0,198,255,0.2)' }}>
               <Award size={16} className="text-accent mb-0.5" />
               <span className="text-lg font-bold text-accent">{totalRatings}</span>
-              <span className="text-[10px] text-white/35">reviews</span>
+              <span className="text-[10px] text-text-muted">reviews</span>
             </div>
           </div>
         </div>
@@ -197,7 +197,7 @@ const TrustScore = () => {
         {/* Factors breakdown */}
         <div className="md:col-span-3 p-6 rounded-2xl space-y-5"
           style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <h3 className="font-display font-bold text-white text-base flex items-center gap-2">
+          <h3 className="font-display font-bold text-text-primary text-base flex items-center gap-2">
             <ShieldCheck size={16} className="text-accent" /> Score Breakdown
           </h3>
           <FactorBar label="Rating Score"    value={bd.ratingScore    ?? 0} max={40} color="#ffb800" icon={Star}       delay={0}    />
@@ -210,13 +210,13 @@ const TrustScore = () => {
       {/* ── Recent Reviews ── */}
       <div className="p-6 rounded-2xl space-y-4"
         style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.08)' }}>
-        <h3 className="font-display font-bold text-white text-base flex items-center gap-2">
+        <h3 className="font-display font-bold text-text-primary text-base flex items-center gap-2">
           <TrendingUp size={16} className="text-secondary" /> Recent Reviews
         </h3>
         {recentRatings.length === 0 ? (
           <div className="py-10 text-center">
             <Star size={32} className="mx-auto text-white/10 mb-3" />
-            <p className="text-white/35 text-sm">No reviews yet. Complete skill exchanges to receive feedback.</p>
+            <p className="text-text-muted text-sm">No reviews yet. Complete skill exchanges to receive feedback.</p>
           </div>
         ) : (
           <div className="space-y-3">

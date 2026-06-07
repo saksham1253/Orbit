@@ -83,8 +83,8 @@ const FeatureCard = ({ icon, title, description, color, delay }) => {
       >
         {icon}
       </div>
-      <h3 className="text-lg font-bold text-white mb-2">{title}</h3>
-      <p className="text-sm text-white/50 leading-relaxed">{description}</p>
+      <h3 className="text-lg font-bold text-text-primary mb-2">{title}</h3>
+      <p className="text-sm text-text-secondary leading-relaxed">{description}</p>
     </motion.div>
   );
 };
@@ -246,10 +246,10 @@ const Landing = () => {
                   transition={{ duration: 0.5 }}
                   className="text-center"
                 >
-                  <p className="text-sm text-white/60 italic mb-1">
+                  <p className="text-sm text-text-secondary italic mb-1">
                     "{MOTIVATIONAL_QUOTES[quoteIndex].text}"
                   </p>
-                  <p className="text-xs text-white/40">— {MOTIVATIONAL_QUOTES[quoteIndex].author}</p>
+                  <p className="text-xs text-text-muted">— {MOTIVATIONAL_QUOTES[quoteIndex].author}</p>
                 </motion.div>
               </AnimatePresence>
             </div>
@@ -301,13 +301,13 @@ const Landing = () => {
 
           {/* Subtitle with enhanced motivation */}
           <motion.p
-            className="text-lg sm:text-xl text-white/55 max-w-2xl mx-auto mb-10 leading-relaxed"
+            className="text-lg sm:text-xl text-text-secondary max-w-2xl mx-auto mb-10 leading-relaxed"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.6 }}
           >
             Join the world's most vibrant peer-to-peer skill exchange network.
-            <span className="block mt-2 text-white/70 font-medium">
+            <span className="block mt-2 text-text-secondary font-medium">
               Share your expertise, unlock new skills, and build genuine connections — 
               <span 
                 className="text-transparent bg-clip-text font-bold ml-1"
@@ -332,7 +332,7 @@ const Landing = () => {
             {token ? (
               <button
                 onClick={() => navigate('/dashboard')}
-                className="btn-gradient w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl text-white font-semibold text-base group relative overflow-hidden"
+                className="btn-gradient w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl text-text-primary font-semibold text-base group relative overflow-hidden"
               >
                 <span className="relative z-10 flex items-center gap-2">
                   Go to Dashboard
@@ -348,7 +348,7 @@ const Landing = () => {
             ) : (
               <Link
                 to="/register"
-                className="btn-gradient w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl text-white font-semibold text-base group relative overflow-hidden"
+                className="btn-gradient w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl text-text-primary font-semibold text-base group relative overflow-hidden"
               >
                 <span className="relative z-10 flex items-center gap-2">
                   Start Your Learning Journey
@@ -365,7 +365,7 @@ const Landing = () => {
             {!token && (
               <Link
                 to="/login"
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl text-white/80 font-medium text-base transition-all hover:text-white hover:border-accent/40"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl text-white/80 font-medium text-base transition-all hover:text-text-primary hover:border-accent/40"
                 style={{
                   background: 'rgba(255,255,255,0.05)',
                   border: '1px solid rgba(255,255,255,0.1)',
@@ -431,7 +431,7 @@ const Landing = () => {
                 >
                   {count}
                 </div>
-                <div className="text-[10px] sm:text-xs text-white/50 font-medium tracking-wide">{category}</div>
+                <div className="text-[10px] sm:text-xs text-text-secondary font-medium tracking-wide">{category}</div>
               </motion.div>
             ))}
           </motion.div>
@@ -439,7 +439,7 @@ const Landing = () => {
 
         {/* Scroll indicator */}
         <motion.div
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-white/30"
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-text-muted"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.2 }}
@@ -464,7 +464,7 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <motion.h2
-              className="text-3xl sm:text-5xl font-display font-bold text-white mb-4"
+              className="text-3xl sm:text-5xl font-display font-bold text-text-primary mb-4"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-80px' }}
@@ -485,7 +485,7 @@ const Landing = () => {
               </span>
             </motion.h2>
             <motion.p
-              className="text-white/45 max-w-xl mx-auto"
+              className="text-text-muted max-w-xl mx-auto"
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
@@ -535,10 +535,10 @@ const Landing = () => {
                 ))}
               </div>
 
-              <h3 className="text-3xl sm:text-4xl font-display font-bold text-white mb-4">
+              <h3 className="text-3xl sm:text-4xl font-display font-bold text-text-primary mb-4">
                 Ready to grow?
               </h3>
-              <p className="text-white/50 mb-10 max-w-lg mx-auto">
+              <p className="text-text-secondary mb-10 max-w-lg mx-auto">
                 Join thousands of learners exchanging skills every day. Your next breakthrough is one connection away.
               </p>
 
@@ -546,7 +546,7 @@ const Landing = () => {
                 {token ? (
                   <button
                     onClick={() => navigate('/dashboard')}
-                    className="btn-gradient flex items-center gap-2 px-8 py-4 rounded-2xl font-semibold text-white text-base group w-full sm:w-auto justify-center relative overflow-hidden"
+                    className="btn-gradient flex items-center gap-2 px-8 py-4 rounded-2xl font-semibold text-text-primary text-base group w-full sm:w-auto justify-center relative overflow-hidden"
                   >
                     <span className="relative z-10 flex items-center gap-2">
                       Go to Dashboard
@@ -563,7 +563,7 @@ const Landing = () => {
                   <>
                     <Link
                       to="/register"
-                      className="btn-gradient flex items-center gap-2 px-8 py-4 rounded-2xl font-semibold text-white text-base group w-full sm:w-auto justify-center relative overflow-hidden"
+                      className="btn-gradient flex items-center gap-2 px-8 py-4 rounded-2xl font-semibold text-text-primary text-base group w-full sm:w-auto justify-center relative overflow-hidden"
                     >
                       <span className="relative z-10 flex items-center gap-2">
                         Start Learning Today — Free Forever
@@ -578,7 +578,7 @@ const Landing = () => {
                     </Link>
                     <Link
                       to="/login"
-                      className="flex items-center gap-2 px-8 py-4 rounded-2xl font-medium text-white/70 hover:text-white text-base transition-all w-full sm:w-auto justify-center hover:border-accent/40"
+                      className="flex items-center gap-2 px-8 py-4 rounded-2xl font-medium text-text-secondary hover:text-text-primary text-base transition-all w-full sm:w-auto justify-center hover:border-accent/40"
                       style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
                     >
                       Sign In
@@ -588,7 +588,7 @@ const Landing = () => {
               </div>
 
               {/* Trust badges with enhanced visuals */}
-              <div className="flex flex-wrap items-center justify-center gap-6 mt-10 text-sm text-white/40">
+              <div className="flex flex-wrap items-center justify-center gap-6 mt-10 text-sm text-text-muted">
                 <motion.span 
                   className="flex items-center gap-1.5 hover:text-accent transition-colors cursor-default"
                   whileHover={{ scale: 1.05 }}

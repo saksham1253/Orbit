@@ -126,7 +126,7 @@ const NearbyMap = () => {
           <MapPin size={26} style={{ color: '#00e5a0', WebkitTextFillColor: '#00e5a0' }} />
           Nearby Skills
         </h1>
-        <p className="text-white/40 mt-1 text-sm">Discover SkillSwap members in your area for local learning.</p>
+        <p className="text-text-muted mt-1 text-sm">Discover SkillSwap members in your area for local learning.</p>
       </div>
 
       {/* Controls */}
@@ -136,14 +136,14 @@ const NearbyMap = () => {
           {/* Location input */}
           <div className="flex-1 flex gap-2">
             <div className="relative flex-1">
-              <MapPin size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+              <MapPin size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
               <input
                 type="text"
                 placeholder="Enter your city, e.g. Dehradun, India"
                 value={locationInput}
                 onChange={e => setLocationInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && locationInput.trim() && setLocationMutation.mutate(locationInput.trim())}
-                className="input-glass w-full pl-9 pr-4 py-2.5 text-sm text-white"
+                className="input-glass w-full pl-9 pr-4 py-2.5 text-sm text-text-primary"
               />
             </div>
             <button
@@ -159,7 +159,7 @@ const NearbyMap = () => {
           {/* Auto-locate */}
           <button
             onClick={autoLocate}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium flex-shrink-0 transition-all text-white/60 hover:text-white"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium flex-shrink-0 transition-all text-text-secondary hover:text-text-primary"
             style={{ background: 'rgba(0,229,160,0.08)', border: '1px solid rgba(0,229,160,0.2)' }}
           >
             <Navigation size={14} className="text-green-400" /> Locate Me
@@ -169,8 +169,8 @@ const NearbyMap = () => {
         {/* Radius + search */}
         <div className="flex flex-col sm:flex-row items-center gap-4">
           <div className="flex items-center gap-3 flex-1">
-            <Sliders size={14} className="text-white/40 flex-shrink-0" />
-            <span className="text-xs text-white/40 flex-shrink-0">Radius: <strong className="text-white">{radius} km</strong></span>
+            <Sliders size={14} className="text-text-muted flex-shrink-0" />
+            <span className="text-xs text-text-muted flex-shrink-0">Radius: <strong className="text-text-primary">{radius} km</strong></span>
             <input type="range" min={5} max={500} step={5} value={radius}
               onChange={e => setRadius(Number(e.target.value))}
               className="flex-1 h-1.5 rounded-full accent-accent cursor-pointer"
@@ -192,7 +192,7 @@ const NearbyMap = () => {
         <div className="flex flex-col items-center justify-center py-16 rounded-2xl"
           style={{ background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.1)' }}>
           <MapPin size={40} className="text-white/15 mb-4" />
-          <p className="text-white/40 text-sm">Enter your city above or click <strong>Locate Me</strong> to find nearby skills.</p>
+          <p className="text-text-muted text-sm">Enter your city above or click <strong>Locate Me</strong> to find nearby skills.</p>
         </div>
       )}
 
@@ -250,11 +250,11 @@ const NearbyMap = () => {
           ) : skills.length === 0 ? (
             <div className="py-12 text-center rounded-2xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.08)' }}>
               <Users size={32} className="mx-auto text-white/15 mb-3" />
-              <p className="text-white/40 text-sm">No skills found within {radius} km. Try increasing the radius.</p>
+              <p className="text-text-muted text-sm">No skills found within {radius} km. Try increasing the radius.</p>
             </div>
           ) : (
             <div className="space-y-3">
-              <p className="text-white/40 text-xs flex items-center gap-2">
+              <p className="text-text-muted text-xs flex items-center gap-2">
                 <Users size={12} /> {skills.length} skill{skills.length !== 1 ? 's' : ''} found within {radius} km
               </p>
               {skills.map((s, i) => (
@@ -268,8 +268,8 @@ const NearbyMap = () => {
                       {(s.user.name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
                     </div>
                     <div>
-                      <p className="font-semibold text-white text-sm">{s.user.name}</p>
-                      <p className="text-xs text-white/35">{s.distanceKm} km · Trust {s.user.trustScore}</p>
+                      <p className="font-semibold text-text-primary text-sm">{s.user.name}</p>
+                      <p className="text-xs text-text-muted">{s.distanceKm} km · Trust {s.user.trustScore}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">

@@ -51,13 +51,13 @@ const SkillCard = memo(({ skill, variant = 'browse', onConnect, onViewRatings })
         <div className="flex items-center gap-3 min-w-0">
           <Avatar name={owner?.name} url={owner?.avatar} size="md" userId={owner?._id} />
           <div className="min-w-0">
-            <p className="font-semibold text-white text-sm truncate">{owner?.name || 'Unknown'}</p>
+            <p className="font-semibold text-text-primary text-sm truncate">{owner?.name || 'Unknown'}</p>
             <div className="flex items-center gap-2 mt-0.5">
               {owner?.location && (
-                <span className="text-xs text-white/35 truncate max-w-[100px]">{owner.location}</span>
+                <span className="text-xs text-text-muted truncate max-w-[100px]">{owner.location}</span>
               )}
               {owner?.languages?.length > 0 && (
-                <span className="text-xs text-white/30 flex items-center gap-1 truncate">
+                <span className="text-xs text-text-muted flex items-center gap-1 truncate">
                   <Globe size={10} />
                   {owner.languages.slice(0, 2).join(', ')}
                 </span>
@@ -97,13 +97,13 @@ const SkillCard = memo(({ skill, variant = 'browse', onConnect, onViewRatings })
       {/* Skill exchange */}
       <div className="flex items-center gap-2 flex-wrap">
         <span className="pill-offer">{skill.skillOffered}</span>
-        <span className="text-white/30 text-base font-light">⇄</span>
+        <span className="text-text-muted text-base font-light">⇄</span>
         <span className="pill-want">{skill.skillWanted}</span>
       </div>
 
       {/* Description */}
       {skill.description && (
-        <p className="text-xs text-white/45 leading-relaxed line-clamp-2">{skill.description}</p>
+        <p className="text-xs text-text-muted leading-relaxed line-clamp-2">{skill.description}</p>
       )}
 
       {/* Footer */}

@@ -122,11 +122,11 @@ const Navbar = () => {
             {/* ── Brand ── */}
             <NavLink to="/" className="flex items-center gap-2 flex-shrink-0 mr-2">
               <div className="w-7 h-7 rounded-lg flex items-center justify-center font-display font-bold text-xs text-white flex-shrink-0"
-                style={{ background: 'linear-gradient(135deg,#00c6ff,#7c3aed,#ff0076)', boxShadow: '0 0 14px rgba(0,198,255,0.35)' }}>
+                style={{ background: 'linear-gradient(135deg, var(--accent-1), var(--accent-3), var(--accent-2))', boxShadow: '0 0 14px var(--border-glow)' }}>
                 S
               </div>
               <span className="text-base font-display font-bold hidden sm:block"
-                style={{ background: 'linear-gradient(135deg,#00c6ff,#a855f7,#ff0076)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+                style={{ background: 'linear-gradient(135deg, var(--accent-1), var(--accent-3), var(--accent-2))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
                 SkillSwap
               </span>
             </NavLink>
@@ -137,21 +137,18 @@ const Navbar = () => {
                 const active = location.pathname === path || (path !== '/dashboard' && location.pathname.startsWith(path));
                 return (
                   <NavLink key={path} to={path}
-                    className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 select-none"
-                    style={{
-                      background: active ? 'rgba(0,198,255,0.13)' : 'transparent',
-                      border: active ? '1px solid rgba(0,198,255,0.35)' : '1px solid transparent',
-                      color: active ? '#00c6ff' : 'rgba(255,255,255,0.55)',
-                      letterSpacing: '0.02em',
-                    }}
-                    onMouseEnter={e => { if (!active) e.currentTarget.style.color = 'rgba(255,255,255,0.9)'; e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
-                    onMouseLeave={e => { if (!active) { e.currentTarget.style.color = 'rgba(255,255,255,0.55)'; e.currentTarget.style.background = 'transparent'; } }}
+                    className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 select-none ${
+                      active
+                        ? 'text-accent bg-accent/10 border border-accent/30'
+                        : 'text-text-secondary hover:text-text-primary hover:bg-surface border border-transparent'
+                    }`}
+                    style={{ letterSpacing: '0.02em' }}
                   >
                     <Icon size={13} strokeWidth={active ? 2.5 : 2} />
                     {name}
                     {badge > 0 && (
                       <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 flex items-center justify-center text-[10px] font-bold rounded-full"
-                        style={{ background: 'linear-gradient(135deg,#ff0076,#7c3aed)', color: '#fff', boxShadow: '0 2px 8px rgba(255,0,118,0.4)' }}
+                        style={{ background: 'linear-gradient(135deg, var(--accent-2), var(--accent-3))', color: '#fff', boxShadow: '0 2px 8px var(--border-glow)' }}
                         aria-label={`${badge} notification${badge !== 1 ? 's' : ''}`}
                       >
                         {badge > 99 ? '99+' : badge}
@@ -160,7 +157,7 @@ const Navbar = () => {
                     {active && (
                       <motion.span layoutId="pill-dot"
                         className="absolute -top-px -right-px w-1.5 h-1.5 rounded-full"
-                        style={{ background: '#00c6ff', boxShadow: '0 0 6px #00c6ff' }}
+                        style={{ background: 'var(--accent-1)', boxShadow: '0 0 6px var(--accent-1)' }}
                       />
                     )}
                   </NavLink>
@@ -171,7 +168,7 @@ const Navbar = () => {
             {/* ── Right side ── */}
             <div className="flex items-center gap-1.5 flex-shrink-0">
               <NavLink to="/profile" title="Profile"
-                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all text-white/55 hover:text-white bg-white/5 border border-white/10"
+                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all text-text-secondary hover:text-text-primary bg-surface border border-border-subtle"
               >
                 <Avatar name={user?.name} url={user?.avatar} size="xs" userId={user?._id} />
                 <span className="hidden md:block max-w-[80px] truncate">{user?.name?.split(' ')[0]}</span>
@@ -181,7 +178,7 @@ const Navbar = () => {
                 onClick={() => setChatOpen(true)}
                 aria-label="Messages"
                 title="Messages"
-                className="relative hidden sm:flex items-center justify-center w-8 h-8 rounded-xl text-white/40 hover:text-accent transition-all bg-white/5 border border-white/10"
+                className="relative hidden sm:flex items-center justify-center w-8 h-8 rounded-xl text-text-muted hover:text-accent transition-all bg-surface border border-border-subtle"
               >
                 <MessageCircle size={15} />
                 {unreadCount > 0 && (
@@ -195,7 +192,7 @@ const Navbar = () => {
               <NavLink to="/settings"
                 aria-label="Settings"
                 title="Settings"
-                className="hidden sm:flex items-center justify-center w-8 h-8 rounded-xl text-white/40 hover:text-white transition-all bg-white/5 border border-white/10"
+                className="hidden sm:flex items-center justify-center w-8 h-8 rounded-xl text-text-muted hover:text-text-primary transition-all bg-surface border border-border-subtle"
               >
                 <SettingsIcon size={15} />
               </NavLink>
@@ -203,7 +200,7 @@ const Navbar = () => {
                 onClick={handleLogout}
                 aria-label="Logout"
                 title="Logout"
-                className="flex items-center justify-center w-8 h-8 rounded-xl text-white/40 hover:text-danger transition-all bg-white/5 border border-white/10"
+                className="flex items-center justify-center w-8 h-8 rounded-xl text-text-muted hover:text-danger transition-all bg-surface border border-border-subtle"
               >
                 <LogOut size={15} />
               </button>
@@ -215,7 +212,7 @@ const Navbar = () => {
                 aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
                 aria-expanded={mobileOpen}
                 aria-controls="mobile-nav-drawer"
-                className="xl:hidden flex items-center justify-center w-8 h-8 rounded-xl text-white/60 hover:text-white transition-all bg-white/5 border border-white/10"
+                className="xl:hidden flex items-center justify-center w-8 h-8 rounded-xl text-text-secondary hover:text-text-primary transition-all bg-surface border border-border-subtle"
               >
                 {mobileOpen ? <X size={16} /> : <Menu size={16} />}
               </button>
@@ -243,7 +240,7 @@ const Navbar = () => {
               {navWithBadges.map(({ name, path, Icon, badge }) => (
                 <NavLink key={path} to={path} onClick={() => setMobileOpen(false)}
                   className={({ isActive }) =>
-                    `relative flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? 'text-accent bg-accent/10 border border-accent/30' : 'text-white/55 hover:text-white bg-white/5 border border-white/10'}`
+                    `relative flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? 'text-accent bg-accent/10 border border-accent/30' : 'text-text-secondary hover:text-text-primary bg-surface border border-border-subtle'}`
                   }
                 >
                   <Icon size={15} /> {name}
@@ -258,12 +255,12 @@ const Navbar = () => {
                 </NavLink>
               ))}
               <NavLink to="/profile" onClick={() => setMobileOpen(false)}
-                className={({ isActive }) => `flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? 'text-accent bg-accent/10 border border-accent/30' : 'text-white/55 hover:text-white bg-white/5 border border-white/10'}`}
+                className={({ isActive }) => `flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? 'text-accent bg-accent/10 border border-accent/30' : 'text-text-secondary hover:text-text-primary bg-surface border border-border-subtle'}`}
               >
                 <UserCircle size={15} /> Profile
               </NavLink>
               <NavLink to="/settings" onClick={() => setMobileOpen(false)}
-                className={({ isActive }) => `flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? 'text-accent bg-accent/10 border border-accent/30' : 'text-white/55 hover:text-white bg-white/5 border border-white/10'}`}
+                className={({ isActive }) => `flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? 'text-accent bg-accent/10 border border-accent/30' : 'text-text-secondary hover:text-text-primary bg-surface border border-border-subtle'}`}
               >
                 <SettingsIcon size={15} /> Settings
               </NavLink>

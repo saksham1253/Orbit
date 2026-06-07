@@ -101,14 +101,14 @@ const ConfirmDialog = ({
                 </div>
                 <h2
                   id={titleId}
-                  className="text-base font-semibold text-white"
+                  className="text-base font-semibold text-text-primary"
                 >
                   {title}
                 </h2>
               </div>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-lg text-white/35 hover:text-white hover:bg-white/08 transition-all"
+                className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-white/08 transition-all"
                 aria-label="Close dialog"
               >
                 <X size={16} />
@@ -118,7 +118,7 @@ const ConfirmDialog = ({
             {/* Body */}
             <div className="px-6 py-5">
               {description && (
-                <p id={descId} className="text-white/55 text-sm leading-relaxed mb-6">
+                <p id={descId} className="text-text-secondary text-sm leading-relaxed mb-6">
                   {description}
                 </p>
               )}
@@ -127,7 +127,7 @@ const ConfirmDialog = ({
               <div className="flex gap-3">
                 <button
                   onClick={onClose}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all text-white/65 hover:text-white"
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all text-text-secondary hover:text-text-primary"
                   style={{
                     background: 'rgba(255,255,255,0.05)',
                     border: '1px solid rgba(255,255,255,0.1)',

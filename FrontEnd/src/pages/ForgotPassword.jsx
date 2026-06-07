@@ -41,7 +41,7 @@ const ForgotPassword = () => {
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4"
               style={{ background: 'linear-gradient(135deg, #00c6ff 0%, #7c3aed 50%, #ff0076 100%)', boxShadow: '0 0 30px rgba(0,198,255,0.3)' }}
             >
-              <Sparkles size={24} className="text-white" />
+              <Sparkles size={24} className="text-text-primary" />
             </div>
             <h1 className="text-2xl font-display font-bold mb-1"
               style={{ background: 'linear-gradient(135deg, #00c6ff, #a855f7, #ff0076)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}
@@ -59,12 +59,12 @@ const ForgotPassword = () => {
               <div className="flex justify-center">
                 <CheckCircle size={56} className="text-green-400" style={{ color: '#00e5a0' }} />
               </div>
-              <h2 className="text-xl font-display font-bold text-white">Check your email</h2>
-              <p className="text-sm text-white/50 leading-relaxed">
+              <h2 className="text-xl font-display font-bold text-text-primary">Check your email</h2>
+              <p className="text-sm text-text-secondary leading-relaxed">
                 If an account exists for <span className="text-white/80 font-medium">{email}</span>, we've sent a password reset link. It expires in 1 hour.
               </p>
               <Link to="/login"
-                className="inline-flex items-center gap-2 mt-4 text-sm text-accent hover:text-white transition-colors"
+                className="inline-flex items-center gap-2 mt-4 text-sm text-accent hover:text-text-primary transition-colors"
               >
                 <ArrowLeft size={14} /> Back to Sign In
               </Link>
@@ -72,17 +72,17 @@ const ForgotPassword = () => {
           ) : (
             <>
               <div className="mb-7">
-                <h2 className="text-xl font-display font-bold text-white mb-1">Reset your password</h2>
-                <p className="text-sm text-white/40">Enter the email associated with your account and we'll send a reset link.</p>
+                <h2 className="text-xl font-display font-bold text-text-primary mb-1">Reset your password</h2>
+                <p className="text-sm text-text-muted">Enter the email associated with your account and we'll send a reset link.</p>
               </div>
 
               <form onSubmit={(e) => { e.preventDefault(); mutation.mutate(email); }} className="space-y-4">
                 <div>
-                  <label htmlFor="forgot-email" className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+                  <label htmlFor="forgot-email" className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">
                     Email Address
                   </label>
                   <div className="relative">
-                    <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30" />
+                    <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
                     <input
                       id="forgot-email"
                       type="email"
@@ -91,7 +91,7 @@ const ForgotPassword = () => {
                       required
                       placeholder="you@example.com"
                       autoComplete="email"
-                      className="input-glass w-full pl-10 pr-4 py-3 text-sm text-white"
+                      className="input-glass w-full pl-10 pr-4 py-3 text-sm text-text-primary"
                     />
                   </div>
                 </div>
@@ -111,7 +111,7 @@ const ForgotPassword = () => {
                 </button>
               </form>
 
-              <p className="mt-6 text-center text-white/35 text-sm">
+              <p className="mt-6 text-center text-text-muted text-sm">
                 Remember your password?{' '}
                 <Link to="/login" className="text-accent hover:text-accent-light transition-colors font-medium">
                   Sign in

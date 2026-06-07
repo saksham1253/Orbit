@@ -1,25 +1,32 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export const useThemeStore = create(
-  (set) => ({
-    isDark: true, // Always dark mode
-    
-    toggleTheme: () => {
-      // Disabled - always dark mode
-      document.documentElement.classList.add('dark');
-      document.documentElement.classList.remove('light');
-      return true;
-    },
-    
-    setTheme: () => {
-      // Disabled - always dark mode
-      document.documentElement.classList.add('dark');
-      document.documentElement.classList.remove('light');
-    },
-    
-    initializeTheme: () => {
-      document.documentElement.classList.add('dark');
-      document.documentElement.classList.remove('light');
+  persist(
+    (set, get) => ({
+      isDark: true, // Always dark mode by default
+      
+      toggleTheme: () => {
+        const newIsDark = !get().isDark;
+        set({ isDark: newIsDark });
+        document.documentElement.setAttribute('data-mode', newIsDark ? 'dark' : 'light');
+        
+        // If switching to light mode and no pastel theme is set, appearanceStore defaults to morning-sky
+        return newIsDark;
+      },
+      
+      setTheme: (isDark) => {
+        set({ isDark });
+        document.documentElement.setAttribute('data-mode', isDark ? 'dark' : 'light');
+      },
+      
+      initializeTheme: () => {
+        const { isDark } = get();
+        document.documentElement.setAttribute('data-mode', isDark ? 'dark' : 'light');
+      }
+    }),
+    {
+      name: 'skillswap-theme-mode',
     }
-  })
+  )
 );

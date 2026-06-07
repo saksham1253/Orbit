@@ -52,7 +52,7 @@ const SwapRequestModal = ({ isOpen, onClose, skill, owner }) => {
         onClick={onClose}
       >
         <motion.div
-          className="bg-dark-lighter border border-white/10 rounded-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]"
+          className="bg-dark-lighter border border-border-subtle rounded-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]"
           initial={{ scale: 0.95, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 20 }}
@@ -60,11 +60,11 @@ const SwapRequestModal = ({ isOpen, onClose, skill, owner }) => {
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-5 border-b border-white/5 relative bg-white/5">
-            <h3 className="text-lg font-display font-bold text-white flex items-center gap-2">
+          <div className="flex items-center justify-between p-5 border-b border-white/5 relative bg-surface">
+            <h3 className="text-lg font-display font-bold text-text-primary flex items-center gap-2">
               <Send size={18} className="text-accent" /> Request Swap
             </h3>
-            <button onClick={onClose} className="p-1.5 text-white/50 hover:text-white rounded-lg hover:bg-white/10 transition-colors">
+            <button onClick={onClose} className="p-1.5 text-text-secondary hover:text-text-primary rounded-lg hover:bg-surface-hover transition-colors">
               <X size={18} />
             </button>
           </div>
@@ -72,12 +72,12 @@ const SwapRequestModal = ({ isOpen, onClose, skill, owner }) => {
           <div className="p-6 overflow-y-auto custom-scrollbar flex flex-col gap-6">
             
             {/* Target Info */}
-            <div className="flex items-center gap-4 p-4 rounded-xl border border-white/5 bg-black/20">
+            <div className="flex items-center gap-4 p-4 rounded-xl border border-white/5 bg-surface">
               <Avatar url={owner.avatar} name={owner.name} size="lg" userId={owner._id} />
               <div>
-                <p className="font-semibold text-white">Swap with {owner.name}</p>
+                <p className="font-semibold text-text-primary">Swap with {owner.name}</p>
                 <div className="flex items-center gap-2 text-sm mt-1">
-                  <span className="text-white/40">You want:</span>
+                  <span className="text-text-muted">You want:</span>
                   <span className="pill-offer text-xs">{skill.skillOffered}</span>
                 </div>
               </div>
@@ -85,16 +85,16 @@ const SwapRequestModal = ({ isOpen, onClose, skill, owner }) => {
 
             <form id="swap-form" onSubmit={handleSubmit} className="flex flex-col gap-4">
               <div>
-                <label className="block text-sm font-semibold text-white/60 mb-2">Message (Optional)</label>
+                <label className="block text-sm font-semibold text-text-secondary mb-2">Message (Optional)</label>
                 <textarea
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Say hi! Let them know why you'd be a great match..."
-                  className="input-glass w-full px-4 py-3 text-sm text-white resize-none"
+                  className="input-glass w-full px-4 py-3 text-sm text-text-primary resize-none"
                   rows={4}
                   maxLength={500}
                 />
-                <div className="text-right mt-1 text-xs text-white/30">
+                <div className="text-right mt-1 text-xs text-text-muted">
                   {message.length}/500
                 </div>
               </div>
@@ -102,10 +102,10 @@ const SwapRequestModal = ({ isOpen, onClose, skill, owner }) => {
           </div>
 
           {/* Footer */}
-          <div className="p-5 border-t border-white/5 bg-white/5 flex gap-3 justify-end">
+          <div className="p-5 border-t border-white/5 bg-surface flex gap-3 justify-end">
             <button
               onClick={onClose}
-              className="px-5 py-2.5 rounded-xl text-sm font-medium text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+              className="px-5 py-2.5 rounded-xl text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors"
             >
               Cancel
             </button>

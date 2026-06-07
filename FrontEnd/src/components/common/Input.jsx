@@ -9,7 +9,7 @@ const Input = forwardRef(({ label, error, required, id: externalId, className = 
       {label && (
         <label
           htmlFor={inputId}
-          className="text-xs font-semibold text-white/55 uppercase tracking-wider"
+          className="text-xs font-semibold text-text-secondary uppercase tracking-wider"
         >
           {label}
           {required && <span className="ml-0.5 text-danger" aria-hidden="true">*</span>}
@@ -21,7 +21,7 @@ const Input = forwardRef(({ label, error, required, id: externalId, className = 
         aria-required={required}
         aria-invalid={!!error}
         aria-describedby={error ? `${inputId}-error` : undefined}
-        className={`input-glass w-full px-4 py-3 text-sm text-white placeholder-white/25 ${
+        className={`input-glass w-full px-4 py-3 text-sm text-text-primary placeholder-white/25 ${
           error ? 'border-danger/60 focus:border-danger' : ''
         }`}
         {...props}

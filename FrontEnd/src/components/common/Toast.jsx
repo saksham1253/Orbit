@@ -75,10 +75,10 @@ const ToastContainer = () => {
               <div className="w-0.5 h-8 rounded-full flex-shrink-0" style={{ background: cfg.color }} />
 
               <Icon size={18} style={{ color: cfg.color, flexShrink: 0 }} />
-              <p className="text-sm font-medium text-white flex-1 leading-snug">{toast.message}</p>
+              <p className="text-sm font-medium text-text-primary flex-1 leading-snug">{toast.message}</p>
               <button
                 onClick={() => removeToast(toast.id)}
-                className="flex-shrink-0 p-1 rounded-lg text-white/30 hover:text-white transition-colors"
+                className="flex-shrink-0 p-1 rounded-lg text-text-muted hover:text-text-primary transition-colors"
               >
                 <X size={14} />
               </button>

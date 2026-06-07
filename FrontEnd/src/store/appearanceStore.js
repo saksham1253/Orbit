@@ -152,6 +152,7 @@ const useAppearanceStore = create(
       setTheme: (theme) => {
         const colors = THEMES[theme]?.colors || THEMES['cyan-purple'].colors;
         set({ theme, customColors: colors });
+        document.documentElement.setAttribute('data-theme', theme);
       },
       setAnimationSpeed: (speed) => set({ animationSpeed: speed }),
       setCustomColors: (colors) => set({ customColors: colors }),
@@ -169,12 +170,20 @@ const useAppearanceStore = create(
       },
 
       // Reset to defaults
-      reset: () => set({
-        backgroundStyle: 'constellation',
-        theme: 'cyan-purple',
-        animationSpeed: 'medium',
-        customColors: ['#00c6ff', '#7c3aed', '#ff0076'],
-      }),
+      reset: () => {
+        set({
+          backgroundStyle: 'constellation',
+          theme: 'cyan-purple',
+          animationSpeed: 'medium',
+          customColors: ['#00c6ff', '#7c3aed', '#ff0076'],
+        });
+        document.documentElement.setAttribute('data-theme', 'cyan-purple');
+      },
+      
+      initializeAppearance: () => {
+        const { theme } = get();
+        document.documentElement.setAttribute('data-theme', theme);
+      }
     }),
     {
       name: APPEARANCE_STORAGE_KEY,

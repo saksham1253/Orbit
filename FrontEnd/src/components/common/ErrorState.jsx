@@ -25,8 +25,8 @@ const ErrorState = ({ message = 'Failed to load data.', onRetry }) => (
       <AlertCircle size={22} style={{ color: '#ff4b4b' }} />
     </div>
 
-    <h3 className="text-base font-semibold text-white mb-1">Oops!</h3>
-    <p className="text-white/40 text-sm mb-5 max-w-xs">{message}</p>
+    <h3 className="text-base font-semibold text-text-primary mb-1">Oops!</h3>
+    <p className="text-text-muted text-sm mb-5 max-w-xs">{message}</p>
 
     {onRetry && (
       <button

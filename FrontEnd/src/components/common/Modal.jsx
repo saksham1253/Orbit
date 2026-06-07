@@ -59,11 +59,11 @@ const Modal = ({ isOpen, onClose, title, children, maxWidth = 'max-w-lg' }) => {
             <div className="flex items-center justify-between px-6 py-4"
               style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
             >
-              <h3 id={titleId} className="text-lg font-semibold text-white">{title}</h3>
+              <h3 id={titleId} className="text-lg font-semibold text-text-primary">{title}</h3>
               <button
                 onClick={onClose}
                 aria-label="Close dialog"
-                className="p-1.5 rounded-lg text-white/35 hover:text-white hover:bg-white/08 transition-all"
+                className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-white/08 transition-all"
               >
                 <X size={18} />
               </button>

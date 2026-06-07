@@ -131,7 +131,7 @@ const ConnectionCard = ({ connection, type, onRate, onViewRatings }) => {
 
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h4 className="font-semibold text-white truncate">{other?.name || 'Unknown User'}</h4>
+            <h4 className="font-semibold text-text-primary truncate">{other?.name || 'Unknown User'}</h4>
             {ts !== undefined && (
               <span className="text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1"
                 style={{ background: trustBg, border: `1px solid ${trustColor}30`, color: trustColor }}
@@ -141,16 +141,16 @@ const ConnectionCard = ({ connection, type, onRate, onViewRatings }) => {
             )}
           </div>
 
-          <p className="text-xs text-white/40 mt-0.5 leading-relaxed">
+          <p className="text-xs text-text-muted mt-0.5 leading-relaxed">
             {isIncoming && <>Wants to connect over{' '}<span className="text-accent">{connection.skill?.skillOffered}</span></>}
             {isOutgoing && <>You requested to exchange{' '}<span className="text-secondary">{connection.skill?.skillOffered}</span></>}
-            {isEstablished && <>Connected via{' '}<span className="text-white/70">{connection.skill?.skillOffered}</span></>}
+            {isEstablished && <>Connected via{' '}<span className="text-text-secondary">{connection.skill?.skillOffered}</span></>}
             {isCompleted && <>Completed swap{' '}<span className="text-green">{connection.skill?.skillOffered}</span>{' '}⇄{' '}<span className="text-green">{connection.skill?.skillWanted}</span></>}
           </p>
 
           {/* Show swap request message */}
           {connection.message && (isIncoming || isOutgoing) && (
-            <p className="text-xs text-white/30 mt-1 italic flex items-start gap-1">
+            <p className="text-xs text-text-muted mt-1 italic flex items-start gap-1">
               <MessageSquare size={10} className="mt-0.5 flex-shrink-0" />
               &ldquo;{connection.message}&rdquo;
             </p>
@@ -174,7 +174,7 @@ const ConnectionCard = ({ connection, type, onRate, onViewRatings }) => {
             {/* View Ratings — check their reputation before accepting */}
             <button
               onClick={() => onViewRatings?.(other)}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-white/50 hover:text-amber hover:bg-amber/10 border border-white/08 transition-all"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-text-secondary hover:text-amber hover:bg-amber/10 border border-white/08 transition-all"
               title="View this person's ratings"
             >
               <Star size={14} /> Ratings
@@ -182,7 +182,7 @@ const ConnectionCard = ({ connection, type, onRate, onViewRatings }) => {
             <button
               onClick={() => respondMutation.mutate('decline')}
               disabled={respondMutation.isPending}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-white/50 hover:text-danger hover:bg-danger/10 border border-white/08 transition-all"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-text-secondary hover:text-danger hover:bg-danger/10 border border-white/08 transition-all"
             >
               <X size={15} /> Decline
             </button>
@@ -225,7 +225,7 @@ const ConnectionCard = ({ connection, type, onRate, onViewRatings }) => {
               <button
                 onClick={handleCancel}
                 disabled={cancelMutation.isPending}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-white/50 hover:text-danger hover:bg-danger/10 border border-white/08 transition-all disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-text-secondary hover:text-danger hover:bg-danger/10 border border-white/08 transition-all disabled:opacity-50"
                 title="Cancel this request"
               >
                 <Trash2 size={14} /> Cancel
@@ -241,13 +241,13 @@ const ConnectionCard = ({ connection, type, onRate, onViewRatings }) => {
                 // Dispatch event so Navbar can open ChatDrawer with this user
                 window.dispatchEvent(new CustomEvent('open-chat', { detail: other }));
               }}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-white/50 hover:text-accent hover:bg-accent/10 border border-white/08 transition-all"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-text-secondary hover:text-accent hover:bg-accent/10 border border-white/08 transition-all"
             >
               <MessageCircle size={15} /> Chat
             </button>
             <button
               onClick={() => onRate?.(other?._id)}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-white/60 hover:text-amber hover:bg-amber/10 border border-white/08 transition-all"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-text-secondary hover:text-amber hover:bg-amber/10 border border-white/08 transition-all"
             >
               <Star size={15} /> Rate
             </button>
@@ -267,7 +267,7 @@ const ConnectionCard = ({ connection, type, onRate, onViewRatings }) => {
           <>
             <button
               onClick={() => navigate(`/profile/${other?._id}`)}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-white/50 hover:text-accent hover:bg-accent/10 border border-white/08 transition-all"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-text-secondary hover:text-accent hover:bg-accent/10 border border-white/08 transition-all"
             >
               <UserCheck size={15} /> View Profile
             </button>

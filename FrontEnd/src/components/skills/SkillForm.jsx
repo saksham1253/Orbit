@@ -49,23 +49,23 @@ const SkillForm = ({ isOpen, onClose }) => {
         {/* Offer / Want row */}
         <div className="flex items-start gap-3">
           <div className="flex-1">
-            <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">I can teach</label>
+            <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">I can teach</label>
             <input {...register('skillOffered')} placeholder="e.g. JavaScript, Guitar"
-              className="input-glass w-full px-4 py-3 text-sm text-white" />
+              className="input-glass w-full px-4 py-3 text-sm text-text-primary" />
             {errors.skillOffered && <p className="mt-1 text-xs text-danger">{errors.skillOffered.message}</p>}
           </div>
-          <div className="flex-shrink-0 mt-7 text-white/30"><Repeat2 size={18} /></div>
+          <div className="flex-shrink-0 mt-7 text-text-muted"><Repeat2 size={18} /></div>
           <div className="flex-1">
-            <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">I want to learn</label>
+            <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">I want to learn</label>
             <input {...register('skillWanted')} placeholder="e.g. Python, Piano"
-              className="input-glass w-full px-4 py-3 text-sm text-white" />
+              className="input-glass w-full px-4 py-3 text-sm text-text-primary" />
             {errors.skillWanted && <p className="mt-1 text-xs text-danger">{errors.skillWanted.message}</p>}
           </div>
         </div>
 
         {/* Level selector */}
         <div>
-          <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">My level in the skill I'm offering</label>
+          <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">My level in the skill I'm offering</label>
           <div className="flex gap-2">
             {LEVEL_OPTS.map(({ value, label, color }) => (
               <button key={value} type="button" onClick={() => setValue('level', value)}
@@ -83,16 +83,16 @@ const SkillForm = ({ isOpen, onClose }) => {
 
         {/* Description */}
         <div>
-          <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">Description <span className="normal-case text-white/25 lowercase">(optional)</span></label>
+          <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">Description <span className="normal-case text-white/25 lowercase">(optional)</span></label>
           <textarea {...register('description')} rows={2}
             placeholder="Any specific details about your offer…"
-            className="input-glass w-full px-4 py-3 text-sm text-white resize-none" />
+            className="input-glass w-full px-4 py-3 text-sm text-text-primary resize-none" />
         </div>
 
         {/* Actions */}
         <div className="flex justify-end gap-3 pt-1">
           <button type="button" onClick={onClose}
-            className="px-5 py-2.5 rounded-xl text-sm font-medium text-white/50 hover:text-white transition-all"
+            className="px-5 py-2.5 rounded-xl text-sm font-medium text-text-secondary hover:text-text-primary transition-all"
             style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
             Cancel
           </button>

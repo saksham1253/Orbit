@@ -44,10 +44,10 @@ class ErrorBoundary extends Component {
               <AlertTriangle size={28} style={{ color: '#ff4b4b' }} />
             </div>
 
-            <h1 className="text-2xl font-display font-bold text-white mb-3">
+            <h1 className="text-2xl font-display font-bold text-text-primary mb-3">
               Something went wrong
             </h1>
-            <p className="text-white/50 text-sm mb-8 leading-relaxed">
+            <p className="text-text-secondary text-sm mb-8 leading-relaxed">
               An unexpected error occurred. You can try refreshing the page, or
               click below to recover without a full reload.
             </p>
@@ -75,7 +75,7 @@ class ErrorBoundary extends Component {
               </button>
               <button
                 onClick={() => window.location.assign('/')}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white/60 hover:text-white transition-all"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-text-secondary hover:text-text-primary transition-all"
                 style={{
                   background: 'rgba(255,255,255,0.04)',
                   border: '1px solid rgba(255,255,255,0.08)',

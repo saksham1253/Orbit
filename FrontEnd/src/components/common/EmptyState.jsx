@@ -46,10 +46,10 @@ const EmptyState = ({
         </div>
       )}
 
-      <h3 className="text-lg font-bold text-white mb-2">{title}</h3>
+      <h3 className="text-lg font-bold text-text-primary mb-2">{title}</h3>
 
       {description && (
-        <p className="text-white/40 text-sm max-w-xs mb-6 leading-relaxed">
+        <p className="text-text-muted text-sm max-w-xs mb-6 leading-relaxed">
           {description}
         </p>
       )}

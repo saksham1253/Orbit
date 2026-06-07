@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'r
 import { lazy, Suspense, useEffect, useState, useCallback } from 'react';
 import { useAuthStore } from './store/authStore';
 import { useNotificationStore } from './store/notificationStore';
+import { useThemeStore } from './store/themeStore';
+import useAppearanceStore from './store/appearanceStore';
 import Layout from './components/layout/Layout';
 import BackgroundEffects from './components/animations/BackgroundEffects';
 import ToastContainer from './components/common/Toast';
@@ -35,7 +37,7 @@ const PublicProfile = lazy(() => import('./pages/PublicProfile'));
 const PageLoader = () => (
   <div className="flex items-center justify-center py-24">
     <div className="relative">
-      <div className="w-12 h-12 rounded-full border-2 border-white/10 border-t-accent animate-spin" />
+      <div className="w-12 h-12 rounded-full border-2 border-border-subtle border-t-accent animate-spin" />
       <div className="absolute inset-0 rounded-full border-2 border-transparent border-b-secondary animate-spin"
         style={{ animationDirection: 'reverse', animationDuration: '0.8s' }}
       />
@@ -79,6 +81,15 @@ function AppInner() {
     notifyCallEnded,
     notifySkillMatch,
   } = useNotificationStore();
+
+  const { initializeTheme } = useThemeStore();
+  const { initializeAppearance } = useAppearanceStore();
+
+  // Apply persisted theme attributes to <html> on mount
+  useEffect(() => {
+    initializeTheme();
+    initializeAppearance();
+  }, [initializeTheme, initializeAppearance]);
 
   // Incoming call state — drives the full-screen overlay
   const [incomingCall, setIncomingCall] = useState(null); // { callerName, roomId }

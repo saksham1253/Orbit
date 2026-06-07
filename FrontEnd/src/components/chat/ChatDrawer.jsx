@@ -27,7 +27,7 @@ const DateSeparator = ({ date }) => {
   
   return (
     <div className="flex justify-center my-4">
-      <div className="px-3 py-1 rounded-full bg-white/5 text-[11px] font-medium text-white/50 border border-white/5 shadow-sm backdrop-blur-sm">
+      <div className="px-3 py-1 rounded-full bg-surface text-[11px] font-medium text-text-secondary border border-white/5 shadow-sm backdrop-blur-sm">
         {label}
       </div>
     </div>
@@ -52,15 +52,15 @@ const ConversationList = ({ onSelect, selectedId, onlineUsers }) => {
   return (
     <div className="flex flex-col h-full">
       {/* Search Bar */}
-      <div className="p-4 border-b border-white/8 flex-shrink-0">
+      <div className="p-4 border-b border-border-subtle flex-shrink-0">
         <div className="relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
             placeholder="Search conversations…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="input-glass w-full pl-9 pr-3 py-2.5 text-sm text-white placeholder:text-white/30 transition-all focus:bg-white/10"
+            className="input-glass w-full pl-9 pr-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted transition-all focus:bg-surface-hover"
             aria-label="Search conversations"
           />
         </div>
@@ -71,10 +71,10 @@ const ConversationList = ({ onSelect, selectedId, onlineUsers }) => {
         {isLoading && <ChatListSkeleton count={6} />}
         {!isLoading && filtered.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 gap-3 text-center px-6">
-            <div className="w-14 h-14 rounded-full flex items-center justify-center bg-white/5 mb-2">
+            <div className="w-14 h-14 rounded-full flex items-center justify-center bg-surface mb-2">
               <MessageCircle size={24} className="text-white/20" />
             </div>
-            <p className="text-sm font-medium text-white/50">No conversations yet</p>
+            <p className="text-sm font-medium text-text-secondary">No conversations yet</p>
             <p className="text-xs text-white/25 max-w-[200px]">Connect with others to start messaging</p>
           </div>
         )}
@@ -100,7 +100,7 @@ const ConversationList = ({ onSelect, selectedId, onlineUsers }) => {
                 )}
                 {convo.unreadCount > 0 && (
                   <span 
-                    className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-accent rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-lg z-20"
+                    className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-accent rounded-full flex items-center justify-center text-[10px] font-bold text-text-primary shadow-lg z-20"
                     aria-label={`${convo.unreadCount} unread message${convo.unreadCount > 1 ? 's' : ''}`}
                   >
                     {convo.unreadCount > 9 ? '9+' : convo.unreadCount}
@@ -109,14 +109,14 @@ const ConversationList = ({ onSelect, selectedId, onlineUsers }) => {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline justify-between gap-2 mb-0.5">
-                  <p className={`font-semibold text-sm truncate ${convo.unreadCount > 0 ? 'text-white' : 'text-white/80'}`}>
+                  <p className={`font-semibold text-sm truncate ${convo.unreadCount > 0 ? 'text-text-primary' : 'text-white/80'}`}>
                     {convo.user.name}
                   </p>
-                  <span className="text-[10px] text-white/30 flex-shrink-0">
+                  <span className="text-[10px] text-text-muted flex-shrink-0">
                     {convo.lastMessage?.createdAt ? formatTimestamp(convo.lastMessage.createdAt) : ''}
                   </span>
                 </div>
-                <p className={`text-xs truncate ${convo.unreadCount > 0 ? 'text-white/70 font-medium' : 'text-white/35'}`}>
+                <p className={`text-xs truncate ${convo.unreadCount > 0 ? 'text-text-secondary font-medium' : 'text-text-muted'}`}>
                   {convo.lastMessage?.content || 'No messages yet'}
                 </p>
               </div>
@@ -267,12 +267,12 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#0a0c14]">
+    <div className="flex flex-col h-full bg-background">
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-4 border-b border-white/8 flex-shrink-0 bg-black/20 backdrop-blur-md">
+      <div className="flex items-center gap-3 px-4 py-4 border-b border-border-subtle flex-shrink-0 bg-surface backdrop-blur-md">
         <button 
           onClick={onBack} 
-          className="sm:hidden text-white/50 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/10"
+          className="sm:hidden text-text-secondary hover:text-text-primary transition-colors p-1.5 rounded-lg hover:bg-surface-hover"
           aria-label="Back to conversations"
         >
           <ArrowLeft size={18} />
@@ -284,8 +284,8 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="font-semibold text-white text-sm truncate">{otherUser.name}</p>
-          <p className={`text-[11px] font-medium ${isOnline ? 'text-green-400' : 'text-white/40'}`}>
+          <p className="font-semibold text-text-primary text-sm truncate">{otherUser.name}</p>
+          <p className={`text-[11px] font-medium ${isOnline ? 'text-green-400' : 'text-text-muted'}`}>
             {isOnline ? 'Active now' : (otherUser.lastSeen && !isNaN(new Date(otherUser.lastSeen).getTime()) ? `Last seen ${formatDistanceToNow(new Date(otherUser.lastSeen))} ago` : 'Offline')}
           </p>
         </div>
@@ -296,12 +296,12 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
         {isLoading && <ChatMessagesSkeleton />}
         {!isLoading && messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
-            <div className="w-16 h-16 rounded-full flex items-center justify-center bg-white/5 mb-2 shadow-inner">
+            <div className="w-16 h-16 rounded-full flex items-center justify-center bg-surface mb-2 shadow-inner">
               <MessageCircle size={28} className="text-white/20" />
             </div>
             <div>
-              <p className="text-sm font-medium text-white/50 mb-1">No messages yet</p>
-              <p className="text-xs text-white/30">Send a message to start the conversation</p>
+              <p className="text-sm font-medium text-text-secondary mb-1">No messages yet</p>
+              <p className="text-xs text-text-muted">Send a message to start the conversation</p>
             </div>
           </div>
         )}
@@ -331,7 +331,7 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
                   <div
                     className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
                       isMe
-                        ? `rounded-br-sm text-white shadow-lg ${isLastInGroup ? 'rounded-br-md' : ''}`
+                        ? `rounded-br-sm text-text-primary shadow-lg ${isLastInGroup ? 'rounded-br-md' : ''}`
                         : `rounded-bl-sm text-white/90 ${isLastInGroup ? 'rounded-bl-md' : ''}`
                     }`}
                     style={isMe
@@ -369,7 +369,7 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
               <div className="w-7 flex-shrink-0">
                 <Avatar name={otherUser.name} url={otherUser.avatar} size="xs" userId={otherUser._id} />
               </div>
-              <div className="px-4 py-3 rounded-2xl rounded-bl-sm bg-white/5 border border-white/5 flex gap-1 items-center h-[38px]">
+              <div className="px-4 py-3 rounded-2xl rounded-bl-sm bg-surface border border-white/5 flex gap-1 items-center h-[38px]">
                 <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
                 <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
                 <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
@@ -381,7 +381,7 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
       </div>
 
       {/* Input */}
-      <div className="flex items-end gap-3 px-4 py-4 border-t border-white/8 flex-shrink-0 bg-black/20 backdrop-blur-md">
+      <div className="flex items-end gap-3 px-4 py-4 border-t border-border-subtle flex-shrink-0 bg-surface backdrop-blur-md">
         <textarea
           ref={inputRef}
           value={input}
@@ -389,7 +389,7 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
           onKeyDown={handleKeyDown}
           placeholder="Type a message…"
           rows={1}
-          className="flex-1 input-glass px-4 py-3 text-sm text-white resize-none leading-relaxed placeholder:text-white/30 transition-all focus:bg-white/10"
+          className="flex-1 input-glass px-4 py-3 text-sm text-text-primary resize-none leading-relaxed placeholder:text-text-muted transition-all focus:bg-surface-hover"
           style={{ maxHeight: 120, overflowY: 'auto' }}
           aria-label="Message input"
         />
@@ -512,7 +512,7 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
           // Show in-app toast if not looking at this chat
           toast.custom((t) => (
             <div
-              className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-sm w-full bg-[#111420] border border-white/10 shadow-2xl rounded-2xl pointer-events-auto flex cursor-pointer hover:bg-white/5 transition-colors`}
+              className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-sm w-full bg-surface border border-border-subtle shadow-2xl rounded-2xl pointer-events-auto flex cursor-pointer hover:bg-surface transition-colors`}
               onClick={() => {
                 toast.dismiss(t.id);
                 // We'd ideally open the chat here, but this listener lives inside ChatDrawer anyway.
@@ -526,8 +526,8 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
                     <Avatar name={msg.sender?.name} url={msg.sender?.avatar} size="sm" userId={senderId} />
                   </div>
                   <div className="ml-3 flex-1">
-                    <p className="text-sm font-medium text-white">{msg.sender?.name}</p>
-                    <p className="mt-1 text-sm text-white/60 truncate">{msg.content}</p>
+                    <p className="text-sm font-medium text-text-primary">{msg.sender?.name}</p>
+                    <p className="mt-1 text-sm text-text-secondary truncate">{msg.content}</p>
                   </div>
                 </div>
               </div>
@@ -628,9 +628,9 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
             className="fixed right-0 top-0 bottom-0 z-[95] flex flex-col overflow-hidden shadow-2xl"
             style={{
               width: window.innerWidth < 640 ? '100vw' : `${drawerWidth}px`,
-              background: 'rgba(8,10,20,0.98)',
+              background: 'var(--bg-app)',
               backdropFilter: 'blur(32px)',
-              borderLeft: '1px solid rgba(255,255,255,0.08)',
+              borderLeft: '1px solid var(--border-subtle)',
             }}
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
@@ -647,18 +647,18 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
             />
 
             {/* Drawer Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-white/8 flex-shrink-0 bg-black/40">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle flex-shrink-0 bg-surface">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-accent/10 border border-accent/20">
                   <MessageCircle size={16} className="text-accent" />
                 </div>
-                <h2 className="font-display font-bold text-white text-lg">Messages</h2>
+                <h2 className="font-display font-bold text-text-primary text-lg">Messages</h2>
               </div>
               
               <div className="flex items-center gap-1">
                 <button
                   onClick={handleToggleNotifications}
-                  className="p-2 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-all"
+                  className="p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-all"
                   title={notificationsEnabled ? "Disable notifications" : "Enable notifications"}
                   aria-label={notificationsEnabled ? "Disable notifications" : "Enable notifications"}
                 >
@@ -666,7 +666,7 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
                 </button>
                 <button
                   onClick={handleToggleExpand}
-                  className="hidden sm:flex p-2 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-all"
+                  className="hidden sm:flex p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-all"
                   title={drawerWidth >= 800 ? "Collapse" : "Expand"}
                   aria-label={drawerWidth >= 800 ? "Collapse" : "Expand"}
                 >
@@ -674,7 +674,7 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
                 </button>
                 <button 
                   onClick={onClose} 
-                  className="p-2 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-all ml-1"
+                  className="p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-all ml-1"
                   aria-label="Close messages"
                 >
                   <X size={18} />
@@ -686,7 +686,7 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
             <div className="flex-1 flex overflow-hidden">
               {/* Left: Conversation List */}
               <div 
-                className={`flex flex-col border-r border-white/8 bg-black/20 
+                className={`flex flex-col border-r border-border-subtle bg-surface 
                 ${selectedUser ? 'hidden sm:flex' : 'flex w-full'}
                 ${drawerWidth >= 700 ? 'sm:w-[320px] flex-shrink-0' : 'sm:w-[40%]'}`}
               >
@@ -707,13 +707,13 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
                     isExpanded={drawerWidth >= 700}
                   />
                 ) : (
-                  <div className="hidden sm:flex flex-col items-center justify-center h-full gap-4 text-center px-6 bg-[#0a0c14]">
-                    <div className="w-16 h-16 rounded-full flex items-center justify-center bg-white/5 shadow-inner">
+                  <div className="hidden sm:flex flex-col items-center justify-center h-full gap-4 text-center px-6 bg-background">
+                    <div className="w-16 h-16 rounded-full flex items-center justify-center bg-surface shadow-inner">
                       <MessageCircle size={32} className="text-white/15" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-white/50 mb-1">Select a conversation</p>
-                      <p className="text-xs text-white/30">Choose a contact to start chatting</p>
+                      <p className="text-sm font-medium text-text-secondary mb-1">Select a conversation</p>
+                      <p className="text-xs text-text-muted">Choose a contact to start chatting</p>
                     </div>
                   </div>
                 )}

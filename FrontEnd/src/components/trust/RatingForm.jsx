@@ -55,18 +55,18 @@ const RatingForm = ({ targetUserId, onClose }) => {
 
       {/* Review textarea */}
       <div>
-        <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">
+        <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">
           Review <span className="normal-case text-white/25 lowercase">(optional)</span>
         </label>
         <textarea rows={3} value={review} onChange={e => setReview(e.target.value)}
           placeholder="How was your skill-swap session?"
-          className="input-glass w-full px-4 py-3 text-sm text-white resize-none" />
+          className="input-glass w-full px-4 py-3 text-sm text-text-primary resize-none" />
       </div>
 
       {/* Actions */}
       <div className="flex justify-end gap-3">
         <button type="button" onClick={onClose}
-          className="px-5 py-2.5 rounded-xl text-sm font-medium text-white/50 hover:text-white transition-all"
+          className="px-5 py-2.5 rounded-xl text-sm font-medium text-text-secondary hover:text-text-primary transition-all"
           style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
           Cancel
         </button>

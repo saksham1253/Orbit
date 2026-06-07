@@ -67,7 +67,7 @@ const RatingModal = ({ isOpen, onClose, otherUser, callDuration }) => {
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="bg-dark-lighter border border-white/10 rounded-3xl p-8 max-w-lg w-full"
+        className="bg-dark-lighter border border-border-subtle rounded-3xl p-8 max-w-lg w-full"
       >
         {/* Header */}
         <div className="text-center mb-6">
@@ -79,14 +79,14 @@ const RatingModal = ({ isOpen, onClose, otherUser, callDuration }) => {
               userId={otherUser._id}
             />
           </div>
-          <h2 className="text-2xl font-display font-bold text-white mb-2">
+          <h2 className="text-2xl font-display font-bold text-text-primary mb-2">
             Rate Your Experience
           </h2>
-          <p className="text-white/60 text-sm">
+          <p className="text-text-secondary text-sm">
             How was your session with <span className="text-accent font-semibold">{otherUser.name}</span>?
           </p>
           {callDuration && (
-            <p className="text-white/40 text-xs mt-1">
+            <p className="text-text-muted text-xs mt-1">
               Session duration: {Math.floor(callDuration / 60)}m {callDuration % 60}s
             </p>
           )}
@@ -141,7 +141,7 @@ const RatingModal = ({ isOpen, onClose, otherUser, callDuration }) => {
 
         {/* Comment/Review */}
         <div className="mb-6">
-          <label className="block text-sm font-semibold text-white/70 mb-2">
+          <label className="block text-sm font-semibold text-text-secondary mb-2">
             Your Review <span className="text-danger">*</span>
           </label>
           <textarea
@@ -149,11 +149,11 @@ const RatingModal = ({ isOpen, onClose, otherUser, callDuration }) => {
             onChange={(e) => setComment(e.target.value)}
             placeholder="Share your experience... What did you learn? Was the session helpful? (minimum 10 characters)"
             rows={4}
-            className="input-glass w-full px-4 py-3 text-sm text-white resize-none"
+            className="input-glass w-full px-4 py-3 text-sm text-text-primary resize-none"
             maxLength={500}
           />
           <div className="flex justify-between items-center mt-1">
-            <p className="text-xs text-white/40">
+            <p className="text-xs text-text-muted">
               {comment.length}/500 characters {comment.length < 10 && `(${10 - comment.length} more needed)`}
             </p>
             {comment.length >= 10 && (
@@ -185,7 +185,7 @@ const RatingModal = ({ isOpen, onClose, otherUser, callDuration }) => {
         <button
           onClick={handleSkip}
           disabled={submitRatingMutation.isPending}
-          className="w-full text-center text-xs text-white/35 hover:text-white/60 mt-3 py-1 transition-colors"
+          className="w-full text-center text-xs text-text-muted hover:text-text-secondary mt-3 py-1 transition-colors"
         >
           Skip for now
         </button>

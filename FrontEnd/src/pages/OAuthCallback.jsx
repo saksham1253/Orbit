@@ -40,11 +40,11 @@ const OAuthCallback = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4">
       <div className="relative w-12 h-12">
-        <div className="absolute inset-0 rounded-full border-2 border-white/10 border-t-accent animate-spin" />
+        <div className="absolute inset-0 rounded-full border-2 border-border-subtle border-t-accent animate-spin" />
         <div className="absolute inset-0 rounded-full border-2 border-transparent border-b-secondary animate-spin"
           style={{ animationDirection: 'reverse', animationDuration: '0.7s' }} />
       </div>
-      <p className="text-white/50 text-sm font-medium tracking-wide">Signing you in…</p>
+      <p className="text-text-secondary text-sm font-medium tracking-wide">Signing you in…</p>
     </div>
   );
 };

@@ -110,10 +110,10 @@ const Connections = () => {
           style={{ background: 'linear-gradient(135deg,#00c6ff,#a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
           Connections
         </h1>
-        <p className="text-white/40 mt-1 text-sm">Manage your network and connection requests.</p>
+        <p className="text-text-muted mt-1 text-sm">Manage your network and connection requests.</p>
       </div>
 
-      <div className="flex gap-1.5 p-1 rounded-2xl bg-white/5 border border-white/10">
+      <div className="flex gap-1.5 p-1 rounded-2xl bg-surface border border-border-subtle">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -121,7 +121,7 @@ const Connections = () => {
             className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
               activeTab === tab.id 
                 ? 'bg-accent/15 text-accent border border-accent/35' 
-                : 'bg-transparent text-white/45 border border-transparent'
+                : 'bg-transparent text-text-muted border border-transparent'
             }`}
           >
             {tab.label}
@@ -129,7 +129,7 @@ const Connections = () => {
               <span className={`px-1.5 py-0.5 rounded-full text-xs font-bold ${
                 activeTab === tab.id
                   ? 'bg-accent/20 text-accent'
-                  : 'bg-white/10 text-white/50'
+                  : 'bg-surface-hover text-text-secondary'
               }`}>
                 {tab.count}
               </span>

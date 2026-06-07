@@ -88,7 +88,7 @@ const Login = () => {
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl"
               style={{ background: 'linear-gradient(135deg, #00c6ff 0%, #7c3aed 50%, #ff0076 100%)', boxShadow: '0 0 30px rgba(0,198,255,0.3)' }}
             >
-              <Sparkles size={24} className="text-white" />
+              <Sparkles size={24} className="text-text-primary" />
             </div>
           </div>
           <h1
@@ -102,7 +102,7 @@ const Login = () => {
           >
             SkillSwap
           </h1>
-          <p className="text-white/40 text-sm">Exchange skills. Build expertise. Grow together.</p>
+          <p className="text-text-muted text-sm">Exchange skills. Build expertise. Grow together.</p>
         </div>
 
         {/* Tab switcher */}
@@ -116,7 +116,7 @@ const Login = () => {
             Sign In
           </Link>
           <Link to="/register"
-            className="flex-1 py-2 rounded-lg text-sm font-medium text-center transition-all text-white/50 hover:text-white"
+            className="flex-1 py-2 rounded-lg text-sm font-medium text-center transition-all text-text-secondary hover:text-text-primary"
           >
             Create Account
           </Link>
@@ -126,7 +126,7 @@ const Login = () => {
         <form onSubmit={handleSubmit((d) => loginMutation.mutate(d))} className="space-y-4">
           {/* Email */}
           <div>
-            <label htmlFor="login-email" className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+            <label htmlFor="login-email" className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">
               Email Address <span className="text-danger" aria-hidden="true">*</span>
             </label>
             <input
@@ -135,7 +135,7 @@ const Login = () => {
               autoComplete="email"
               aria-required="true"
               {...register('email')}
-              className="input-glass w-full px-4 py-3 text-sm text-white"
+              className="input-glass w-full px-4 py-3 text-sm text-text-primary"
             />
             {errors.email && (
               <p className="mt-1.5 text-xs text-danger">{errors.email.message}</p>
@@ -144,7 +144,7 @@ const Login = () => {
 
           {/* Password */}
           <div>
-            <label htmlFor="login-password" className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+            <label htmlFor="login-password" className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">
               Password <span className="text-danger" aria-hidden="true">*</span>
             </label>
             <div className="relative">
@@ -154,12 +154,12 @@ const Login = () => {
                 autoComplete="current-password"
                 aria-required="true"
                 {...register('password')}
-                className="input-glass w-full px-4 py-3 pr-11 text-sm text-white"
+                className="input-glass w-full px-4 py-3 pr-11 text-sm text-text-primary"
               />
               <button
                 type="button"
                 onClick={() => setShowPass((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70 transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition-colors"
               >
                 {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
@@ -168,7 +168,7 @@ const Login = () => {
               <p className="mt-1.5 text-xs text-danger">{errors.password.message}</p>
             )}
             <div className="flex justify-end mt-1.5">
-              <Link to="/forgot-password" className="text-xs text-white/40 hover:text-accent transition-colors">
+              <Link to="/forgot-password" className="text-xs text-text-muted hover:text-accent transition-colors">
                 Forgot password?
               </Link>
             </div>
@@ -197,14 +197,14 @@ const Login = () => {
         {/* OAuth */}
         <div className="flex items-center my-6">
           <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.07)' }} />
-          <span className="px-4 text-xs text-white/30 uppercase tracking-widest">or</span>
+          <span className="px-4 text-xs text-text-muted uppercase tracking-widest">or</span>
           <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.07)' }} />
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
           <a
             href={`${API_BASE}/api/auth/google`}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all text-white/70 hover:text-white"
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all text-text-secondary hover:text-text-primary"
             style={{
               background: 'rgba(255,255,255,0.04)',
               border: '1px solid rgba(255,255,255,0.08)',
@@ -220,7 +220,7 @@ const Login = () => {
           </a>
           <a
             href={`${API_BASE}/api/auth/github`}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all text-white/70 hover:text-white"
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all text-text-secondary hover:text-text-primary"
             style={{
               background: 'rgba(255,255,255,0.04)',
               border: '1px solid rgba(255,255,255,0.08)',
@@ -233,7 +233,7 @@ const Login = () => {
           </a>
         </div>
 
-        <p className="mt-6 text-center text-white/35 text-sm">
+        <p className="mt-6 text-center text-text-muted text-sm">
           No account?{' '}
           <Link to="/register" className="text-accent hover:text-accent-light transition-colors font-medium">
             Create one free

@@ -76,9 +76,9 @@ const Settings = () => {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="p-6 rounded-2xl space-y-5 bg-white/5 border border-white/10"
+        className="p-6 rounded-2xl space-y-5 bg-surface border border-border-subtle"
       >
-        <h2 className="font-display font-bold text-slate-900 dark:text-white text-base flex items-center gap-2">
+        <h2 className="font-display font-bold text-slate-900 dark:text-text-primary text-base flex items-center gap-2">
           <Eye size={15} className="text-accent" /> Background Style
         </h2>
 
@@ -92,23 +92,17 @@ const Settings = () => {
                   playClick();
                   setBackgroundStyle(key);
                 }}
-                className="group relative p-4 rounded-xl text-left transition-all bg-white/5 border border-white/10"
-                style={{
-                  background: active
-                    ? 'rgba(0,198,255,0.1)'
-                    : undefined,
-                  border: active ? '1px solid rgba(0,198,255,0.4)' : undefined,
-                }}
+                className={`group relative p-4 rounded-xl text-left transition-all bg-surface border ${active ? 'border-accent shadow-[0_0_15px_var(--border-glow)]' : 'border-border-subtle'}`}
               >
                 {active && (
                   <div className="absolute top-2 right-2">
                     <Check size={14} className="text-accent" strokeWidth={3} />
                   </div>
                 )}
-                <div className="text-sm font-bold text-white mb-1.5">
+                <div className="text-sm font-bold text-text-primary mb-1.5">
                   {style.name}
                 </div>
-                <div className="text-xs text-white/50 leading-relaxed">{style.description}</div>
+                <div className="text-xs text-text-secondary leading-relaxed">{style.description}</div>
               </button>
             );
           })}
@@ -120,19 +114,15 @@ const Settings = () => {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="p-6 rounded-2xl space-y-5"
-        style={{
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.08)',
-        }}
+        className="p-6 rounded-2xl space-y-5 bg-surface border border-border-subtle"
       >
-        <h2 className="font-display font-bold text-white text-base flex items-center gap-2">
+        <h2 className="font-display font-bold text-text-primary text-base flex items-center gap-2">
           <Palette size={15} className="text-accent" /> Color Theme
         </h2>
 
         {/* Dark Themes */}
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'rgba(255,255,255,0.3)' }}>
+          <p className="text-xs font-semibold uppercase tracking-widest mb-3 text-text-muted">
             🌑 Dark Themes
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -145,11 +135,7 @@ const Settings = () => {
                     playClick(); 
                     setTheme(key); 
                   }}
-                  className="relative p-4 rounded-xl text-left transition-all bg-white/5 border border-white/10"
-                  style={{
-                    background: active ? 'rgba(0,198,255,0.1)' : undefined,
-                    border: active ? '1px solid rgba(0,198,255,0.4)' : undefined,
-                  }}
+                  className={`relative p-4 rounded-xl text-left transition-all bg-surface border ${active ? 'border-accent shadow-[0_0_15px_var(--border-glow)]' : 'border-border-subtle'}`}
                 >
                   {active && (
                     <div className="absolute top-3 right-3">
@@ -161,8 +147,8 @@ const Settings = () => {
                       <div key={i} className="w-6 h-6 rounded-full shadow-md" style={{ background: color }} />
                     ))}
                   </div>
-                  <div className="text-sm font-bold text-white mb-1">{themeData.name}</div>
-                  <div className="text-xs text-white/40">{themeData.description}</div>
+                  <div className="text-sm font-bold text-text-primary mb-1">{themeData.name}</div>
+                  <div className="text-xs text-text-muted">{themeData.description}</div>
                 </button>
               );
             })}
@@ -171,7 +157,7 @@ const Settings = () => {
 
         {/* Pastel Themes */}
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'rgba(255,255,255,0.3)' }}>
+          <p className="text-xs font-semibold uppercase tracking-widest mb-3 text-text-muted">
             ✨ Pastel Themes
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -184,11 +170,7 @@ const Settings = () => {
                     playClick(); 
                     setTheme(key); 
                   }}
-                  className="relative p-4 rounded-xl text-left transition-all bg-white/5 border border-white/10"
-                  style={{
-                    background: active ? 'rgba(0,198,255,0.1)' : undefined,
-                    border: active ? '1px solid rgba(0,198,255,0.4)' : undefined,
-                  }}
+                  className={`relative p-4 rounded-xl text-left transition-all bg-surface border ${active ? 'border-accent shadow-[0_0_15px_var(--border-glow)]' : 'border-border-subtle'}`}
                 >
                   {active && (
                     <div className="absolute top-3 right-3">
@@ -200,8 +182,8 @@ const Settings = () => {
                       <div key={i} className="w-6 h-6 rounded-full shadow-md" style={{ background: color, border: '1px solid rgba(0,0,0,0.08)' }} />
                     ))}
                   </div>
-                  <div className="text-sm font-bold text-white mb-1">{themeData.name}</div>
-                  <div className="text-xs text-white/40">{themeData.description}</div>
+                  <div className="text-sm font-bold text-text-primary mb-1">{themeData.name}</div>
+                  <div className="text-xs text-text-muted">{themeData.description}</div>
                 </button>
               );
             })}
@@ -214,13 +196,9 @@ const Settings = () => {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="p-6 rounded-2xl space-y-5"
-        style={{
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.08)',
-        }}
+        className="p-6 rounded-2xl space-y-5 bg-surface border border-border-subtle"
       >
-        <h2 className="font-display font-bold text-white text-base flex items-center gap-2">
+        <h2 className="font-display font-bold text-text-primary text-base flex items-center gap-2">
           <Zap size={15} className="text-accent" /> Animation Speed
         </h2>
 
@@ -234,18 +212,14 @@ const Settings = () => {
                   playClick();
                   setAnimationSpeed(key);
                 }}
-                className="relative p-3 rounded-xl text-center transition-all bg-white/5 border border-white/10"
-                style={{
-                  background: active ? 'rgba(0,198,255,0.1)' : undefined,
-                  border: active ? '1px solid rgba(0,198,255,0.4)' : undefined,
-                }}
+                className={`relative p-3 rounded-xl text-center transition-all bg-surface border ${active ? 'border-accent shadow-[0_0_15px_var(--border-glow)]' : 'border-border-subtle'}`}
               >
                 {active && (
                   <div className="absolute top-2 right-2">
                     <Check size={12} className="text-accent" strokeWidth={3} />
                   </div>
                 )}
-                <div className="text-sm font-bold text-white">
+                <div className="text-sm font-bold text-text-primary">
                   {speed.name}
                 </div>
               </button>
@@ -253,7 +227,7 @@ const Settings = () => {
           })}
         </div>
         
-        <p className="text-xs text-white/30">
+        <p className="text-xs text-text-muted">
           Controls background animation speed. "Off" disables animations for better performance.
         </p>
       </motion.div>
@@ -264,20 +238,16 @@ const Settings = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25 }}
         onClick={handleToggleDarkMode}
-        className="w-full flex items-center justify-between px-6 py-4 rounded-xl border transition-all"
-        style={{
-          background: isDark ? 'rgba(0,198,255,0.1)' : 'rgba(255,255,255,0.03)',
-          borderColor: isDark ? 'rgba(0,198,255,0.3)' : 'rgba(255,255,255,0.1)',
-        }}
+        className={`w-full flex items-center justify-between px-6 py-4 rounded-xl border transition-all ${isDark ? 'bg-accent/10 border-accent/30' : 'bg-surface border-border-subtle'}`}
       >
         <div className="flex items-center gap-3">
           {isDark ? <Moon size={18} className="text-accent" /> : <Sun size={18} className="text-amber" />}
           <div className="text-left">
-            <div className="text-sm font-semibold text-white">Dark Mode</div>
-            <div className="text-xs text-white/40">Toggle between dark and light theme</div>
+            <div className="text-sm font-semibold text-text-primary">Dark Mode</div>
+            <div className="text-xs text-text-muted">Toggle between dark and light theme</div>
           </div>
         </div>
-        <div className={`w-12 h-6 rounded-full transition-all relative ${isDark ? 'bg-accent' : 'bg-white/10'}`}>
+        <div className={`w-12 h-6 rounded-full transition-all relative ${isDark ? 'bg-accent' : 'bg-surface-hover'}`}>
           <div
             className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
             style={{ left: isDark ? '26px' : '2px' }}
@@ -291,20 +261,16 @@ const Settings = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
         onClick={handleToggleSound}
-        className="w-full flex items-center justify-between px-6 py-4 rounded-xl border transition-all"
-        style={{
-          background: soundsEnabled ? 'rgba(0,198,255,0.1)' : 'rgba(255,255,255,0.03)',
-          borderColor: soundsEnabled ? 'rgba(0,198,255,0.3)' : 'rgba(255,255,255,0.1)',
-        }}
+        className={`w-full flex items-center justify-between px-6 py-4 rounded-xl border transition-all ${soundsEnabled ? 'bg-accent/10 border-accent/30' : 'bg-surface border-border-subtle'}`}
       >
         <div className="flex items-center gap-3">
-          {soundsEnabled ? <Volume2 size={18} className="text-accent" /> : <VolumeX size={18} className="text-white/40" />}
+          {soundsEnabled ? <Volume2 size={18} className="text-accent" /> : <VolumeX size={18} className="text-text-muted" />}
           <div className="text-left">
-            <div className="text-sm font-semibold text-white">UI Sounds</div>
-            <div className="text-xs text-white/40">Subtle audio feedback for interactions</div>
+            <div className="text-sm font-semibold text-text-primary">UI Sounds</div>
+            <div className="text-xs text-text-muted">Subtle audio feedback for interactions</div>
           </div>
         </div>
-        <div className={`w-12 h-6 rounded-full transition-all relative ${soundsEnabled ? 'bg-accent' : 'bg-white/10'}`}>
+        <div className={`w-12 h-6 rounded-full transition-all relative ${soundsEnabled ? 'bg-accent' : 'bg-surface-hover'}`}>
           <div
             className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
             style={{ left: soundsEnabled ? '26px' : '2px' }}
@@ -318,20 +284,16 @@ const Settings = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.35 }}
         onClick={handleToggleMusic}
-        className="w-full flex items-center justify-between px-6 py-4 rounded-xl border transition-all"
-        style={{
-          background: musicEnabled ? 'rgba(0,198,255,0.1)' : 'rgba(255,255,255,0.03)',
-          borderColor: musicEnabled ? 'rgba(0,198,255,0.3)' : 'rgba(255,255,255,0.1)',
-        }}
+        className={`w-full flex items-center justify-between px-6 py-4 rounded-xl border transition-all ${musicEnabled ? 'bg-accent/10 border-accent/30' : 'bg-surface border-border-subtle'}`}
       >
         <div className="flex items-center gap-3">
-          {musicEnabled ? <Volume2 size={18} className="text-accent" /> : <VolumeX size={18} className="text-white/40" />}
+          {musicEnabled ? <Volume2 size={18} className="text-accent" /> : <VolumeX size={18} className="text-text-muted" />}
           <div className="text-left">
-            <div className="text-sm font-semibold text-white">Ambient Music</div>
-            <div className="text-xs text-white/40">Relaxing background music on hero page</div>
+            <div className="text-sm font-semibold text-text-primary">Ambient Music</div>
+            <div className="text-xs text-text-muted">Relaxing background music on hero page</div>
           </div>
         </div>
-        <div className={`w-12 h-6 rounded-full transition-all relative ${musicEnabled ? 'bg-accent' : 'bg-white/10'}`}>
+        <div className={`w-12 h-6 rounded-full transition-all relative ${musicEnabled ? 'bg-accent' : 'bg-surface-hover'}`}>
           <div
             className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
             style={{ left: musicEnabled ? '26px' : '2px' }}
@@ -345,7 +307,7 @@ const Settings = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
         onClick={handleReset}
-        className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-white/10 hover:border-white/20 text-white/60 hover:text-white transition-all"
+        className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-border-subtle hover:border-border-subtle text-text-secondary hover:text-text-primary transition-all"
       >
         <RotateCcw size={16} />
         Reset to Defaults

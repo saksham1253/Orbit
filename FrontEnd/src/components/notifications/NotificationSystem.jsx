@@ -92,10 +92,10 @@ const NotificationSystem = ({ notifications, onDismiss, onAction }) => {
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-bold text-white mb-1">
+                  <h4 className="text-sm font-bold text-text-primary mb-1">
                     {notification.title}
                   </h4>
-                  <p className="text-xs text-white/70 leading-relaxed">
+                  <p className="text-xs text-text-secondary leading-relaxed">
                     {notification.message}
                   </p>
                   
@@ -107,8 +107,8 @@ const NotificationSystem = ({ notifications, onDismiss, onAction }) => {
                           onClick={() => onAction(notification.id, action.handler)}
                           className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                             action.primary
-                              ? 'bg-accent hover:bg-accent-light text-white'
-                              : 'bg-white/10 hover:bg-white/20 text-white/80'
+                              ? 'bg-accent hover:bg-accent-light text-text-primary'
+                              : 'bg-surface-hover hover:bg-white/20 text-white/80'
                           }`}
                         >
                           {action.label}
@@ -120,7 +120,7 @@ const NotificationSystem = ({ notifications, onDismiss, onAction }) => {
 
                 <button
                   onClick={() => onDismiss(notification.id)}
-                  className="flex-shrink-0 text-white/40 hover:text-white transition-colors"
+                  className="flex-shrink-0 text-text-muted hover:text-text-primary transition-colors"
                 >
                   <X size={18} />
                 </button>

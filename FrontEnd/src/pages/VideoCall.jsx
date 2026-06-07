@@ -309,9 +309,9 @@ const CallStatusIcon = ({ status }) => {
     ringing:  <PhoneIncoming size={14} className="text-amber" />,
     missed:   <PhoneMissed size={14} className="text-danger" />,
     declined: <PhoneMissed size={14} className="text-danger" />,
-    ended:    <PhoneOff size={14} className="text-white/40" />,
+    ended:    <PhoneOff size={14} className="text-text-muted" />,
   };
-  return map[status] || <Phone size={14} className="text-white/40" />;
+  return map[status] || <Phone size={14} className="text-text-muted" />;
 };
 
 /* ── Main page ── */
@@ -409,7 +409,7 @@ const VideoCall = () => {
           style={{ background: 'linear-gradient(135deg,#a855f7,#00c6ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
           Video Calls
         </h1>
-        <p className="text-white/40 mt-1 text-sm">Direct peer-to-peer video calls with camera and microphone.</p>
+        <p className="text-text-muted mt-1 text-sm">Direct peer-to-peer video calls with camera and microphone.</p>
       </div>
 
       {/* Quick launch banner */}
@@ -419,10 +419,10 @@ const VideoCall = () => {
           style={{ background: 'radial-gradient(circle,rgba(124,58,237,0.2),transparent 70%)', filter: 'blur(30px)' }} />
         <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <p className="font-semibold text-white text-lg flex items-center gap-2">
+            <p className="font-semibold text-text-primary text-lg flex items-center gap-2">
               <Video size={18} className="text-purple-400" /> Start a Call
             </p>
-            <p className="text-white/45 text-sm mt-1">
+            <p className="text-text-muted text-sm mt-1">
               Go to <strong>Connections</strong> and click <strong>Call</strong> next to a friend.
             </p>
           </div>
@@ -431,8 +431,8 @@ const VideoCall = () => {
 
       {/* Call history */}
       <div className="space-y-3">
-        <h2 className="font-display font-bold text-white flex items-center gap-2">
-          <Clock size={16} className="text-white/40" /> Call History
+        <h2 className="font-display font-bold text-text-primary flex items-center gap-2">
+          <Clock size={16} className="text-text-muted" /> Call History
         </h2>
 
         {isLoading ? (
@@ -440,7 +440,7 @@ const VideoCall = () => {
         ) : calls.length === 0 ? (
           <div className="py-12 text-center rounded-2xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.08)' }}>
             <Video size={32} className="mx-auto text-white/10 mb-3" />
-            <p className="text-white/35 text-sm">No calls yet. Connect with someone and start a video call.</p>
+            <p className="text-text-muted text-sm">No calls yet. Connect with someone and start a video call.</p>
           </div>
         ) : (
           calls.map((call, i) => {
@@ -458,16 +458,16 @@ const VideoCall = () => {
                 <div className="flex items-center gap-3">
                   <Avatar name={otherName} url={other?.avatar} size="md" userId={otherId} />
                   <div>
-                    <p className="font-semibold text-white text-sm">{otherName}</p>
+                    <p className="font-semibold text-text-primary text-sm">{otherName}</p>
                     <div className="flex items-center gap-2 mt-0.5">
                       <CallStatusIcon status={call.status} />
-                      <span className="text-xs text-white/35 capitalize">{call.status}</span>
+                      <span className="text-xs text-text-muted capitalize">{call.status}</span>
                       {call.duration > 0 && <span className="text-xs text-white/25">· {Math.round(call.duration / 60)}m</span>}
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-xs text-white/30">
+                  <span className="text-xs text-text-muted">
                     {call.createdAt ? formatDistanceToNow(new Date(call.createdAt), { addSuffix: true }) : ''}
                   </span>
                   {(call.status === 'ended' || call.status === 'accepted') && (

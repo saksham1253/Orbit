@@ -168,7 +168,7 @@ const Profile = () => {
           style={{ background: 'linear-gradient(135deg,#ffb800,#ff0076)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
           Profile Settings
         </h1>
-        <p className="text-white/40 mt-1 text-sm">Your public persona on SkillSwap.</p>
+        <p className="text-text-muted mt-1 text-sm">Your public persona on SkillSwap.</p>
       </div>
 
       {/* Avatar + meta card */}
@@ -182,12 +182,12 @@ const Profile = () => {
             className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-accent flex items-center justify-center hover:scale-110 transition-transform"
             style={{ boxShadow: '0 4px 12px rgba(0,198,255,0.4)' }}
           >
-            <Camera size={14} className="text-white" />
+            <Camera size={14} className="text-text-primary" />
           </button>
         </div>
         <div className="min-w-0">
-          <p className="text-xl font-bold text-white truncate">{profile?.name || user?.name}</p>
-          <p className="text-sm text-white/40 truncate">{profile?.email || user?.email}</p>
+          <p className="text-xl font-bold text-text-primary truncate">{profile?.name || user?.name}</p>
+          <p className="text-sm text-text-muted truncate">{profile?.email || user?.email}</p>
           <div className="flex items-center gap-2 mt-2">
             <Shield size={13} style={{ color: trustColor }} />
             <span className="text-xs font-semibold" style={{ color: trustColor }}>
@@ -201,34 +201,34 @@ const Profile = () => {
       <form onSubmit={handleSubmit(d => updateMutation.mutate(d))} className="space-y-5">
         <div className="p-6 rounded-2xl space-y-5"
           style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <h2 className="font-display font-bold text-white text-base flex items-center gap-2">
+          <h2 className="font-display font-bold text-text-primary text-base flex items-center gap-2">
             <UserCircle size={15} className="text-accent" /> Basic Info
           </h2>
 
           {/* Name */}
           <div>
-            <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">Full Name</label>
+            <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">Full Name</label>
             <input {...register('name')} placeholder="Your name"
-              className="input-glass w-full px-4 py-3 text-sm text-white" />
+              className="input-glass w-full px-4 py-3 text-sm text-text-primary" />
           </div>
 
           {/* Bio */}
           <div>
-            <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">Bio</label>
+            <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">Bio</label>
             <textarea {...register('bio')} rows={3} placeholder="Tell others about yourself…"
-              className="input-glass w-full px-4 py-3 text-sm text-white resize-none" />
+              className="input-glass w-full px-4 py-3 text-sm text-text-primary resize-none" />
           </div>
 
           {/* Location */}
           <div>
-            <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">Location</label>
+            <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">Location</label>
             <input {...register('location')} placeholder="e.g. Dehradun, India"
-              className="input-glass w-full px-4 py-3 text-sm text-white" />
+              className="input-glass w-full px-4 py-3 text-sm text-text-primary" />
           </div>
 
           {/* Languages */}
           <div>
-            <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-3">
+            <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">
               Spoken Languages <span className="normal-case text-white/25 lowercase">(up to 5)</span>
             </label>
             <div className="flex flex-wrap gap-2">
@@ -253,36 +253,36 @@ const Profile = () => {
 
         <div className="p-6 rounded-2xl space-y-5"
           style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <h2 className="font-display font-bold text-white text-base flex items-center gap-2">
+          <h2 className="font-display font-bold text-text-primary text-base flex items-center gap-2">
             <LinkIcon size={15} className="text-accent" /> Social Links
           </h2>
           
           <div>
-            <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2 flex items-center gap-2">
+            <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2 flex items-center gap-2">
               <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.2c3-.3 6-1.5 6-6.5a5.5 5.5 0 0 0-1.5-3.8 5.5 5.5 0 0 0-.1-3.8s-1.2-.4-3.9 1.4a13.4 13.4 0 0 0-7 0C6.2 3.4 5 3.8 5 3.8a5.5 5.5 0 0 0-.1 3.8A5.5 5.5 0 0 0 3.4 11.4c0 5 3 6.2 6 6.5a4.8 4.8 0 0 0-1 3.2v4"/><path d="M9 20a5.5 5.5 0 0 1-5-2.5"/></svg>
               GitHub URL
             </label>
             <input {...register('socialLinks.github', {
               pattern: { value: /^(https?:\/\/)?(www\.)?github\.com\/[a-zA-Z0-9_-]+$/, message: 'Must be a valid GitHub URL' }
             })} placeholder="https://github.com/username"
-              className="input-glass w-full px-4 py-3 text-sm text-white" />
+              className="input-glass w-full px-4 py-3 text-sm text-text-primary" />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2 flex items-center gap-2">
+            <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2 flex items-center gap-2">
               <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
               LinkedIn URL
             </label>
             <input {...register('socialLinks.linkedin', {
               pattern: { value: /^(https?:\/\/)?(www\.)?linkedin\.com\/.*$/, message: 'Must be a valid LinkedIn URL' }
             })} placeholder="https://linkedin.com/in/username"
-              className="input-glass w-full px-4 py-3 text-sm text-white" />
+              className="input-glass w-full px-4 py-3 text-sm text-text-primary" />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-2 flex items-center gap-2"><Globe size={14}/> Personal Website</label>
+            <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2 flex items-center gap-2"><Globe size={14}/> Personal Website</label>
             <input {...register('socialLinks.website')} placeholder="https://yourwebsite.com"
-              className="input-glass w-full px-4 py-3 text-sm text-white" />
+              className="input-glass w-full px-4 py-3 text-sm text-text-primary" />
           </div>
         </div>
 
@@ -307,14 +307,14 @@ const Profile = () => {
           <motion.div
             initial={{ scale: 0.9, y: 20 }}
             animate={{ scale: 1, y: 0 }}
-            className="bg-dark-lighter border border-white/10 rounded-2xl p-6 max-w-lg w-full"
+            className="bg-dark-lighter border border-border-subtle rounded-2xl p-6 max-w-lg w-full"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-xl font-display font-bold text-white">Change Avatar</h3>
+              <h3 className="text-xl font-display font-bold text-text-primary">Change Avatar</h3>
               <button
                 onClick={() => setShowAvatarModal(false)}
-                className="text-white/50 hover:text-white transition-colors"
+                className="text-text-secondary hover:text-text-primary transition-colors"
               >
                 <X size={20} />
               </button>
@@ -322,7 +322,7 @@ const Profile = () => {
 
             {/* Upload Custom */}
             <div className="mb-6">
-              <p className="text-sm font-semibold text-white/60 mb-3">Upload Custom Image</p>
+              <p className="text-sm font-semibold text-text-secondary mb-3">Upload Custom Image</p>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -333,7 +333,7 @@ const Profile = () => {
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-white/10 hover:border-accent hover:bg-accent/5 transition-all text-white/70 hover:text-white disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-border-subtle hover:border-accent hover:bg-accent/5 transition-all text-text-secondary hover:text-text-primary disabled:opacity-50"
               >
                 {uploading ? (
                   <>
@@ -351,7 +351,7 @@ const Profile = () => {
 
             {/* Preset Avatars */}
             <div className="mb-6">
-              <p className="text-sm font-semibold text-white/60 mb-3">Or Select Preset</p>
+              <p className="text-sm font-semibold text-text-secondary mb-3">Or Select Preset</p>
               <div className="grid grid-cols-6 gap-3">
                 {PRESET_AVATARS.map((avatar) => (
                   <button

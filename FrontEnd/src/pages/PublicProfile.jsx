@@ -64,14 +64,14 @@ const PublicProfile = () => {
 
         <div className="flex-1 text-center md:text-left space-y-4 w-full">
           <div>
-            <h1 className="text-3xl font-display font-bold text-white flex items-center justify-center md:justify-start gap-2">
+            <h1 className="text-3xl font-display font-bold text-text-primary flex items-center justify-center md:justify-start gap-2">
               {user.name}
               {user.trustScore >= 80 && (
                 <ShieldCheck className="text-accent" size={20} title="Highly Trusted" />
               )}
             </h1>
             
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-2 text-white/50 text-sm">
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-2 text-text-secondary text-sm">
               {user.location && (
                 <span className="flex items-center gap-1.5"><MapPin size={14} /> {user.location}</span>
               )}
@@ -84,7 +84,7 @@ const PublicProfile = () => {
             </div>
           </div>
 
-          <p className="text-white/70 leading-relaxed max-w-2xl mx-auto md:mx-0">
+          <p className="text-text-secondary leading-relaxed max-w-2xl mx-auto md:mx-0">
             {user.bio || "This user hasn't written a bio yet."}
           </p>
 
@@ -96,7 +96,7 @@ const PublicProfile = () => {
             {user.totalRatings > 0 && (
               <button
                 onClick={() => document.getElementById('ratings-section')?.scrollIntoView({ behavior: 'smooth' })}
-                className="text-sm text-white/60 hover:text-white/80 transition-colors underline decoration-white/30 hover:decoration-white/60"
+                className="text-sm text-text-secondary hover:text-white/80 transition-colors underline decoration-white/30 hover:decoration-white/60"
               >
                 {user.totalRatings} {user.totalRatings === 1 ? 'review' : 'reviews'}
               </button>
@@ -121,7 +121,7 @@ const PublicProfile = () => {
                 </a>
               )}
               {user.socialLinks.website && (
-                <a href={user.socialLinks.website.startsWith('http') ? user.socialLinks.website : `https://${user.socialLinks.website}`} target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-accent transition-colors">
+                <a href={user.socialLinks.website.startsWith('http') ? user.socialLinks.website : `https://${user.socialLinks.website}`} target="_blank" rel="noopener noreferrer" className="text-text-muted hover:text-accent transition-colors">
                   <LinkIcon size={18} />
                 </a>
               )}
@@ -136,7 +136,7 @@ const PublicProfile = () => {
         {isLoadingSkills ? (
           <SkillGridSkeleton count={2} />
         ) : skills.length === 0 ? (
-          <div className="card-glass p-8 text-center text-white/40">
+          <div className="card-glass p-8 text-center text-text-muted">
             This user hasn't posted any skills yet.
           </div>
         ) : (
@@ -145,14 +145,14 @@ const PublicProfile = () => {
               <div key={skill._id} className="card-glass p-5 border border-white/5 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="pill-offer">{skill.skillOffered}</span>
-                  <span className="text-white/30 font-light">⇄</span>
+                  <span className="text-text-muted font-light">⇄</span>
                   <span className="pill-want">{skill.skillWanted}</span>
                 </div>
                 {skill.description && (
-                  <p className="text-sm text-white/50">{skill.description}</p>
+                  <p className="text-sm text-text-secondary">{skill.description}</p>
                 )}
                 <div className="flex items-center justify-between pt-2">
-                   <span className="text-xs px-2 py-0.5 rounded-full font-medium uppercase tracking-wider bg-white/5 text-white/40 border border-white/10">
+                   <span className="text-xs px-2 py-0.5 rounded-full font-medium uppercase tracking-wider bg-surface text-text-muted border border-border-subtle">
                      {skill.level}
                    </span>
                 </div>
@@ -178,7 +178,7 @@ const PublicProfile = () => {
                       <Star size={40} fill="currentColor" className="text-amber" />
                       {user.trustScore}
                     </div>
-                    <p className="text-sm text-white/40 mt-1">
+                    <p className="text-sm text-text-muted mt-1">
                       {user.totalRatings} {user.totalRatings === 1 ? 'review' : 'reviews'}
                     </p>
                   </div>
@@ -190,8 +190,8 @@ const PublicProfile = () => {
                       const percentage = user.totalRatings > 0 ? (count / user.totalRatings) * 100 : 0;
                       return (
                         <div key={stars} className="flex items-center gap-3">
-                          <span className="text-xs text-white/40 w-8">{stars} ★</span>
-                          <div className="flex-1 h-2 rounded-full bg-white/5 overflow-hidden">
+                          <span className="text-xs text-text-muted w-8">{stars} ★</span>
+                          <div className="flex-1 h-2 rounded-full bg-surface overflow-hidden">
                             <div 
                               className="h-full rounded-full transition-all"
                               style={{ 
@@ -200,7 +200,7 @@ const PublicProfile = () => {
                               }}
                             />
                           </div>
-                          <span className="text-xs text-white/40 w-12 text-right">{count}</span>
+                          <span className="text-xs text-text-muted w-12 text-right">{count}</span>
                         </div>
                       );
                     })}
@@ -221,7 +221,7 @@ const PublicProfile = () => {
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2 flex-wrap">
-                          <h4 className="font-semibold text-white text-sm">
+                          <h4 className="font-semibold text-text-primary text-sm">
                             {rating.fromUser?.name || 'Anonymous'}
                           </h4>
                           <div className="flex items-center gap-1">
@@ -236,10 +236,10 @@ const PublicProfile = () => {
                           </div>
                         </div>
                         {rating.review && (
-                          <p className="text-sm text-white/60 mt-2 leading-relaxed">{rating.review}</p>
+                          <p className="text-sm text-text-secondary mt-2 leading-relaxed">{rating.review}</p>
                         )}
                         {rating.skillContext && (
-                          <p className="text-xs text-white/30 mt-2 flex items-center gap-1">
+                          <p className="text-xs text-text-muted mt-2 flex items-center gap-1">
                             <span className="opacity-50">•</span> {rating.skillContext}
                           </p>
                         )}
@@ -251,14 +251,14 @@ const PublicProfile = () => {
                   </div>
                 ))}
                 {ratingsData.ratings.length > 5 && (
-                  <p className="text-center text-sm text-white/40 py-2">
+                  <p className="text-center text-sm text-text-muted py-2">
                     Showing 5 of {ratingsData.ratings.length} reviews
                   </p>
                 )}
               </div>
             </div>
           ) : (
-            <div className="card-glass p-8 text-center text-white/40">
+            <div className="card-glass p-8 text-center text-text-muted">
               No reviews yet
             </div>
           )}

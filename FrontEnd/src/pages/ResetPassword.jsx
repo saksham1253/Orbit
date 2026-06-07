@@ -67,7 +67,7 @@ const ResetPassword = () => {
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4"
               style={{ background: 'linear-gradient(135deg, #00c6ff 0%, #7c3aed 50%, #ff0076 100%)', boxShadow: '0 0 30px rgba(0,198,255,0.3)' }}
             >
-              <Sparkles size={24} className="text-white" />
+              <Sparkles size={24} className="text-text-primary" />
             </div>
             <h1 className="text-2xl font-display font-bold mb-1"
               style={{ background: 'linear-gradient(135deg, #00c6ff, #a855f7, #ff0076)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}
@@ -85,10 +85,10 @@ const ResetPassword = () => {
               <div className="flex justify-center">
                 <CheckCircle size={56} style={{ color: '#00e5a0' }} />
               </div>
-              <h2 className="text-xl font-display font-bold text-white">Password Reset!</h2>
-              <p className="text-sm text-white/50">Your password has been updated. Redirecting you to sign in…</p>
+              <h2 className="text-xl font-display font-bold text-text-primary">Password Reset!</h2>
+              <p className="text-sm text-text-secondary">Your password has been updated. Redirecting you to sign in…</p>
               <Link to="/login"
-                className="inline-flex items-center gap-2 mt-2 text-sm text-accent hover:text-white transition-colors"
+                className="inline-flex items-center gap-2 mt-2 text-sm text-accent hover:text-text-primary transition-colors"
               >
                 <ArrowLeft size={14} /> Go to Sign In
               </Link>
@@ -96,14 +96,14 @@ const ResetPassword = () => {
           ) : (
             <>
               <div className="mb-7">
-                <h2 className="text-xl font-display font-bold text-white mb-1">Set new password</h2>
-                <p className="text-sm text-white/40">Choose a strong password for your account.</p>
+                <h2 className="text-xl font-display font-bold text-text-primary mb-1">Set new password</h2>
+                <p className="text-sm text-text-muted">Choose a strong password for your account.</p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* New Password */}
                 <div>
-                  <label htmlFor="new-password" className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+                  <label htmlFor="new-password" className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">
                     New Password
                   </label>
                   <div className="relative">
@@ -116,12 +116,12 @@ const ResetPassword = () => {
                       minLength={6}
                       placeholder="At least 6 characters"
                       autoComplete="new-password"
-                      className="input-glass w-full px-4 py-3 pr-11 text-sm text-white"
+                      className="input-glass w-full px-4 py-3 pr-11 text-sm text-text-primary"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPass(v => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70 transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition-colors"
                     >
                       {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
@@ -144,7 +144,7 @@ const ResetPassword = () => {
 
                 {/* Confirm Password */}
                 <div>
-                  <label htmlFor="confirm-password" className="block text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">
+                  <label htmlFor="confirm-password" className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">
                     Confirm Password
                   </label>
                   <input
@@ -155,7 +155,7 @@ const ResetPassword = () => {
                     required
                     placeholder="Repeat password"
                     autoComplete="new-password"
-                    className="input-glass w-full px-4 py-3 text-sm text-white"
+                    className="input-glass w-full px-4 py-3 text-sm text-text-primary"
                     style={confirm && confirm !== password ? { borderColor: 'rgba(255,75,75,0.5)' } : {}}
                   />
                   {confirm && confirm !== password && (
@@ -178,8 +178,8 @@ const ResetPassword = () => {
                 </button>
               </form>
 
-              <p className="mt-6 text-center text-white/35 text-sm">
-                <Link to="/login" className="text-accent hover:text-white transition-colors inline-flex items-center gap-1">
+              <p className="mt-6 text-center text-text-muted text-sm">
+                <Link to="/login" className="text-accent hover:text-text-primary transition-colors inline-flex items-center gap-1">
                   <ArrowLeft size={12} /> Back to Sign In
                 </Link>
               </p>
