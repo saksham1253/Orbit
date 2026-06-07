@@ -31,8 +31,8 @@ const ConnectionItemSkeleton = () => (
             width: 14,
             height: 14,
             borderRadius: '50%',
-            background: '#252540',
-            border: '3px solid #111',
+            background: 'var(--skeleton-mid)',
+            border: '3px solid var(--bg-app)',
           }}
         />
       </div>

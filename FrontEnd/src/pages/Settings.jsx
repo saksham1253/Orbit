@@ -48,6 +48,19 @@ const Settings = () => {
   const handleToggleDarkMode = () => {
     const newMode = toggleTheme();
     playClick();
+    
+    // Auto-switch to a compatible theme for the new mode
+    const currentTheme = theme;
+    const currentThemeData = THEMES[currentTheme];
+    
+    if (newMode && currentThemeData?.mode === 'light') {
+      // Switched to dark mode but theme is light; switch to default dark theme
+      setTheme('cyan-purple');
+    } else if (!newMode && currentThemeData?.mode === 'dark') {
+      // Switched to light mode but theme is dark; switch to default light theme
+      setTheme('morning-sky');
+    }
+    
     addToast(newMode ? 'Dark mode enabled' : 'Light mode enabled', 'success');
   };
 
@@ -123,21 +136,26 @@ const Settings = () => {
         {/* Dark Themes */}
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest mb-3 text-text-muted">
-            🌑 Dark Themes
+            🌑 Dark Themes {!isDark && <span className="text-[10px] normal-case">(Enable Dark Mode to use)</span>}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {Object.entries(THEMES).filter(([, t]) => t.mode === 'dark').map(([key, themeData]) => {
               const active = theme === key;
+              const isDisabled = !isDark;
               return (
                 <button
                   key={key}
                   onClick={() => { 
+                    if (isDisabled) return;
                     playClick(); 
                     setTheme(key); 
                   }}
-                  className={`relative p-4 rounded-xl text-left transition-all bg-surface border ${active ? 'border-accent shadow-[0_0_15px_var(--border-glow)]' : 'border-border-subtle'}`}
+                  disabled={isDisabled}
+                  className={`relative p-4 rounded-xl text-left transition-all bg-surface border ${
+                    active ? 'border-accent shadow-[0_0_15px_var(--border-glow)]' : 'border-border-subtle'
+                  } ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
                 >
-                  {active && (
+                  {active && !isDisabled && (
                     <div className="absolute top-3 right-3">
                       <Check size={14} className="text-accent" strokeWidth={3} />
                     </div>
@@ -158,21 +176,26 @@ const Settings = () => {
         {/* Pastel Themes */}
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest mb-3 text-text-muted">
-            ✨ Pastel Themes
+            ✨ Pastel Themes {isDark && <span className="text-[10px] normal-case">(Disable Dark Mode to use)</span>}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {Object.entries(THEMES).filter(([, t]) => t.mode === 'light').map(([key, themeData]) => {
               const active = theme === key;
+              const isDisabled = isDark;
               return (
                 <button
                   key={key}
                   onClick={() => { 
+                    if (isDisabled) return;
                     playClick(); 
                     setTheme(key); 
                   }}
-                  className={`relative p-4 rounded-xl text-left transition-all bg-surface border ${active ? 'border-accent shadow-[0_0_15px_var(--border-glow)]' : 'border-border-subtle'}`}
+                  disabled={isDisabled}
+                  className={`relative p-4 rounded-xl text-left transition-all bg-surface border ${
+                    active ? 'border-accent shadow-[0_0_15px_var(--border-glow)]' : 'border-border-subtle'
+                  } ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
                 >
-                  {active && (
+                  {active && !isDisabled && (
                     <div className="absolute top-3 right-3">
                       <Check size={14} className="text-accent" strokeWidth={3} />
                     </div>
@@ -247,9 +270,15 @@ const Settings = () => {
             <div className="text-xs text-text-muted">Toggle between dark and light theme</div>
           </div>
         </div>
-        <div className={`w-12 h-6 rounded-full transition-all relative ${isDark ? 'bg-accent' : 'bg-surface-hover'}`}>
+        <div 
+          className="w-12 h-6 rounded-full transition-all relative border"
+          style={{
+            background: isDark ? 'var(--toggle-on-bg)' : 'var(--toggle-off-bg)',
+            borderColor: isDark ? 'transparent' : 'var(--toggle-off-border)',
+          }}
+        >
           <div
-            className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
+            className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all shadow-md"
             style={{ left: isDark ? '26px' : '2px' }}
           />
         </div>
@@ -270,9 +299,15 @@ const Settings = () => {
             <div className="text-xs text-text-muted">Subtle audio feedback for interactions</div>
           </div>
         </div>
-        <div className={`w-12 h-6 rounded-full transition-all relative ${soundsEnabled ? 'bg-accent' : 'bg-surface-hover'}`}>
+        <div 
+          className="w-12 h-6 rounded-full transition-all relative border"
+          style={{
+            background: soundsEnabled ? 'var(--toggle-on-bg)' : 'var(--toggle-off-bg)',
+            borderColor: soundsEnabled ? 'transparent' : 'var(--toggle-off-border)',
+          }}
+        >
           <div
-            className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
+            className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all shadow-md"
             style={{ left: soundsEnabled ? '26px' : '2px' }}
           />
         </div>
@@ -293,9 +328,15 @@ const Settings = () => {
             <div className="text-xs text-text-muted">Relaxing background music on hero page</div>
           </div>
         </div>
-        <div className={`w-12 h-6 rounded-full transition-all relative ${musicEnabled ? 'bg-accent' : 'bg-surface-hover'}`}>
+        <div 
+          className="w-12 h-6 rounded-full transition-all relative border"
+          style={{
+            background: musicEnabled ? 'var(--toggle-on-bg)' : 'var(--toggle-off-bg)',
+            borderColor: musicEnabled ? 'transparent' : 'var(--toggle-off-border)',
+          }}
+        >
           <div
-            className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
+            className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all shadow-md"
             style={{ left: musicEnabled ? '26px' : '2px' }}
           />
         </div>

@@ -15,7 +15,9 @@ const ChatConvoRowSkeleton = () => (
       alignItems: 'center',
       gap: 12,
       padding: '12px 16px',
-      borderBottom: '1px solid rgba(255,255,255,0.05)',
+      marginBottom: '8px',
+      border: '2px solid var(--border-subtle)',
+      borderRadius: '12px',
     }}
   >
     <SkelCircle size={42} />

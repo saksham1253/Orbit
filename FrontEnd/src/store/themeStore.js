@@ -11,7 +11,8 @@ export const useThemeStore = create(
         set({ isDark: newIsDark });
         document.documentElement.setAttribute('data-mode', newIsDark ? 'dark' : 'light');
         
-        // If switching to light mode and no pastel theme is set, appearanceStore defaults to morning-sky
+        // When switching mode, ensure the active theme matches the new mode
+        // Import is not available here, so we'll handle this in the component
         return newIsDark;
       },
       

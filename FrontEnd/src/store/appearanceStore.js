@@ -150,7 +150,23 @@ const useAppearanceStore = create(
       // Actions
       setBackgroundStyle: (style) => set({ backgroundStyle: style }),
       setTheme: (theme) => {
-        const colors = THEMES[theme]?.colors || THEMES['cyan-purple'].colors;
+        const themeData = THEMES[theme];
+        if (!themeData) return;
+        
+        // Get current mode from themeStore
+        const isDark = document.documentElement.getAttribute('data-mode') === 'dark';
+        
+        // Enforce mode-theme compatibility: only allow themes that match current mode
+        if (isDark && themeData.mode !== 'dark') {
+          console.warn(`Theme "${theme}" is a light theme but dark mode is active. Ignoring.`);
+          return;
+        }
+        if (!isDark && themeData.mode !== 'light') {
+          console.warn(`Theme "${theme}" is a dark theme but light mode is active. Ignoring.`);
+          return;
+        }
+        
+        const colors = themeData.colors || THEMES['cyan-purple'].colors;
         set({ theme, customColors: colors });
         document.documentElement.setAttribute('data-theme', theme);
       },

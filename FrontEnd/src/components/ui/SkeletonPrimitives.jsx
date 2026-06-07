@@ -19,7 +19,7 @@ const inject = () => {
 
 /* ─── Base shimmer style ─────────────────────────────────── */
 export const shimmer = (extra = {}) => ({
-  background: 'linear-gradient(90deg,#1a1a2e 0%,#252540 35%,#2e2e50 50%,#252540 65%,#1a1a2e 100%)',
+  background: 'linear-gradient(90deg, var(--skeleton-base) 0%, var(--skeleton-mid) 35%, var(--skeleton-highlight) 50%, var(--skeleton-mid) 65%, var(--skeleton-base) 100%)',
   backgroundSize: '600px 100%',
   animation: 'skShimmer 1.8s ease-in-out infinite',
   flexShrink: 0,
@@ -83,7 +83,7 @@ export const SkelRing = ({ size = 130, stroke = 10 }) => {
         width: size,
         height: size,
         borderRadius: '50%',
-        border: `${stroke}px solid #252540`,
+        border: `${stroke}px solid var(--skeleton-mid)`,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -103,8 +103,8 @@ export const SkelRing = ({ size = 130, stroke = 10 }) => {
           inset: -stroke,
           borderRadius: '50%',
           border: `${stroke}px solid transparent`,
-          borderTopColor: '#2e2e50',
-          borderRightColor: '#2e2e50',
+          borderTopColor: 'var(--skeleton-highlight)',
+          borderRightColor: 'var(--skeleton-highlight)',
           animation: 'skSpin 2s linear infinite',
         }}
       />
@@ -113,13 +113,13 @@ export const SkelRing = ({ size = 130, stroke = 10 }) => {
 };
 
 /* ─── SkelProgressBar ───────────────────────────────────── */
-export const SkelProgressBar = ({ color = '#2e2e50', pct = 30 }) => {
+export const SkelProgressBar = ({ color = 'var(--skeleton-highlight)', pct = 30 }) => {
   useEffect(inject, []);
   return (
     <div
       style={{
         height: 8,
-        background: '#1a1a2e',
+        background: 'var(--skeleton-base)',
         borderRadius: 999,
         overflow: 'hidden',
         width: '100%',

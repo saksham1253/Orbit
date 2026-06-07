@@ -86,11 +86,14 @@ const ConversationList = ({ onSelect, selectedId, onlineUsers }) => {
             <button
               key={convo.user._id}
               onClick={() => onSelect(convo.user)}
-              className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all duration-200 relative ${
+              className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all duration-200 relative rounded-lg ${
                 isSelected 
-                  ? 'bg-accent/10 border-l-2 border-accent' 
-                  : 'hover:bg-white/4 border-l-2 border-transparent'
+                  ? 'bg-accent/10 border-2 border-accent shadow-lg' 
+                  : 'hover:bg-white/4 border-2 border-border-subtle hover:border-border-subtle'
               }`}
+              style={{
+                marginBottom: '8px',
+              }}
               aria-label={`Chat with ${convo.user.name}`}
             >
               <div className="relative flex-shrink-0">
@@ -109,7 +112,7 @@ const ConversationList = ({ onSelect, selectedId, onlineUsers }) => {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline justify-between gap-2 mb-0.5">
-                  <p className={`font-semibold text-sm truncate ${convo.unreadCount > 0 ? 'text-text-primary' : 'text-white/80'}`}>
+                  <p className={`font-semibold text-sm truncate ${convo.unreadCount > 0 ? 'text-text-primary' : 'text-text-primary'}`}>
                     {convo.user.name}
                   </p>
                   <span className="text-[10px] text-text-muted flex-shrink-0">
@@ -331,12 +334,20 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
                   <div
                     className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
                       isMe
-                        ? `rounded-br-sm text-text-primary shadow-lg ${isLastInGroup ? 'rounded-br-md' : ''}`
-                        : `rounded-bl-sm text-white/90 ${isLastInGroup ? 'rounded-bl-md' : ''}`
+                        ? `rounded-br-sm shadow-lg ${isLastInGroup ? 'rounded-br-md' : ''}`
+                        : `rounded-bl-sm ${isLastInGroup ? 'rounded-bl-md' : ''}`
                     }`}
                     style={isMe
-                      ? { background: 'linear-gradient(135deg,#0072ff,#00c6ff)', boxShadow: '0 2px 8px rgba(0,114,255,0.3)' }
-                      : { background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.08)' }
+                      ? { 
+                          background: 'var(--bubble-outgoing)', 
+                          boxShadow: 'var(--send-button-shadow)',
+                          color: '#ffffff'
+                        }
+                      : { 
+                          background: 'var(--bubble-incoming)', 
+                          border: '1px solid rgba(255,255,255,0.08)',
+                          color: '#ffffff'
+                        }
                     }
                   >
                     {msg.content}
@@ -396,7 +407,12 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
         <button
           onClick={handleSend}
           disabled={!input.trim()}
-          className="w-11 h-11 rounded-xl btn-gradient flex items-center justify-center flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95 shadow-lg shadow-accent/20"
+          className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95"
+          style={{
+            background: 'var(--send-button-bg)',
+            boxShadow: 'var(--send-button-shadow)',
+            color: '#ffffff',
+          }}
           aria-label="Send message"
         >
           <Send size={16} />

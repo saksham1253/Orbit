@@ -64,6 +64,24 @@
     --text-on-accent: #ffffff;
     
     --shadow-color: rgba(0, 0, 0, 0.45);
+
+    /* Dark-mode skeleton tokens */
+    --skeleton-base: rgba(255, 255, 255, 0.04);
+    --skeleton-mid: rgba(255, 255, 255, 0.09);
+    --skeleton-highlight: rgba(255, 255, 255, 0.14);
+
+    /* Chat bubble colors for dark mode */
+    --bubble-outgoing: linear-gradient(135deg, #0072ff, #00c6ff);
+    --bubble-incoming: rgba(255, 255, 255, 0.08);
+
+    /* Send button accent */
+    --send-button-bg: linear-gradient(135deg, #00c6ff, #0072ff);
+    --send-button-shadow: 0 2px 12px rgba(0, 198, 255, 0.3);
+
+    /* Toggle track colors */
+    --toggle-off-bg: rgba(255, 255, 255, 0.08);
+    --toggle-off-border: rgba(255, 255, 255, 0.12);
+    --toggle-on-bg: var(--accent-1);
   }
 
   html[data-mode="light"] {
@@ -79,6 +97,24 @@
     --text-on-accent: #ffffff;
 
     --shadow-color: rgba(0, 0, 0, 0.08);
+
+    /* Light-mode skeleton tokens */
+    --skeleton-base: rgba(0, 0, 0, 0.06);
+    --skeleton-mid: rgba(0, 0, 0, 0.10);
+    --skeleton-highlight: rgba(0, 0, 0, 0.14);
+
+    /* Chat bubble colors for light mode */
+    --bubble-outgoing: linear-gradient(135deg, #0072ff, #00c6ff);
+    --bubble-incoming: linear-gradient(135deg, #059669, #10b981);
+
+    /* Send button accent */
+    --send-button-bg: linear-gradient(135deg, var(--accent-1), var(--accent-1-dark));
+    --send-button-shadow: 0 2px 12px rgba(var(--accent-1-rgb, 37,99,235), 0.3);
+
+    /* Toggle track colors */
+    --toggle-off-bg: rgba(0, 0, 0, 0.12);
+    --toggle-off-border: rgba(0, 0, 0, 0.18);
+    --toggle-on-bg: var(--accent-1);
   }
 
   /* Morning Sky (Default Pastel - acts as fallback if a dark theme name is active in light mode) */
