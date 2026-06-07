@@ -11,6 +11,7 @@ import { getSocket } from '../../services/socket';
 import { ChatListSkeleton, ChatMessagesSkeleton } from '../skeletons';
 import { requestNotificationPermission, showDesktopNotification, playNotificationSound, startTitleFlash, stopTitleFlash } from '../../utils/notifications';
 import toast from 'react-hot-toast';
+import ErrorBoundary from '../common/ErrorBoundary';
 
 const formatTimestamp = (date) => {
   if (!date) return '';
@@ -810,12 +811,14 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
               {/* Right: Chat Window */}
               <div className={`flex-1 flex flex-col ${!selectedUser ? 'hidden sm:flex' : 'flex'}`}>
                 {selectedUser ? (
-                  <ChatWindow
-                    otherUser={selectedUser}
-                    onBack={() => setSelectedUser(null)}
-                    onlineUsers={onlineUsers}
-                    isExpanded={drawerWidth >= 700}
-                  />
+                  <ErrorBoundary key={selectedUser._id} inline>
+                    <ChatWindow
+                      otherUser={selectedUser}
+                      onBack={() => setSelectedUser(null)}
+                      onlineUsers={onlineUsers}
+                      isExpanded={drawerWidth >= 700}
+                    />
+                  </ErrorBoundary>
                 ) : (
                   <div className="hidden sm:flex flex-col items-center justify-center h-full gap-4 text-center px-6 bg-background">
                     <div className="w-16 h-16 rounded-full flex items-center justify-center bg-surface shadow-inner">

@@ -26,6 +26,22 @@ class ErrorBoundary extends Component {
 
   render() {
     if (this.state.hasError) {
+      if (this.props.inline) {
+        return (
+          <div className="flex flex-col items-center justify-center p-6 h-full text-center bg-surface border-l border-border-subtle">
+            <AlertTriangle size={28} className="text-danger mb-3" />
+            <p className="text-sm font-medium text-text-primary mb-1">Failed to load conversation</p>
+            <p className="text-xs text-text-muted mb-4 max-w-[200px]">We encountered an error displaying this chat. Please try again.</p>
+            <button 
+              onClick={() => this.setState({ hasError: false, error: null })} 
+              className="text-xs font-medium text-accent hover:text-accent-dark transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        );
+      }
+
       return (
         <div
           className="min-h-screen flex items-center justify-center p-6"
