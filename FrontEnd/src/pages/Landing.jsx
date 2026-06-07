@@ -32,21 +32,30 @@ const PILLS = [
   { label: 'Cooking',      top: '45%', right: '4%', delay: 1,   dur: 6.5 },
   { label: 'Illustration', top: '82%', left: '7%',  delay: 1.7, dur: 4.8 },
   { label: 'React',        top: '15%', right: '18%',delay: 0.2, dur: 5.2 },
+  { label: 'Marketing',    top: '28%', left: '16%', delay: 0.5, dur: 5.8 },
+  { label: 'Yoga',         top: '68%', right: '15%',delay: 1.2, dur: 6.2 },
+  { label: 'Data Science', top: '85%', right: '22%',delay: 0.9, dur: 5.0 },
+  { label: 'Chess',        top: '35%', right: '20%',delay: 1.6, dur: 5.4 },
+  { label: 'Piano',        top: '55%', left: '18%', delay: 0.7, dur: 6.8 },
+  { label: 'Drawing',      top: '80%', right: '35%',delay: 1.1, dur: 5.6 },
+  { label: 'French',       top: '20%', left: '30%', delay: 1.8, dur: 6.0 },
 ];
 
 const FloatingPill = ({ label, top, left, right, delay, dur }) => (
   <motion.div
-    className="hero-pill absolute hidden lg:block"
+    className="hero-pill absolute hidden lg:flex items-center gap-2 cursor-default"
     style={{
       top, left, right,
       '--duration': `${dur}s`,
       '--delay': `${delay}s`,
-      zIndex: 1,
+      zIndex: 0,
     }}
     initial={{ opacity: 0, scale: 0.7, y: 20 }}
     animate={{ opacity: 1, scale: 1, y: 0 }}
+    whileHover={{ scale: 1.05, zIndex: 10 }}
     transition={{ delay: delay + 0.8, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
   >
+    <div className="w-1.5 h-1.5 rounded-full bg-accent opacity-80" />
     {label}
   </motion.div>
 );
@@ -223,13 +232,7 @@ const Landing = () => {
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             className="mb-8"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4 text-sm font-medium"
-              style={{
-                background: 'rgba(0,198,255,0.08)',
-                border: '1px solid rgba(0,198,255,0.25)',
-                color: 'rgba(255,255,255,0.8)',
-              }}
-            >
+            <div className="status-pill inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4 text-sm font-medium transition-all hover:scale-105">
               <span className="flex h-2 w-2 rounded-full bg-accent animate-pulse" />
               Peer-to-Peer Learning — Now Live
               <ArrowRight size={13} className="text-accent" />

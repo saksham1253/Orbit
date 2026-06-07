@@ -572,11 +572,21 @@ html.light body {
 
 /* Light-mode heading gradients (darker shades) */
 html[data-mode="light"] .heading-teal-gradient {
-  background: linear-gradient(135deg, var(--heading-teal), var(--heading-cyan)) !important;
+  background-image: linear-gradient(135deg, var(--heading-teal), var(--heading-cyan)) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+  display: inline-block;
 }
 
 html[data-mode="light"] .heading-pink-gradient {
-  background: linear-gradient(135deg, var(--heading-pink), var(--heading-purple)) !important;
+  background-image: linear-gradient(135deg, var(--heading-pink), var(--heading-purple)) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+  display: inline-block;
 }
 
 html[data-mode="light"] .icon-teal {
@@ -717,10 +727,25 @@ html[data-mode="light"] .skill-card:hover {
 }
 
 html[data-mode="light"] .hero-pill {
-  background: rgba(255, 255, 255, 0.75);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-  box-shadow: 0 2px 12px var(--shadow-color);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: var(--text-primary);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+html[data-mode="light"] .hero-pill:hover {
+  background: #ffffff;
+  border-color: var(--accent-1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  color: var(--accent-1-dark);
+}
+
+html[data-mode="light"] .status-pill {
+  background: rgba(var(--accent-1-rgb, 37,99,235), 0.1);
+  border: 1px solid var(--accent-1);
+  color: var(--text-primary);
+  box-shadow: 0 4px 12px rgba(var(--accent-1-rgb, 37,99,235), 0.15);
 }
 
 html[data-mode="light"] .input-glass {

@@ -46,7 +46,7 @@ const ConversationList = ({ onSelect, selectedId, onlineUsers }) => {
   });
 
   const filtered = convos.filter(c =>
-    c.user?.name?.toLowerCase().includes(search.toLowerCase())
+    c.user?.name?.toLowerCase()?.includes(search.toLowerCase()) ?? false
   );
 
   return (
