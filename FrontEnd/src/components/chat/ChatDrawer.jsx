@@ -147,7 +147,8 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
     enabled: !!otherUser._id,
   });
   
-  const messages = data.messages || data || []; // Handle cursor-pagination structure or legacy array
+  // Safely extract messages array, handling cursor-paginated objects vs legacy flat arrays
+  const messages = Array.isArray(data?.messages) ? data.messages : Array.isArray(data) ? data : [];
 
   const isOnline = onlineUsers.has(otherUser._id);
 
@@ -416,7 +417,7 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
   // Feature states
   const [drawerWidth, setDrawerWidth] = useState(() => {
     const saved = localStorage.getItem('chat_drawer_width');
-    return saved ? parseInt(saved, 10) : 440;
+    return saved ? parseInt(saved, 10) : 800; // Default to expanded view for better initial experience
   });
   
   const [notificationsEnabled, setNotificationsEnabled] = useState(() => localStorage.getItem('chat_notify') !== 'false');
