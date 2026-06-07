@@ -10,7 +10,7 @@
 const mongoose = require('mongoose');
 
 const storageStatsSchema = new mongoose.Schema({
-    capturedAt: { type: Date, default: Date.now, index: true },
+    capturedAt: { type: Date, default: Date.now },
     // Size estimates in bytes per collection
     collections: {
         messages:        { count: Number, estimatedBytes: Number },
