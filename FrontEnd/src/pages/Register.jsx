@@ -82,14 +82,15 @@ const registerSchema = z.object({
       <meta name="twitter:title" content="Create Account | SkillSwap" />
       <link rel="canonical" href="https://react-skill-swap-fully-fledged.vercel.app/register" />
     </Helmet>
-    <div className="min-h-screen flex items-center justify-center p-4 relative">
+    <div className="min-h-screen w-full flex items-center justify-center px-4 py-10 relative z-10">
 
       <div className="absolute inset-0 pointer-events-none"
         style={{ background: 'radial-gradient(ellipse 60% 60% at 50% 30%, rgba(124,58,237,0.09) 0%, transparent 70%)' }}
       />
 
       <motion.div
-        className="auth-card w-full max-w-md p-8 relative z-10"
+        className="auth-card w-full max-w-[520px] mx-auto p-5 sm:p-8 relative z-10 rounded-2xl border border-purple-500/20"
+        style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.05), 0 25px 50px rgba(0,0,0,0.6)' }}
         initial={{ opacity: 0, y: 30, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
@@ -101,17 +102,19 @@ const registerSchema = z.object({
 
         {/* Header */}
         <div className="text-center mb-7">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4"
-            style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #ff0076 100%)', boxShadow: '0 0 30px rgba(124,58,237,0.35)' }}
-          >
-            <Sparkles size={24} className="text-white" />
+          <div className="flex justify-center mb-4">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl"
+              style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #ff0076 100%)', boxShadow: '0 0 30px rgba(124,58,237,0.35)' }}
+            >
+              <Sparkles size={24} className="text-white" />
+            </div>
           </div>
           <h1 className="text-2xl font-display font-bold text-white mb-1">Create Your Account</h1>
           <p className="text-white/40 text-sm">Join thousands exchanging skills worldwide.</p>
         </div>
 
         {/* Tab switcher */}
-        <div className="flex rounded-xl p-1 mb-7"
+        <div className="grid grid-cols-2 gap-2 rounded-xl p-1 mb-7 w-full"
           style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
         >
           <Link to="/login"
@@ -130,7 +133,7 @@ const registerSchema = z.object({
         <form onSubmit={handleSubmit((d) => registerMutation.mutate(d))} className="space-y-4">
 
           {/* OAuth first — people prefer it */}
-          <div className="flex gap-3 mb-2">
+          <div className="flex flex-col sm:flex-row gap-3 mb-2">
             <a href={`${import.meta.env.VITE_API_URL?.replace('/api','') || 'http://localhost:8000'}/api/auth/google`}
               className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all text-white/70 hover:text-white"
               style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
@@ -312,8 +315,8 @@ const registerSchema = z.object({
           <button
             type="submit"
             disabled={registerMutation.isPending}
-            className="btn-gradient-secondary w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-sm mt-2 disabled:opacity-60 disabled:cursor-not-allowed group"
-          >
+            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-sm mt-2 disabled:opacity-60 disabled:cursor-not-allowed group"
+            style={{ background: 'linear-gradient(90deg, #ec4899, #8b5cf6)', color: 'white' }}          >
             {registerMutation.isPending ? (
               <span className="flex items-center gap-2">
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

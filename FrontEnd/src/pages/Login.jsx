@@ -60,7 +60,7 @@ const Login = () => {
       <meta name="twitter:title" content="Sign In | SkillSwap" />
       <link rel="canonical" href="https://react-skill-swap-fully-fledged.vercel.app/login" />
     </Helmet>
-    <div className="min-h-screen flex items-center justify-center p-4 relative">
+    <div className="min-h-screen w-full flex items-center justify-center px-4 py-10 relative z-10">
 
       {/* Extra hero glow for auth page */}
       <div className="absolute inset-0 pointer-events-none"
@@ -71,7 +71,8 @@ const Login = () => {
 
       {/* Auth card */}
       <motion.div
-        className="auth-card w-full max-w-md p-8 relative z-10"
+        className="auth-card w-full max-w-[480px] mx-auto p-5 sm:p-8 relative z-10 rounded-2xl border border-purple-500/20"
+        style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.05), 0 25px 50px rgba(0,0,0,0.6)' }}
         initial={{ opacity: 0, y: 30, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
@@ -83,10 +84,12 @@ const Login = () => {
 
         {/* Brand header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4"
-            style={{ background: 'linear-gradient(135deg, #00c6ff 0%, #7c3aed 50%, #ff0076 100%)', boxShadow: '0 0 30px rgba(0,198,255,0.3)' }}
-          >
-            <Sparkles size={24} className="text-white" />
+          <div className="flex justify-center mb-4">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl"
+              style={{ background: 'linear-gradient(135deg, #00c6ff 0%, #7c3aed 50%, #ff0076 100%)', boxShadow: '0 0 30px rgba(0,198,255,0.3)' }}
+            >
+              <Sparkles size={24} className="text-white" />
+            </div>
           </div>
           <h1
             className="text-3xl font-display font-bold mb-1"
@@ -103,7 +106,7 @@ const Login = () => {
         </div>
 
         {/* Tab switcher */}
-        <div className="flex rounded-xl p-1 mb-7"
+        <div className="grid grid-cols-2 gap-2 rounded-xl p-1 mb-7 w-full"
           style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
         >
           <Link to="/login"
@@ -175,8 +178,8 @@ const Login = () => {
           <button
             type="submit"
             disabled={loginMutation.isPending}
-            className="btn-gradient w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-sm mt-2 disabled:opacity-60 disabled:cursor-not-allowed group"
-          >
+            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-sm mt-2 disabled:opacity-60 disabled:cursor-not-allowed group"
+            style={{ background: 'linear-gradient(90deg, #06b6d4, #3b82f6)', color: 'white' }}          >
             {loginMutation.isPending ? (
               <span className="flex items-center gap-2">
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -198,7 +201,7 @@ const Login = () => {
           <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.07)' }} />
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <a
             href={`${API_BASE}/api/auth/google`}
             className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all text-white/70 hover:text-white"
