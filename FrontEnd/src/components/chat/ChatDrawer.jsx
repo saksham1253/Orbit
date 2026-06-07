@@ -13,14 +13,19 @@ import { requestNotificationPermission, showDesktopNotification, playNotificatio
 import toast from 'react-hot-toast';
 
 const formatTimestamp = (date) => {
+  if (!date) return '';
   const d = new Date(date);
+  if (isNaN(d.getTime())) return '';
   if (isToday(d)) return format(d, 'HH:mm');
   if (isYesterday(d)) return `Yesterday ${format(d, 'HH:mm')}`;
   return format(d, 'dd MMM HH:mm');
 };
 
 const DateSeparator = ({ date }) => {
+  if (!date) return null;
   const d = new Date(date);
+  if (isNaN(d.getTime())) return null;
+  
   let label = format(d, 'MMMM d, yyyy');
   if (isToday(d)) label = 'Today';
   else if (isYesterday(d)) label = 'Yesterday';
