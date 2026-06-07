@@ -285,7 +285,7 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
         <div className="min-w-0 flex-1">
           <p className="font-semibold text-white text-sm truncate">{otherUser.name}</p>
           <p className={`text-[11px] font-medium ${isOnline ? 'text-green-400' : 'text-white/40'}`}>
-            {isOnline ? 'Active now' : otherUser.lastSeen ? `Last seen ${formatDistanceToNow(new Date(otherUser.lastSeen))} ago` : 'Offline'}
+            {isOnline ? 'Active now' : (otherUser.lastSeen && !isNaN(new Date(otherUser.lastSeen).getTime()) ? `Last seen ${formatDistanceToNow(new Date(otherUser.lastSeen))} ago` : 'Offline')}
           </p>
         </div>
       </div>
@@ -310,8 +310,12 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
           const isLastInGroup = i === messages.length - 1 || 
             (messages[i + 1]?.sender?._id || messages[i + 1]?.sender) !== (msg.sender?._id || msg.sender);
             
-          // Check if we need a date separator
-          const showDate = i === 0 || !isSameDay(new Date(messages[i-1]?.createdAt), new Date(msg.createdAt));
+          // Check if we need a date separator (safely handle missing/invalid dates)
+          const currDate = msg.createdAt ? new Date(msg.createdAt) : null;
+          const prevDate = messages[i-1]?.createdAt ? new Date(messages[i-1].createdAt) : null;
+          const isValidDate = (d) => d && !isNaN(d.getTime());
+          
+          const showDate = i === 0 || (isValidDate(currDate) && isValidDate(prevDate) && !isSameDay(prevDate, currDate));
           
           return (
             <div key={msg._id || i}>
@@ -410,13 +414,18 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
   const queryClient = useQueryClient();
   
   // Feature states
-  const [isExpanded, setIsExpanded] = useState(() => localStorage.getItem('chat_expanded') === 'true');
+  const [drawerWidth, setDrawerWidth] = useState(() => {
+    const saved = localStorage.getItem('chat_drawer_width');
+    return saved ? parseInt(saved, 10) : 440;
+  });
+  
   const [notificationsEnabled, setNotificationsEnabled] = useState(() => localStorage.getItem('chat_notify') !== 'false');
   const [onlineUsers, setOnlineUsers] = useState(new Set());
   
   // Track open state strictly for the socket listener to know what to suppress
   const isOpenRef = useRef(isOpen);
   const selectedUserIdRef = useRef(selectedUser?._id);
+  const isDraggingRef = useRef(false);
 
   useEffect(() => {
     isOpenRef.current = isOpen;
@@ -435,9 +444,9 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
   }, [isOpen]);
   
   const handleToggleExpand = () => {
-    const nextState = !isExpanded;
-    setIsExpanded(nextState);
-    localStorage.setItem('chat_expanded', nextState);
+    const nextWidth = drawerWidth >= 800 ? 440 : 800;
+    setDrawerWidth(nextWidth);
+    localStorage.setItem('chat_drawer_width', nextWidth);
   };
   
   const handleToggleNotifications = async () => {
@@ -561,6 +570,44 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
     return () => window.removeEventListener('keydown', handleEsc);
   }, [isOpen, onClose]);
 
+  // Handle Drag to Resize
+  const handleMouseDown = useCallback((e) => {
+    // Only allow resizing if on desktop
+    if (window.innerWidth < 640) return;
+    isDraggingRef.current = true;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  }, []);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isDraggingRef.current) return;
+      let newWidth = window.innerWidth - e.clientX;
+      if (newWidth < 350) newWidth = 350;
+      if (newWidth > window.innerWidth - 50) newWidth = window.innerWidth - 50;
+      setDrawerWidth(newWidth);
+    };
+
+    const handleMouseUp = () => {
+      if (isDraggingRef.current) {
+        isDraggingRef.current = false;
+        document.body.style.cursor = 'unset';
+        document.body.style.userSelect = 'unset';
+        localStorage.setItem('chat_drawer_width', drawerWidth);
+      }
+    };
+
+    if (isOpen) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isOpen, drawerWidth]);
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -579,7 +626,7 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
           <motion.div
             className="fixed right-0 top-0 bottom-0 z-[95] flex flex-col overflow-hidden shadow-2xl"
             style={{
-              width: isExpanded ? 'min(100vw, 1000px)' : 'min(100vw, 440px)',
+              width: window.innerWidth < 640 ? '100vw' : `${drawerWidth}px`,
               background: 'rgba(8,10,20,0.98)',
               backdropFilter: 'blur(32px)',
               borderLeft: '1px solid rgba(255,255,255,0.08)',
@@ -592,6 +639,12 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
             aria-modal="true"
             aria-label="Messages"
           >
+            {/* Drag Resize Handle */}
+            <div 
+              onMouseDown={handleMouseDown}
+              className="absolute left-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-accent/50 active:bg-accent z-50 transition-colors hidden sm:block"
+            />
+
             {/* Drawer Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-white/8 flex-shrink-0 bg-black/40">
               <div className="flex items-center gap-2.5">
@@ -613,10 +666,10 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
                 <button
                   onClick={handleToggleExpand}
                   className="hidden sm:flex p-2 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-all"
-                  title={isExpanded ? "Collapse" : "Expand"}
-                  aria-label={isExpanded ? "Collapse" : "Expand"}
+                  title={drawerWidth >= 800 ? "Collapse" : "Expand"}
+                  aria-label={drawerWidth >= 800 ? "Collapse" : "Expand"}
                 >
-                  {isExpanded ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+                  {drawerWidth >= 800 ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
                 </button>
                 <button 
                   onClick={onClose} 
@@ -634,7 +687,7 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
               <div 
                 className={`flex flex-col border-r border-white/8 bg-black/20 
                 ${selectedUser ? 'hidden sm:flex' : 'flex w-full'}
-                ${isExpanded ? 'sm:w-[320px] flex-shrink-0' : 'sm:w-[45%]'}`}
+                ${drawerWidth >= 700 ? 'sm:w-[320px] flex-shrink-0' : 'sm:w-[40%]'}`}
               >
                 <ConversationList
                   onSelect={setSelectedUser}
@@ -650,7 +703,7 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
                     otherUser={selectedUser}
                     onBack={() => setSelectedUser(null)}
                     onlineUsers={onlineUsers}
-                    isExpanded={isExpanded}
+                    isExpanded={drawerWidth >= 700}
                   />
                 ) : (
                   <div className="hidden sm:flex flex-col items-center justify-center h-full gap-4 text-center px-6 bg-[#0a0c14]">
