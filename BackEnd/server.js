@@ -19,12 +19,14 @@ const geoRoutes = require("./routes/geoRoutes");
 const videoRoutes = require("./routes/videoRoutes");
 const connectionRoutes = require("./routes/connectionRoutes");
 const messageRoutes = require("./routes/messageRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 // Middleware
 const errorHandler = require("./middleware/errorHandler");
 const { generalLimiter, authLimiter } = require("./middleware/rateLimiter");
 const { moderationQueue } = require("./services/queueService");
 const eventEmitter = require("./utils/events");
+const { startArchiveWorker } = require("./workers/archiveWorker");
 
 const app = express();
 app.set("trust proxy", 1); // Trust first proxy (needed for express-rate-limit on Render)
@@ -108,7 +110,7 @@ io.on("connection", (socket) => {
         }
     });
 
-    socket.on("disconnect", () => {
+    socket.on("disconnect", async () => {
         console.log("Socket disconnected:", socket.id);
         
         // Remove user from online list
@@ -122,6 +124,14 @@ io.on("connection", (socket) => {
                 io.emit("users-online", Array.from(onlineUsers.keys()));
                 io.emit("user-offline-status", socket.userId);
                 console.log(`User ${socket.userId} went offline`);
+                
+                // Update lastSeen in database
+                try {
+                    const User = require("./models/user");
+                    await User.findByIdAndUpdate(socket.userId, { lastSeen: new Date() });
+                } catch (err) {
+                    console.error("Error updating lastSeen:", err);
+                }
             }
         }
     });
@@ -193,6 +203,16 @@ io.on("connection", (socket) => {
             console.error("mark-read error:", err);
         }
     });
+
+    socket.on("typing-start", ({ receiverId }) => {
+        if (!socket.userId || !receiverId) return;
+        io.to(`user_${receiverId}`).emit("typing-start", { senderId: socket.userId });
+    });
+
+    socket.on("typing-stop", ({ receiverId }) => {
+        if (!socket.userId || !receiverId) return;
+        io.to(`user_${receiverId}`).emit("typing-stop", { senderId: socket.userId });
+    });
 });
 
 // Listen for malicious detection from worker
@@ -224,6 +244,7 @@ app.use("/api/geo", geoRoutes);
 app.use("/api/video", videoRoutes);
 app.use("/api/connections", connectionRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/admin", adminRoutes);
 
 // Serve Frontend statically (combined origin) if present
 const fs = require("fs");
@@ -262,7 +283,10 @@ app.use(errorHandler);
 
 // DB Connection
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log("MongoDB Connected"))
+    .then(() => {
+        console.log("MongoDB Connected");
+        startArchiveWorker(); // Phase 3: Start the nightly archive worker
+    })
     .catch(err => console.log("DB Error:", err));
 
 // Server — use server.listen instead of app.listen for Socket.IO

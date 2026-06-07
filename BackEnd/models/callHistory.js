@@ -36,4 +36,13 @@ const callHistorySchema = new mongoose.Schema({
     timestamps: true
 });
 
+// Phase 6 — compound indexes matching /api/video/history query shape
+// { $or: [{ caller: userId }, { receiver: userId }] } + sort createdAt -1
+callHistorySchema.index({ caller:   1, createdAt: -1 });
+callHistorySchema.index({ receiver: 1, createdAt: -1 });
+// ascending createdAt for archive worker range scans
+callHistorySchema.index({ createdAt: 1 });
+// status + createdAt for the "mark old ringing as missed" pattern
+callHistorySchema.index({ status: 1, createdAt: 1 });
+
 module.exports = mongoose.model("CallHistory", callHistorySchema);

@@ -123,7 +123,13 @@ const userSchema = new mongoose.Schema({
 
     // Password Reset
     resetPasswordToken: { type: String },
-    resetPasswordExpires: { type: Date }
+    resetPasswordExpires: { type: Date },
+
+    // Chat Enhancements
+    lastSeen: {
+        type: Date,
+        default: Date.now
+    }
 
 }, {
     timestamps: true
