@@ -37,7 +37,7 @@ const ScoreRing = ({ score = 0 }) => {
           </defs>
           {/* Track */}
           <circle cx={size/2} cy={size/2} r={r} fill="none"
-            stroke="rgba(255,255,255,0.06)" strokeWidth={stroke} />
+            stroke="var(--border-subtle)" strokeWidth={stroke} />
           {/* Filled arc */}
           {dash > 0 && (
             <circle cx={size/2} cy={size/2} r={r} fill="none"
@@ -51,8 +51,8 @@ const ScoreRing = ({ score = 0 }) => {
 
         {/* Centre content */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-5xl font-display font-bold tabular-nums" style={{ color }}>{Math.round(score)}</span>
-          <span className="text-xs font-semibold mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>/100</span>
+          <span className="text-5xl font-display font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>{Math.round(score)}</span>
+          <span className="text-xs font-semibold mt-0.5 text-text-muted">/100</span>
         </div>
       </div>
 
@@ -80,10 +80,10 @@ const FactorBar = ({ label, value, max, color, icon: Icon, delay }) => {
           <Icon size={13} style={{ color }} /> {label}
         </span>
         <span className="text-sm font-bold" style={{ color }}>
-          {value}<span className="text-white/25 font-normal">/{max}</span>
+          {value}<span className="text-text-muted font-normal">/{max}</span>
         </span>
       </div>
-      <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+      <div className="h-2 rounded-full overflow-hidden bg-surface-hover border border-border-subtle">
         <motion.div
           className="h-full rounded-full"
           initial={{ width: 0 }}
@@ -101,8 +101,7 @@ const ReviewCard = ({ r, idx }) => (
   <motion.div
     initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
     transition={{ delay: idx * 0.06, duration: 0.35 }}
-    className="p-4 rounded-xl flex gap-4"
-    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+    className="p-4 rounded-xl flex gap-4 bg-surface border border-border-subtle shadow-sm"
   >
     <div className="flex-shrink-0 mt-0.5">
       <Avatar name={r.fromUser?.name || '?'} url={r.fromUser?.avatar} size="md" userId={r.fromUser?._id} />
@@ -114,7 +113,7 @@ const ReviewCard = ({ r, idx }) => (
           <div className="flex gap-0.5">
             {[...Array(5)].map((_, i) => (
               <Star key={i} size={11} fill={i < r.score ? '#ffb800' : 'transparent'}
-                style={{ color: i < r.score ? '#ffb800' : 'rgba(255,255,255,0.2)' }} />
+                className={i < r.score ? 'text-amber' : 'text-border-subtle'} />
             ))}
           </div>
         </div>
@@ -174,19 +173,18 @@ const TrustScore = () => {
       <div className="grid grid-cols-1 md:grid-cols-5 gap-5">
 
         {/* Score ring card */}
-        <div className="md:col-span-2 flex flex-col items-center justify-center gap-6 p-8 rounded-2xl"
-          style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.08)' }}>
+        <div className="md:col-span-2 flex flex-col items-center justify-center gap-6 p-8 rounded-2xl bg-surface border border-border-subtle shadow-sm">
           <ScoreRing score={trustScore} />
           {/* Quick stats row */}
           <div className="grid grid-cols-2 gap-3 w-full">
-            <div className="flex flex-col items-center p-3 rounded-xl" style={{ background: 'rgba(255,184,0,0.08)', border: '1px solid rgba(255,184,0,0.2)' }}>
+            <div className="flex flex-col items-center p-3 rounded-xl bg-amber/5 border border-amber/20">
               <div className="flex items-center gap-1 mb-0.5">
                 {[...Array(5)].map((_, i) => <Star key={i} size={10} fill={i < Math.round(averageRating) ? '#ffb800' : 'transparent'} style={{ color: '#ffb800' }} />)}
               </div>
               <span className="text-lg font-bold text-amber">{averageRating?.toFixed(1) || '0.0'}</span>
               <span className="text-[10px] text-text-muted">avg rating</span>
             </div>
-            <div className="flex flex-col items-center p-3 rounded-xl" style={{ background: 'rgba(0,198,255,0.08)', border: '1px solid rgba(0,198,255,0.2)' }}>
+            <div className="flex flex-col items-center p-3 rounded-xl bg-accent/5 border border-accent/20">
               <Award size={16} className="text-accent mb-0.5" />
               <span className="text-lg font-bold text-accent">{totalRatings}</span>
               <span className="text-[10px] text-text-muted">reviews</span>
@@ -195,8 +193,7 @@ const TrustScore = () => {
         </div>
 
         {/* Factors breakdown */}
-        <div className="md:col-span-3 p-6 rounded-2xl space-y-5"
-          style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.08)' }}>
+        <div className="md:col-span-3 p-6 rounded-2xl space-y-5 bg-surface border border-border-subtle shadow-sm">
           <h3 className="font-display font-bold text-text-primary text-base flex items-center gap-2">
             <ShieldCheck size={16} className="text-accent" /> Score Breakdown
           </h3>
@@ -208,14 +205,13 @@ const TrustScore = () => {
       </div>
 
       {/* ── Recent Reviews ── */}
-      <div className="p-6 rounded-2xl space-y-4"
-        style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.08)' }}>
+      <div className="p-6 rounded-2xl space-y-4 bg-surface border border-border-subtle shadow-sm">
         <h3 className="font-display font-bold text-text-primary text-base flex items-center gap-2">
           <TrendingUp size={16} className="text-secondary" /> Recent Reviews
         </h3>
         {recentRatings.length === 0 ? (
           <div className="py-10 text-center">
-            <Star size={32} className="mx-auto text-white/10 mb-3" />
+            <Star size={32} className="mx-auto text-border-subtle mb-3" />
             <p className="text-text-muted text-sm">No reviews yet. Complete skill exchanges to receive feedback.</p>
           </div>
         ) : (

@@ -413,14 +413,12 @@ const VideoCall = () => {
       </div>
 
       {/* Quick launch banner */}
-      <div className="relative overflow-hidden p-6 rounded-2xl"
-        style={{ background: 'linear-gradient(135deg, rgba(124,58,237,0.15), rgba(0,198,255,0.1))', border: '1px solid rgba(124,58,237,0.3)' }}>
-        <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle,rgba(124,58,237,0.2),transparent 70%)', filter: 'blur(30px)' }} />
+      <div className="relative overflow-hidden p-6 rounded-2xl bg-accent/10 border border-accent/30 shadow-sm">
+        <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full pointer-events-none bg-accent/20 blur-3xl" />
         <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <p className="font-semibold text-text-primary text-lg flex items-center gap-2">
-              <Video size={18} className="text-purple-400" /> Start a Call
+              <Video size={18} className="text-accent" /> Start a Call
             </p>
             <p className="text-text-muted text-sm mt-1">
               Go to <strong>Connections</strong> and click <strong>Call</strong> next to a friend.
@@ -438,8 +436,8 @@ const VideoCall = () => {
         {isLoading ? (
           <VideoCallHistorySkeleton count={4} />
         ) : calls.length === 0 ? (
-          <div className="py-12 text-center rounded-2xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.08)' }}>
-            <Video size={32} className="mx-auto text-white/10 mb-3" />
+          <div className="py-12 text-center rounded-2xl bg-surface border border-dashed border-border-subtle">
+            <Video size={32} className="mx-auto text-border-subtle mb-3" />
             <p className="text-text-muted text-sm">No calls yet. Connect with someone and start a video call.</p>
           </div>
         ) : (
@@ -462,7 +460,7 @@ const VideoCall = () => {
                     <div className="flex items-center gap-2 mt-0.5">
                       <CallStatusIcon status={call.status} />
                       <span className="text-xs text-text-muted capitalize">{call.status}</span>
-                      {call.duration > 0 && <span className="text-xs text-white/25">· {Math.round(call.duration / 60)}m</span>}
+                      {call.duration > 0 && <span className="text-xs text-text-muted">· {Math.round(call.duration / 60)}m</span>}
                     </div>
                   </div>
                 </div>
@@ -473,8 +471,7 @@ const VideoCall = () => {
                   {(call.status === 'ended' || call.status === 'accepted') && (
                     <button
                       onClick={() => handleCallAgain(other)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all relative"
-                      style={{ background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)', color: '#a855f7' }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all relative bg-accent text-text-on-accent hover:brightness-110 shadow-sm"
                     >
                       <Video size={12} /> Call Again
                       {!isOtherOnline && (
