@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
@@ -29,12 +29,31 @@ const SkillCard = memo(({ skill, variant = 'browse', onConnect, onViewRatings })
 
   const deleteMutation = useMutation({
     mutationFn: () => api.delete(`/skills/${skill._id}`),
-    onSuccess: () => {
+    onSuccess: useCallback(() => {
       addToast('Skill removed', 'success');
       queryClient.invalidateQueries({ queryKey: ['skills', 'my'] });
-    },
-    onError: (err) => addToast(err.response?.data?.message || 'Delete failed', 'error'),
+    }, [addToast, queryClient]),
+    onError: useCallback((err) => addToast(err.response?.data?.message || 'Delete failed', 'error'), [addToast]),
   });
+
+  const handleCardClick = useCallback(() => {
+    if (owner?._id) navigate(`/profile/${owner._id}`);
+  }, [owner?._id, navigate]);
+
+  const handleDelete = useCallback((e) => {
+    e.stopPropagation();
+    if (window.confirm('Delete this skill?')) deleteMutation.mutate();
+  }, [deleteMutation]);
+
+  const handleViewRatings = useCallback((e) => {
+    e.stopPropagation();
+    onViewRatings?.(owner);
+  }, [onViewRatings, owner]);
+
+  const handleConnect = useCallback((e) => {
+    e.stopPropagation();
+    onConnect?.(skill._id, owner?._id);
+  }, [onConnect, skill._id, owner?._id]);
 
   return (
     <motion.div
@@ -44,7 +63,7 @@ const SkillCard = memo(({ skill, variant = 'browse', onConnect, onViewRatings })
       whileHover={{ scale: 1.02 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       layout
-      onClick={() => owner?._id && navigate(`/profile/${owner._id}`)}
+      onClick={handleCardClick}
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
@@ -81,10 +100,7 @@ const SkillCard = memo(({ skill, variant = 'browse', onConnect, onViewRatings })
           )}
           {variant === 'my-skills' && isOwner && (
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (window.confirm('Delete this skill?')) deleteMutation.mutate();
-              }}
+              onClick={handleDelete}
               className="p-1.5 rounded-lg text-white/25 hover:text-danger hover:bg-danger/10 transition-all"
               disabled={deleteMutation.isPending}
             >
@@ -127,10 +143,7 @@ const SkillCard = memo(({ skill, variant = 'browse', onConnect, onViewRatings })
         <div style={{ display: 'flex', gap: 8 }}>
           {/* View Ratings button */}
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onViewRatings?.(owner);
-            }}
+            onClick={handleViewRatings}
             title="View this person's ratings"
             style={{
               flex: '0 0 auto',
@@ -148,10 +161,7 @@ const SkillCard = memo(({ skill, variant = 'browse', onConnect, onViewRatings })
 
           {/* Connect button */}
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onConnect?.(skill._id, owner?._id);
-            }}
+            onClick={handleConnect}
             className="btn-gradient flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium"
           >
             <UserPlus size={15} /> Connect
@@ -162,10 +172,7 @@ const SkillCard = memo(({ skill, variant = 'browse', onConnect, onViewRatings })
       {variant === 'match' && !isOwner && (
         <div className="flex gap-2">
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onConnect?.(skill._id, owner?._id);
-            }}
+            onClick={handleConnect}
             className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium transition-all text-accent hover:bg-accent/10"
             style={{ border: '1px solid rgba(0,198,255,0.3)', background: 'rgba(0,198,255,0.06)' }}
           >

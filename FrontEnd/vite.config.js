@@ -46,4 +46,18 @@ export default defineConfig({
       },
     },
   },
+
+  // Performance optimizations
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      '@tanstack/react-query',
+      'framer-motion',
+      'zustand',
+      'axios',
+      'date-fns',
+    ],
+  },
 });

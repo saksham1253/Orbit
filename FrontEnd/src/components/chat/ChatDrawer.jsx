@@ -139,10 +139,14 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
   const queryClient = useQueryClient();
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef(null);
   const [otherUserTyping, setOtherUserTyping] = useState(false);
+  const [showNewMessagesPill, setShowNewMessagesPill] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const isNearBottomRef = useRef(true); // Track if user is scrolled near bottom
 
   const { data = {}, isLoading } = useQuery({
     queryKey: ['messages', otherUser._id],
@@ -210,10 +214,57 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
     };
   }, [otherUser._id, user?._id, queryClient]);
 
-  // Scroll to bottom on new messages
+  // Smart scroll: Check if user is near bottom (passive listener for performance)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, otherUserTyping]);
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+      isNearBottomRef.current = distanceFromBottom < 150; // Within 150px of bottom
+      
+      // Hide pill when user scrolls near bottom
+      if (isNearBottomRef.current && showNewMessagesPill) {
+        setShowNewMessagesPill(false);
+        setUnreadCount(0);
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [showNewMessagesPill]);
+
+  // Smart autoscroll: Only scroll if user is near bottom, otherwise show pill
+  useEffect(() => {
+    const prevMessageCount = useRef(messages.length);
+    
+    if (messages.length > prevMessageCount.current) {
+      const newMessageCount = messages.length - prevMessageCount.current;
+      
+      if (isNearBottomRef.current) {
+        // User is near bottom - smooth scroll to new message
+        requestAnimationFrame(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        });
+      } else {
+        // User scrolled up - show "N new messages" pill
+        setUnreadCount(prev => prev + newMessageCount);
+        setShowNewMessagesPill(true);
+      }
+    }
+    
+    prevMessageCount.current = messages.length;
+  }, [messages]);
+
+  // Scroll to bottom when typing indicator appears (only if near bottom)
+  useEffect(() => {
+    if (otherUserTyping && isNearBottomRef.current) {
+      requestAnimationFrame(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      });
+    }
+  }, [otherUserTyping]);
 
   const sendMutation = useMutation({
     mutationFn: (content) => {
@@ -241,6 +292,21 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
     
     sendMutation.mutate(content);
     inputRef.current?.focus();
+    
+    // Ensure we scroll to bottom after sending (user action = explicit intent)
+    isNearBottomRef.current = true;
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    });
+  };
+
+  const handleScrollToLatest = () => {
+    setShowNewMessagesPill(false);
+    setUnreadCount(0);
+    isNearBottomRef.current = true;
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    });
   };
 
   const handleKeyDown = (e) => {
@@ -295,7 +361,7 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar relative">
         {isLoading && <ChatMessagesSkeleton />}
         {!isLoading && messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
@@ -389,6 +455,29 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
           )}
         </AnimatePresence>
         <div ref={messagesEndRef} />
+        
+        {/* "N new messages" pill - shows when user scrolled up */}
+        {showNewMessagesPill && (
+          <motion.button
+            initial={{ opacity: 0, y: 10, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            onClick={handleScrollToLatest}
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 rounded-full shadow-lg"
+            style={{
+              background: 'var(--accent-1)',
+              color: '#ffffff',
+              zIndex: 10,
+            }}
+          >
+            <span className="text-sm font-medium">
+              {unreadCount} new message{unreadCount !== 1 ? 's' : ''}
+            </span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </motion.button>
+        )}
       </div>
 
       {/* Input */}

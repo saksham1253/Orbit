@@ -5,17 +5,21 @@ import './index.css';
 import App from './App.jsx';
 import ErrorBoundary from './components/common/ErrorBoundary.jsx';
 import { useThemeStore } from './store/themeStore.js';
+import { initWebVitals } from './utils/reportWebVitals.js';
 
 // Initialize theme on app load
 useThemeStore.getState().initializeTheme();
+
+// Initialize Web Vitals reporting
+initWebVitals();
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
       retry: 1,
-      staleTime: 60_000,
-      gcTime: 5 * 60_000,
+      staleTime: 60_000, // Consider data fresh for 1 minute
+      gcTime: 5 * 60_000, // Keep unused data in cache for 5 minutes
     },
     mutations: {
       retry: 0,
