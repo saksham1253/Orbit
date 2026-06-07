@@ -89,8 +89,8 @@ const registerSchema = z.object({
       />
 
       <motion.div
-        className="auth-card w-full max-w-[520px] mx-auto p-5 sm:p-8 relative z-10 rounded-2xl border border-purple-500/20"
-        style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.05), 0 25px 50px rgba(0,0,0,0.6)' }}
+        className="auth-card w-full mx-auto p-5 sm:p-8 relative z-10 rounded-2xl border border-purple-500/20"
+        style={{ maxWidth: 520, width: '100%', boxShadow: '0 0 0 1px rgba(255,255,255,0.05), 0 25px 50px rgba(0,0,0,0.6)' }}
         initial={{ opacity: 0, y: 30, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
