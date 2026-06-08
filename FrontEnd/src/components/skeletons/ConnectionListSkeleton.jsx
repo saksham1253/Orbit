@@ -7,17 +7,7 @@
 import { SkelBox, SkelCircle, SkelPill } from '../ui/SkeletonPrimitives';
 
 const ConnectionItemSkeleton = () => (
-  <div
-    className="skill-card"
-    style={{
-      padding: 20,
-      display: 'flex',
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 16,
-    }}
-  >
+  <div className="skill-card p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     {/* Left: Avatar + Info */}
     <div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1, minWidth: 0 }}>
       {/* Large avatar with online dot placeholder */}
@@ -48,7 +38,7 @@ const ConnectionItemSkeleton = () => (
     </div>
 
     {/* Right: Action Buttons */}
-    <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+    <div className="flex flex-wrap sm:flex-nowrap gap-2 shrink-0">
       <SkelBox w={80} h={36} r={12} />
       <SkelBox w={64} h={36} r={12} />
       <SkelBox w={80} h={36} r={12} style={{ background: 'linear-gradient(135deg, rgba(0,198,255,0.15), rgba(0,114,255,0.15))' }} />
@@ -56,8 +46,18 @@ const ConnectionItemSkeleton = () => (
   </div>
 );
 
+const ConnectionTabsSkeleton = () => (
+  <div className="flex overflow-x-auto hide-scrollbar gap-2 mb-6 pb-2">
+    <SkelPill w={120} h={36} />
+    <SkelPill w={140} h={36} />
+    <SkelPill w={130} h={36} />
+    <SkelPill w={100} h={36} />
+  </div>
+);
+
 export const ConnectionListSkeleton = ({ count = 3 }) => (
   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <ConnectionTabsSkeleton />
     {Array.from({ length: count }).map((_, i) => (
       <ConnectionItemSkeleton key={i} />
     ))}

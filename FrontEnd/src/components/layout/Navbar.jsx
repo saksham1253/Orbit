@@ -275,6 +275,25 @@ const Navbar = () => {
         )}
       </AnimatePresence>
 
+      {/* Mobile Floating Chat Button */}
+      {user && (
+        <button
+          onClick={() => setChatOpen(true)}
+          aria-label="Messages"
+          className="fixed sm:hidden bottom-6 right-6 z-[60] w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-transform active:scale-95"
+          style={{ background: 'var(--send-button-bg)', color: '#fff', boxShadow: 'var(--send-button-shadow)' }}
+        >
+          <MessageCircle size={24} />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 flex items-center justify-center text-[12px] font-bold rounded-full bg-surface border border-border-subtle"
+              style={{ color: 'var(--text-primary)' }}
+            >
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
+        </button>
+      )}
+
       {/* Chat Drawer */}
       <ChatDrawer isOpen={chatOpen} onClose={() => { setChatOpen(false); setChatInitialUser(null); }} initialUser={chatInitialUser} />
     </>

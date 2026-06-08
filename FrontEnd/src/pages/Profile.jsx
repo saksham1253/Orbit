@@ -28,11 +28,23 @@ const Profile = () => {
   const [langs, setLangs] = useState(['English']);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [reviewTab, setReviewTab] = useState('received');
   const fileInputRef = useRef(null);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['profile'],
     queryFn: () => api.get('/user/profile').then(r => r.data),
+  });
+
+  const { data: receivedReviews } = useQuery({
+    queryKey: ['reviews', 'received', user?._id],
+    queryFn: () => api.get(`/trust/ratings/${user._id}`).then(r => r.data.ratings),
+    enabled: !!user?._id,
+  });
+
+  const { data: givenReviews } = useQuery({
+    queryKey: ['reviews', 'given'],
+    queryFn: () => api.get('/trust/my-given').then(r => r.data.ratings),
   });
 
   const { register, handleSubmit, setValue } = useForm();
@@ -377,6 +389,86 @@ const Profile = () => {
           </motion.div>
         </motion.div>
       )}
+      {/* ── Reviews Section ── */}
+      <div className="mt-8 glass-card p-6 sm:p-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <h2 className="text-xl font-display font-bold text-text-primary">Reviews</h2>
+          <div className="flex gap-2 p-1 rounded-xl bg-surface border border-border-subtle self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={() => setReviewTab('received')}
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                reviewTab === 'received' 
+                  ? 'bg-accent/20 text-accent shadow-sm' 
+                  : 'text-text-secondary hover:text-text-primary'
+              }`}
+            >
+              Received
+            </button>
+            <button
+              type="button"
+              onClick={() => setReviewTab('given')}
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                reviewTab === 'given' 
+                  ? 'bg-accent/20 text-accent shadow-sm' 
+                  : 'text-text-secondary hover:text-text-primary'
+              }`}
+            >
+              Given
+            </button>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          {reviewTab === 'received' && (
+            receivedReviews?.length > 0 ? (
+              receivedReviews.map(r => (
+                <div key={r._id} className="p-4 rounded-xl bg-surface border border-border-subtle flex gap-4">
+                  <Avatar name={r.fromUser?.name} url={r.fromUser?.avatar} size="md" userId={r.fromUser?._id} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start mb-1 gap-2">
+                      <p className="font-semibold text-sm truncate">{r.fromUser?.name}</p>
+                      <span className="text-xs text-text-muted flex-shrink-0">{new Date(r.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex gap-1 mb-2">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <span key={i} className={`text-[12px] ${i < r.score ? 'text-[#ffb800]' : 'text-white/10'}`}>★</span>
+                      ))}
+                    </div>
+                    <p className="text-sm text-text-secondary break-words">{r.review || "No written review provided."}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-center text-text-muted py-8 bg-surface rounded-xl border border-border-subtle">No reviews received yet.</p>
+            )
+          )}
+
+          {reviewTab === 'given' && (
+            givenReviews?.length > 0 ? (
+              givenReviews.map(r => (
+                <div key={r._id} className="p-4 rounded-xl bg-surface border border-border-subtle flex gap-4">
+                  <Avatar name={r.toUser?.name} url={r.toUser?.avatar} size="md" userId={r.toUser?._id} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start mb-1 gap-2">
+                      <p className="font-semibold text-sm truncate">To: {r.toUser?.name}</p>
+                      <span className="text-xs text-text-muted flex-shrink-0">{new Date(r.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex gap-1 mb-2">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <span key={i} className={`text-[12px] ${i < r.score ? 'text-[#ffb800]' : 'text-white/10'}`}>★</span>
+                      ))}
+                    </div>
+                    <p className="text-sm text-text-secondary break-words">{r.review || "No written review provided."}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-center text-text-muted py-8 bg-surface rounded-xl border border-border-subtle">You haven't reviewed anyone yet.</p>
+            )
+          )}
+        </div>
+      </div>
     </div>
   );
 };

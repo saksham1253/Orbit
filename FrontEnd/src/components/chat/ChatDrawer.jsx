@@ -183,12 +183,15 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
           // If structure is paginated { messages: [] }
           if (oldData && oldData.messages) {
             if (oldData.messages.some(m => m._id === msg._id)) return oldData;
-            return { ...oldData, messages: [...oldData.messages, msg] };
+            // Filter out the optimistic temp message that matches content
+            const filtered = oldData.messages.filter(m => !(m._id.startsWith('temp-') && m.content === msg.content));
+            return { ...oldData, messages: [...filtered, msg] };
           }
           // Legacy flat array
           const old = Array.isArray(oldData) ? oldData : [];
           if (old.some(m => m._id === msg._id)) return old;
-          return [...old, msg];
+          const filteredLegacy = old.filter(m => !(m._id.startsWith('temp-') && m.content === msg.content));
+          return [...filteredLegacy, msg];
         });
         queryClient.invalidateQueries({ queryKey: ['conversations'] });
         queryClient.invalidateQueries({ queryKey: ['unread-count'] });
@@ -295,6 +298,23 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
     const sock = getSocket();
     if (sock) sock.emit('typing-stop', { receiverId: otherUser._id });
     
+    // Optimistic Update
+    const tempMsg = {
+      _id: `temp-${Date.now()}`,
+      content,
+      sender: user,
+      receiver: otherUser._id,
+      createdAt: new Date().toISOString()
+    };
+    
+    queryClient.setQueryData(['messages', otherUser._id], (oldData) => {
+      if (oldData && oldData.messages) {
+        return { ...oldData, messages: [...oldData.messages, tempMsg] };
+      }
+      const old = Array.isArray(oldData) ? oldData : [];
+      return [...old, tempMsg];
+    });
+
     sendMutation.mutate(content);
     inputRef.current?.focus();
     
@@ -451,10 +471,10 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
               <div className="w-7 flex-shrink-0">
                 <Avatar name={otherUser.name} url={otherUser.avatar} size="xs" userId={otherUser._id} />
               </div>
-              <div className="px-4 py-3 rounded-2xl rounded-bl-sm bg-surface border border-white/5 flex gap-1 items-center h-[38px]">
-                <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              <div className="px-4 py-3 rounded-2xl rounded-bl-sm bg-surface border border-border-subtle flex gap-1 items-center h-[38px]">
+                <div className="w-1.5 h-1.5 rounded-full animate-typing-bounce" style={{ background: 'var(--text-muted)', animationDelay: '0ms' }}></div>
+                <div className="w-1.5 h-1.5 rounded-full animate-typing-bounce" style={{ background: 'var(--text-muted)', animationDelay: '150ms' }}></div>
+                <div className="w-1.5 h-1.5 rounded-full animate-typing-bounce" style={{ background: 'var(--text-muted)', animationDelay: '300ms' }}></div>
               </div>
             </motion.div>
           )}
@@ -593,6 +613,8 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
   useEffect(() => {
     const sock = getSocket();
     if (!sock) return;
+
+    sock.emit('get-online-users');
 
     const handleUsersOnline = (usersArray) => setOnlineUsers(new Set(usersArray));
     const handleUserOnline = (userId) => setOnlineUsers(prev => new Set(prev).add(userId));

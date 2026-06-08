@@ -92,7 +92,7 @@ export const TrustPageSkeleton = () => (
     </div>
 
     {/* TOP ROW: matches `grid grid-cols-1 md:grid-cols-5 gap-5` */}
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 20 }}>
+    <div className="grid grid-cols-1 md:grid-cols-5 gap-5">
 
       {/* LEFT col — gauge card (md:col-span-2) */}
       <div

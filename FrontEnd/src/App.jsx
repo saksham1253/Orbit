@@ -11,7 +11,7 @@ import NotificationSystem from './components/notifications/NotificationSystem';
 import RatingModal from './components/modals/RatingModal';
 import IncomingCallOverlay from './components/modals/IncomingCallOverlay';
 import NotFound from './pages/NotFound';
-import io from 'socket.io-client';
+import { connectSocket } from './services/socket';
 import { Toaster } from 'react-hot-toast';
 
 // Eagerly loaded (first paint)
@@ -105,11 +105,7 @@ function AppInner() {
   useEffect(() => {
     if (!token || !user) return;
 
-    const socketUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:8000';
-    const socket = io(socketUrl);
-
-    // Register user for notifications
-    socket.emit('register', user._id);
+    const socket = connectSocket(user._id);
 
     // ──────── Listen to notification events ────────
 
@@ -153,9 +149,16 @@ function AppInner() {
       });
     });
 
-    // Cleanup
+    // We don't disconnect the singleton completely here because other components (like ChatDrawer)
+    // might still be relying on it while navigating. Disconnect is handled cleanly when logging out.
     return () => {
-      socket.disconnect();
+      socket.off('skill-match');
+      socket.off('connection-request');
+      socket.off('connection-accepted');
+      socket.off('user-offline');
+      socket.off('incoming-call');
+      socket.off('call-ended');
+      socket.off('force-disconnect');
     };
   }, [token, user, notifyConnectionRequest, notifyConnectionAccepted, notifyUserOffline, notifyCallEnded, notifySkillMatch]);
 
@@ -184,9 +187,10 @@ function AppInner() {
         position="bottom-right" 
         toastOptions={{
           style: {
-            background: '#1a1f2e',
-            color: '#fff',
-            border: '1px solid rgba(255,255,255,0.1)',
+            background: 'var(--toast-bg)',
+            color: 'var(--toast-text)',
+            border: '1px solid var(--toast-border)',
+            boxShadow: 'var(--toast-shadow)',
           }
         }} 
       />

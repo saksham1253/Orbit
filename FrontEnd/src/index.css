@@ -937,3 +937,26 @@ body, html {
     min-width: 44px;
   }
 }
+
+/* ─── UTILITIES ─── */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+@keyframes typing-bounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.6;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+.animate-typing-bounce {
+  animation: typing-bounce 1.4s infinite ease-in-out both;
+}

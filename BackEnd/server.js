@@ -69,6 +69,11 @@ io.on("connection", (socket) => {
         }
     });
 
+    // Provide current online users on demand (for late joiners like ChatDrawer)
+    socket.on("get-online-users", () => {
+        socket.emit("users-online", Array.from(onlineUsers.keys()));
+    });
+
     // Real-Time Audio Moderation (Whisper/Groq)
     socket.on("audio-chunk", async (data) => {
         if (!data || !data.audioBuffer) return;

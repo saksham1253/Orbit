@@ -268,4 +268,22 @@ async function recalculateTrustScore(userId) {
     await user.save();
 }
 
+// ─────────────────────────────────────────────
+//  GET MY GIVEN RATINGS
+// ─────────────────────────────────────────────
+
+exports.getMyGivenRatings = async (req, res) => {
+    try {
+        const ratings = await Rating.find({ fromUser: req.user.id })
+            .populate("toUser", "name avatar trustScore")
+            .sort({ createdAt: -1 })
+            .limit(20);
+
+        res.status(200).json({ ratings });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
 module.exports.recalculateTrustScore = recalculateTrustScore;

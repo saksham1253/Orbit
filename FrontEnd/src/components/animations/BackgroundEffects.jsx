@@ -540,26 +540,23 @@ NeuralCanvas.displayName = 'NeuralCanvas';
 const LightAuroraCanvas = memo(({ colors, speedMultiplier, themeName }) => {
   const canvasRef = useRef(null);
   const animRef = useRef(null);
-  const mouseRef = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
 
   useEffect(() => {
     if (speedMultiplier === 0) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
+    // Use devicePixelRatio for sharp rendering
+    const dpr = window.devicePixelRatio || 1;
     const ctx = canvas.getContext('2d', { alpha: true });
 
     const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      ctx.scale(dpr, dpr);
     };
     resize();
     window.addEventListener('resize', resize);
-
-    const onMouseMove = (e) => {
-      mouseRef.current = { x: e.clientX, y: e.clientY };
-    };
-    window.addEventListener('mousemove', onMouseMove);
 
     const hexToRgba = (hex) => {
       const r = parseInt(hex.slice(1, 3), 16);
@@ -574,22 +571,25 @@ const LightAuroraCanvas = memo(({ colors, speedMultiplier, themeName }) => {
     const getOrbConfig = () => {
       switch(themeName) {
         case 'spring-garden':
-          return { count: 6, size: 280, opacity: 0.18, blur: 140, speed: 0.3 }; // Blooming petals
+          return { count: 6, size: 280, opacity: 0.18, speed: 0.3 };
         case 'golden-hour':
-          return { count: 5, size: 320, opacity: 0.22, blur: 160, speed: 0.25 }; // Warm sunlight
+          return { count: 5, size: 320, opacity: 0.22, speed: 0.25 };
         case 'lavender-dream':
-          return { count: 7, size: 260, opacity: 0.16, blur: 130, speed: 0.28 }; // Soft wisps
+          return { count: 7, size: 260, opacity: 0.16, speed: 0.28 };
         case 'ocean-breeze':
-          return { count: 6, size: 300, opacity: 0.2, blur: 150, speed: 0.32 }; // Flowing waves
+          return { count: 6, size: 300, opacity: 0.2, speed: 0.32 };
         default: // morning-sky
-          return { count: 5, size: 300, opacity: 0.2, blur: 150, speed: 0.3 }; // Airy clouds
+          return { count: 5, size: 300, opacity: 0.2, speed: 0.3 };
       }
     };
 
     const config = getOrbConfig();
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    
     const orbs = Array.from({ length: config.count }, (_, i) => ({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
+      x: Math.random() * w,
+      y: Math.random() * h,
       vx: (Math.random() - 0.5) * config.speed * speedMultiplier,
       vy: (Math.random() - 0.5) * config.speed * speedMultiplier,
       size: config.size + Math.random() * 60,
@@ -601,37 +601,18 @@ const LightAuroraCanvas = memo(({ colors, speedMultiplier, themeName }) => {
     }));
 
     const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const mx = mouseRef.current.x;
-      const my = mouseRef.current.y;
+      ctx.clearRect(0, 0, w, h);
 
       orbs.forEach((orb, i) => {
-        // Gentle mouse parallax
-        const dx = orb.x - mx;
-        const dy = orb.y - my;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const parallaxFactor = 0.015 * speedMultiplier;
-        
-        if (dist < 400) {
-          const force = (400 - dist) / 400;
-          orb.vx += (dx / dist) * force * parallaxFactor;
-          orb.vy += (dy / dist) * force * parallaxFactor;
-        }
-
-        // Gentle friction
-        orb.vx *= 0.998;
-        orb.vy *= 0.998;
-        
         // Move
         orb.x += orb.vx;
         orb.y += orb.vy;
 
         // Wrap edges
-        if (orb.x < -orb.size) orb.x = canvas.width + orb.size;
-        if (orb.x > canvas.width + orb.size) orb.x = -orb.size;
-        if (orb.y < -orb.size) orb.y = canvas.height + orb.size;
-        if (orb.y > canvas.height + orb.size) orb.y = -orb.size;
+        if (orb.x < -orb.size) orb.x = w + orb.size;
+        if (orb.x > w + orb.size) orb.x = -orb.size;
+        if (orb.y < -orb.size) orb.y = h + orb.size;
+        if (orb.y > h + orb.size) orb.y = -orb.size;
 
         // Pulse & morph
         orb.pulsePhase += orb.pulseSpeed;
@@ -665,7 +646,6 @@ const LightAuroraCanvas = memo(({ colors, speedMultiplier, themeName }) => {
     return () => {
       cancelAnimationFrame(animRef.current);
       window.removeEventListener('resize', resize);
-      window.removeEventListener('mousemove', onMouseMove);
     };
   }, [colors, speedMultiplier, themeName]);
 
@@ -674,13 +654,134 @@ const LightAuroraCanvas = memo(({ colors, speedMultiplier, themeName }) => {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none"
-      style={{ zIndex: 0, filter: 'blur(60px)' }}
+      className="absolute inset-0 pointer-events-none"
+      style={{ zIndex: 0, filter: 'blur(60px)', width: '100%', height: '100%' }}
     />
   );
 });
 
 LightAuroraCanvas.displayName = 'LightAuroraCanvas';
+
+/* ─────────────────────────────────────────────────────
+   Layer 2: LightBokehCanvas
+───────────────────────────────────────────────────── */
+const LightBokehCanvas = memo(({ speedMultiplier }) => {
+  const canvasRef = useRef(null);
+  const animRef = useRef(null);
+
+  useEffect(() => {
+    if (speedMultiplier === 0) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const dpr = window.devicePixelRatio || 1;
+    const ctx = canvas.getContext('2d', { alpha: true });
+
+    const resize = () => {
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      ctx.scale(dpr, dpr);
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+
+    const motes = Array.from({ length: 80 }, () => ({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      vx: (Math.random() - 0.5) * 0.2 * speedMultiplier,
+      vy: (Math.random() * -0.5 - 0.1) * speedMultiplier, // drift upwards
+      size: Math.random() * 2 + 0.5,
+      opacity: Math.random() * 0.4 + 0.1,
+      wobblePhase: Math.random() * Math.PI * 2,
+    }));
+
+    const draw = () => {
+      ctx.clearRect(0, 0, w, h);
+      motes.forEach(m => {
+        m.x += m.vx + Math.sin(m.wobblePhase) * 0.1;
+        m.y += m.vy;
+        m.wobblePhase += 0.02 * speedMultiplier;
+
+        if (m.y < -10) m.y = h + 10;
+        if (m.x < -10) m.x = w + 10;
+        if (m.x > w + 10) m.x = -10;
+        
+        ctx.beginPath();
+        ctx.arc(m.x, m.y, m.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${m.opacity})`;
+        ctx.fill();
+      });
+      animRef.current = requestAnimationFrame(draw);
+    };
+    draw();
+
+    return () => {
+      cancelAnimationFrame(animRef.current);
+      window.removeEventListener('resize', resize);
+    };
+  }, [speedMultiplier]);
+
+  if (speedMultiplier === 0) return null;
+  return <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none w-full h-full" />;
+});
+LightBokehCanvas.displayName = 'LightBokehCanvas';
+
+/* ─────────────────────────────────────────────────────
+   LightModeEffects Wrapper
+───────────────────────────────────────────────────── */
+const LightModeEffects = memo(({ colors, speedMultiplier, themeName }) => {
+  const [ripples, setRipples] = useState([]);
+  
+  useEffect(() => {
+    if (speedMultiplier === 0) return;
+    const handleMouseMove = (e) => {
+      // Small parallax offset based on screen center
+      const px = (e.clientX / window.innerWidth - 0.5) * -30;
+      const py = (e.clientY / window.innerHeight - 0.5) * -30;
+      document.documentElement.style.setProperty('--px', `${px}px`);
+      document.documentElement.style.setProperty('--py', `${py}px`);
+    };
+
+    const handleClick = (e) => {
+      const newRipple = { x: e.clientX, y: e.clientY, id: Date.now() };
+      setRipples(prev => [...prev, newRipple]);
+      setTimeout(() => {
+        setRipples(prev => prev.filter(r => r.id !== newRipple.id));
+      }, 1000);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('click', handleClick);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('click', handleClick);
+    };
+  }, [speedMultiplier]);
+
+  if (speedMultiplier === 0) return null;
+
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+      <div style={{ transform: 'translate(calc(var(--px, 0px) * 0.5), calc(var(--py, 0px) * 0.5))', transition: 'transform 0.1s ease-out', width: '100%', height: '100%', position: 'absolute' }}>
+        <LightAuroraCanvas colors={colors} speedMultiplier={speedMultiplier} themeName={themeName} />
+      </div>
+      <div style={{ transform: 'translate(calc(var(--px, 0px) * 1.5), calc(var(--py, 0px) * 1.5))', transition: 'transform 0.1s ease-out', width: '100%', height: '100%', position: 'absolute' }}>
+        <LightBokehCanvas speedMultiplier={speedMultiplier} />
+      </div>
+      
+      {/* Click ripples */}
+      {ripples.map(r => (
+        <div key={r.id} className="absolute rounded-full border-2 animate-ripple" style={{
+          left: r.x - 20, top: r.y - 20, width: 40, height: 40, opacity: 0.5, borderColor: colors[0] || 'var(--accent-1)'
+        }} />
+      ))}
+    </div>
+  );
+});
+LightModeEffects.displayName = 'LightModeEffects';
+
 
 /* ─────────────────────────────────────────────────────
    BackgroundEffects: Dynamic background system
@@ -789,9 +890,9 @@ const BackgroundEffects = memo(() => {
         </>
       )}
 
-      {/* LIGHT MODE: Aurora orbs animation */}
+      {/* LIGHT MODE: Layered Effects */}
       {!effectiveIsDark && backgroundStyle !== 'minimal' && backgroundStyle !== 'gradient' && (
-        <LightAuroraCanvas colors={colors} speedMultiplier={effectiveSpeed} themeName={theme} />
+        <LightModeEffects colors={colors} speedMultiplier={effectiveSpeed} themeName={theme} />
       )}
     </>
   );
