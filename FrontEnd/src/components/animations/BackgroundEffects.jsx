@@ -11,7 +11,7 @@ const ConstellationCanvas = memo(({ colors, speedMultiplier }) => {
   const mouseRef = useRef({ x: -9999, y: -9999 });
 
   useEffect(() => {
-    if (speedMultiplier === 0) return; // Don't render if animations are off
+    // if (speedMultiplier === 0) return; // Allow initial frame render
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -125,7 +125,9 @@ const ConstellationCanvas = memo(({ colors, speedMultiplier }) => {
         ctx.fill();
       });
 
-      animRef.current = requestAnimationFrame(draw);
+      if (speedMultiplier !== 0) {
+        animRef.current = requestAnimationFrame(draw);
+      }
     };
 
     draw();
@@ -137,7 +139,7 @@ const ConstellationCanvas = memo(({ colors, speedMultiplier }) => {
     };
   }, [colors, speedMultiplier]);
 
-  if (speedMultiplier === 0) return null;
+  // if (speedMultiplier === 0) return null; // Canvas unmounting disabled to fix desktop layout collapse
 
   return (
     <canvas
@@ -154,7 +156,7 @@ ConstellationCanvas.displayName = 'ConstellationCanvas';
    Mesh: Animated blob mesh
 ───────────────────────────────────────────────────── */
 const MeshBackground = memo(({ colors, speedMultiplier }) => {
-  if (speedMultiplier === 0) return null;
+  // if (speedMultiplier === 0) return null; // Canvas unmounting disabled to fix desktop layout collapse
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
@@ -237,7 +239,9 @@ const ParticlesCanvas = memo(({ colors, speedMultiplier }) => {
         ctx.fill();
       });
 
-      animRef.current = requestAnimationFrame(draw);
+      if (speedMultiplier !== 0) {
+        animRef.current = requestAnimationFrame(draw);
+      }
     };
 
     draw();
@@ -248,7 +252,7 @@ const ParticlesCanvas = memo(({ colors, speedMultiplier }) => {
     };
   }, [colors, speedMultiplier]);
 
-  if (speedMultiplier === 0) return null;
+  // if (speedMultiplier === 0) return null; // Canvas unmounting disabled to fix desktop layout collapse
 
   return (
     <canvas
@@ -317,7 +321,9 @@ const MatrixCanvas = memo(({ colors, speedMultiplier }) => {
         drops[i] += speedMultiplier;
       }
 
-      animRef.current = requestAnimationFrame(draw);
+      if (speedMultiplier !== 0) {
+        animRef.current = requestAnimationFrame(draw);
+      }
     };
 
     draw();
@@ -328,7 +334,7 @@ const MatrixCanvas = memo(({ colors, speedMultiplier }) => {
     };
   }, [colors, speedMultiplier]);
 
-  if (speedMultiplier === 0) return null;
+  // if (speedMultiplier === 0) return null; // Canvas unmounting disabled to fix desktop layout collapse
 
   return (
     <canvas
@@ -398,7 +404,9 @@ const WavesCanvas = memo(({ colors, speedMultiplier }) => {
       }
 
       time += 0.01;
-      animRef.current = requestAnimationFrame(draw);
+      if (speedMultiplier !== 0) {
+        animRef.current = requestAnimationFrame(draw);
+      }
     };
 
     draw();
@@ -409,7 +417,7 @@ const WavesCanvas = memo(({ colors, speedMultiplier }) => {
     };
   }, [colors, speedMultiplier]);
 
-  if (speedMultiplier === 0) return null;
+  // if (speedMultiplier === 0) return null; // Canvas unmounting disabled to fix desktop layout collapse
 
   return (
     <canvas
@@ -509,7 +517,9 @@ const NeuralCanvas = memo(({ colors, speedMultiplier }) => {
         ctx.fill();
       });
 
-      animRef.current = requestAnimationFrame(draw);
+      if (speedMultiplier !== 0) {
+        animRef.current = requestAnimationFrame(draw);
+      }
     };
 
     draw();
@@ -520,7 +530,7 @@ const NeuralCanvas = memo(({ colors, speedMultiplier }) => {
     };
   }, [colors, speedMultiplier]);
 
-  if (speedMultiplier === 0) return null;
+  // if (speedMultiplier === 0) return null; // Canvas unmounting disabled to fix desktop layout collapse
 
   return (
     <canvas
@@ -638,7 +648,9 @@ const LightAuroraCanvas = memo(({ colors, speedMultiplier, themeName }) => {
         ctx.fill();
       });
 
-      animRef.current = requestAnimationFrame(draw);
+      if (speedMultiplier !== 0) {
+        animRef.current = requestAnimationFrame(draw);
+      }
     };
 
     draw();
@@ -649,7 +661,7 @@ const LightAuroraCanvas = memo(({ colors, speedMultiplier, themeName }) => {
     };
   }, [colors, speedMultiplier, themeName]);
 
-  if (speedMultiplier === 0) return null;
+  // if (speedMultiplier === 0) return null; // Canvas unmounting disabled to fix desktop layout collapse
 
   return (
     <canvas
@@ -713,7 +725,9 @@ const LightBokehCanvas = memo(({ speedMultiplier }) => {
         ctx.fillStyle = `rgba(255, 255, 255, ${m.opacity})`;
         ctx.fill();
       });
-      animRef.current = requestAnimationFrame(draw);
+      if (speedMultiplier !== 0) {
+        animRef.current = requestAnimationFrame(draw);
+      }
     };
     draw();
 
@@ -723,7 +737,7 @@ const LightBokehCanvas = memo(({ speedMultiplier }) => {
     };
   }, [speedMultiplier]);
 
-  if (speedMultiplier === 0) return null;
+  // if (speedMultiplier === 0) return null; // Canvas unmounting disabled to fix desktop layout collapse
   return <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none w-full h-full" />;
 });
 LightBokehCanvas.displayName = 'LightBokehCanvas';
@@ -760,7 +774,7 @@ const LightModeEffects = memo(({ colors, speedMultiplier, themeName }) => {
     };
   }, [speedMultiplier]);
 
-  if (speedMultiplier === 0) return null;
+  // if (speedMultiplier === 0) return null; // Canvas unmounting disabled to fix desktop layout collapse
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>

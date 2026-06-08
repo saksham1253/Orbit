@@ -15,7 +15,7 @@ import io from 'socket.io-client';
 /* ── Direct WebRTC Video Call Component ── */
 const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller }) => {
   const { user } = useAuthStore();
-  const { addToast } = useUIStore();
+  const { addToast, setVideoCallActive } = useUIStore();
   
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
@@ -28,6 +28,11 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller }) => {
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(true);
+
+  useEffect(() => {
+    setVideoCallActive(true);
+    return () => setVideoCallActive(false);
+  }, [setVideoCallActive]);
 
   useEffect(() => {
     let mounted = true;
@@ -77,6 +82,21 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller }) => {
           iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
             { urls: 'stun:stun1.l.google.com:19302' },
+            {
+              urls: 'turn:openrelay.metered.ca:80',
+              username: 'openrelayproject',
+              credential: 'openrelayproject'
+            },
+            {
+              urls: 'turn:openrelay.metered.ca:443',
+              username: 'openrelayproject',
+              credential: 'openrelayproject'
+            },
+            {
+              urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+              username: 'openrelayproject',
+              credential: 'openrelayproject'
+            }
           ]
         });
 

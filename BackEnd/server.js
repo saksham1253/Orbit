@@ -100,6 +100,18 @@ io.on("connection", (socket) => {
                 const User = require("./models/user");
                 const currentUser = await User.findById(userId).select("name avatar");
                 
+                // Update call history
+                const CallHistory = require("./models/callHistory");
+                await CallHistory.findOneAndUpdate(
+                    { roomName: roomId },
+                    { 
+                        status: "completed",
+                        duration: callDuration,
+                        endedAt: new Date()
+                    },
+                    { sort: { createdAt: -1 } } // Update the most recent one for this room
+                );
+
                 // Emit to other user to open rating modal
                 io.to(`user_${otherUserId}`).emit("call-ended", {
                     otherUser: {
@@ -142,10 +154,21 @@ io.on("connection", (socket) => {
     });
 
     // WebRTC Signaling
-    socket.on("join-video-room", ({ roomId, userId }) => {
+    socket.on("join-video-room", async ({ roomId, userId }) => {
         socket.join(roomId);
         socket.to(roomId).emit("user-joined", { userId });
         console.log(`User ${userId} joined video room ${roomId}`);
+        
+        try {
+            const CallHistory = require("./models/callHistory");
+            await CallHistory.findOneAndUpdate(
+                { roomName: roomId, status: "ringing" },
+                { status: "accepted" },
+                { sort: { createdAt: -1 } }
+            );
+        } catch (err) {
+            console.error("Error updating call status:", err);
+        }
     });
 
     socket.on("video-offer", ({ roomId, offer }) => {
@@ -165,8 +188,21 @@ io.on("connection", (socket) => {
         socket.to(roomId).emit("user-left");
     });
     
-    socket.on("call-user", ({ roomId, targetUserId, callerName }) => {
+    socket.on("call-user", async ({ roomId, targetUserId, callerName }) => {
         io.to(`user_${targetUserId}`).emit("incoming-call", { roomId, callerName });
+        
+        try {
+            const CallHistory = require("./models/callHistory");
+            await CallHistory.create({
+                caller: socket.userId,
+                receiver: targetUserId,
+                roomName: roomId,
+                status: "ringing",
+                startedAt: new Date()
+            });
+        } catch (err) {
+            console.error("Error creating call history:", err);
+        }
     });
 
     // ===== REAL-TIME CHAT =====

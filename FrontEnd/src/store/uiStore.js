@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 
 export const useUIStore = create((set) => ({
+  isVideoCallActive: false,
+  setVideoCallActive: (isActive) => set({ isVideoCallActive: isActive }),
   toasts: [],
   addToast: (message, type = 'info', duration = 3000) => {
     const id = Date.now();
