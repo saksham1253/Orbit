@@ -712,6 +712,15 @@ const BackgroundEffects = memo(() => {
 
   const effectiveSpeed = (prefersReducedMotion || !isTabVisible) ? 0 : speedMultiplier;
 
+  // Cross-check Zustand isDark with DOM data-mode attribute to survive any
+  // store/DOM desync (e.g. initializeTheme() hasn't run yet on first render,
+  // or localStorage was partially cleared). The DOM attribute wins if both
+  // sources are available, otherwise fall back to the Zustand value.
+  const domIsDark = typeof document !== 'undefined'
+    ? document.documentElement.getAttribute('data-mode') !== 'light'
+    : isDark;
+  const effectiveIsDark = isDark || domIsDark;
+
   // Dark mode: deep space gradient. Light mode: airy pastel gradient using theme's bg color.
   const darkGradientBg = `
     radial-gradient(ellipse 100% 70% at 50% 0%, ${colors[0]}14 0%, transparent 50%),
@@ -737,12 +746,12 @@ const BackgroundEffects = memo(() => {
         className="fixed inset-0 pointer-events-none"
         style={{
           zIndex: -1,
-          background: backgroundStyle === 'minimal' ? minimalBg : (isDark ? darkGradientBg : lightGradientBg),
+          background: backgroundStyle === 'minimal' ? minimalBg : (effectiveIsDark ? darkGradientBg : lightGradientBg),
         }}
       />
 
       {/* Noise texture overlay for depth - only in light mode */}
-      {!isDark && (
+      {!effectiveIsDark && (
         <div
           className="fixed inset-0 pointer-events-none"
           style={{
@@ -756,31 +765,32 @@ const BackgroundEffects = memo(() => {
       )}
       
       {/* Dynamic layer based on style - ONLY IN DARK MODE */}
-      {isDark && (
+      {effectiveIsDark && (
         <>
           {backgroundStyle === 'constellation' && (
-            <ConstellationCanvas colors={colors} speedMultiplier={effectiveSpeed} isDark={isDark} />
+            <ConstellationCanvas colors={colors} speedMultiplier={effectiveSpeed} />
           )}
           {backgroundStyle === 'mesh' && (
-            <MeshBackground colors={colors} speedMultiplier={effectiveSpeed} isDark={isDark} />
+            <MeshBackground colors={colors} speedMultiplier={effectiveSpeed} />
           )}
           {backgroundStyle === 'particles' && (
-            <ParticlesCanvas colors={colors} speedMultiplier={effectiveSpeed} isDark={isDark} />
+            <ParticlesCanvas colors={colors} speedMultiplier={effectiveSpeed} />
           )}
           {backgroundStyle === 'matrix' && (
             <MatrixCanvas colors={colors} speedMultiplier={effectiveSpeed} />
           )}
           {backgroundStyle === 'waves' && (
-            <WavesCanvas colors={colors} speedMultiplier={effectiveSpeed} isDark={isDark} />
+            <WavesCanvas colors={colors} speedMultiplier={effectiveSpeed} />
           )}
           {backgroundStyle === 'neural' && (
-            <NeuralCanvas colors={colors} speedMultiplier={effectiveSpeed} isDark={isDark} />
+            <NeuralCanvas colors={colors} speedMultiplier={effectiveSpeed} />
           )}
+          {/* gradient + minimal = static only, no canvas — this is intentional */}
         </>
       )}
 
       {/* LIGHT MODE: Aurora orbs animation */}
-      {!isDark && backgroundStyle !== 'minimal' && backgroundStyle !== 'gradient' && (
+      {!effectiveIsDark && backgroundStyle !== 'minimal' && backgroundStyle !== 'gradient' && (
         <LightAuroraCanvas colors={colors} speedMultiplier={effectiveSpeed} themeName={theme} />
       )}
     </>

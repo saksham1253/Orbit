@@ -153,6 +153,7 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
   const [showNewMessagesPill, setShowNewMessagesPill] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const isNearBottomRef = useRef(true); // Track if user is scrolled near bottom
+  const prevMessageCountRef = useRef(0); // Track previous message count for new-message detection
 
   const { data = {}, isLoading } = useQuery({
     queryKey: ['messages', otherUser._id],
@@ -243,10 +244,8 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
 
   // Smart autoscroll: Only scroll if user is near bottom, otherwise show pill
   useEffect(() => {
-    const prevMessageCount = useRef(messages.length);
-    
-    if (messages.length > prevMessageCount.current) {
-      const newMessageCount = messages.length - prevMessageCount.current;
+    if (messages.length > prevMessageCountRef.current) {
+      const newMessageCount = messages.length - prevMessageCountRef.current;
       
       if (isNearBottomRef.current) {
         // User is near bottom - smooth scroll to new message
@@ -260,7 +259,7 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
       }
     }
     
-    prevMessageCount.current = messages.length;
+    prevMessageCountRef.current = messages.length;
   }, [messages]);
 
   // Scroll to bottom when typing indicator appears (only if near bottom)
