@@ -1,5 +1,5 @@
 import { useEffect, useRef, memo, useState } from 'react';
-import useAppearanceStore from '../../store/appearanceStore';
+import useAppearanceStore, { THEMES } from '../../store/appearanceStore';
 import { useThemeStore } from '../../store/themeStore';
 
 /* ─────────────────────────────────────────────────────
@@ -142,7 +142,7 @@ const ConstellationCanvas = memo(({ colors, speedMultiplier }) => {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none"
+      className="fixed inset-0 pointer-events-none block w-full h-full"
       style={{ zIndex: 0 }}
     />
   );
@@ -253,7 +253,7 @@ const ParticlesCanvas = memo(({ colors, speedMultiplier }) => {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none"
+      className="fixed inset-0 pointer-events-none block w-full h-full"
       style={{ zIndex: 0 }}
     />
   );
@@ -333,7 +333,7 @@ const MatrixCanvas = memo(({ colors, speedMultiplier }) => {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none"
+      className="fixed inset-0 pointer-events-none block w-full h-full"
       style={{ zIndex: 0 }}
     />
   );
@@ -414,7 +414,7 @@ const WavesCanvas = memo(({ colors, speedMultiplier }) => {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none"
+      className="fixed inset-0 pointer-events-none block w-full h-full"
       style={{ zIndex: 0 }}
     />
   );
@@ -525,7 +525,7 @@ const NeuralCanvas = memo(({ colors, speedMultiplier }) => {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none"
+      className="fixed inset-0 pointer-events-none block w-full h-full"
       style={{ zIndex: 0 }}
     />
   );
@@ -787,7 +787,7 @@ LightModeEffects.displayName = 'LightModeEffects';
    BackgroundEffects: Dynamic background system
 ───────────────────────────────────────────────────── */
 const BackgroundEffects = memo(() => {
-  const { backgroundStyle, getColors, getSpeedMultiplier, theme } = useAppearanceStore();
+  const { backgroundStyle, getColors, getSpeedMultiplier, theme, setTheme } = useAppearanceStore();
   const { isDark } = useThemeStore();
   const colors = getColors();
   const speedMultiplier = getSpeedMultiplier();
@@ -821,6 +821,16 @@ const BackgroundEffects = memo(() => {
     ? document.documentElement.getAttribute('data-mode') !== 'light'
     : isDark;
   const effectiveIsDark = isDark || domIsDark;
+
+  // Sync theme with effective mode to prevent light themes leaking into dark mode (and vice versa)
+  useEffect(() => {
+    const currentThemeMode = THEMES[theme]?.mode;
+    if (effectiveIsDark && currentThemeMode === 'light') {
+      setTheme('cyan-purple'); // fallback dark theme
+    } else if (!effectiveIsDark && currentThemeMode === 'dark') {
+      setTheme('morning-sky'); // fallback light theme
+    }
+  }, [effectiveIsDark, theme, setTheme]);
 
   // Dark mode: deep space gradient. Light mode: airy pastel gradient using theme's bg color.
   const darkGradientBg = `

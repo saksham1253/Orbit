@@ -3,7 +3,7 @@
  * Real layout: glass-card p-8 flex flex-col sm:flex-row items-center sm:items-start gap-6
  *   [Large avatar] | name/bio text lines | [Edit / Share buttons]
  */
-import { SkelBox, SkelCircle } from '../ui/SkeletonPrimitives';
+import { SkelBox, SkelCircle, SkelPill } from '../ui/SkeletonPrimitives';
 
 export const ProfileHeaderSkeleton = () => (
   <div className="flex flex-col gap-6">
