@@ -8,10 +8,8 @@ class SoundManager {
     this.sounds = {};
     this.enabled = true;
     this.volume = 0.15; // Moderate volume for motivational sounds
-    this.musicVolume = 0.08; // Inspirational ambient music
     this.musicEnabled = false; // Music disabled by default
-    this.musicContext = null;
-    this.musicNodes = [];
+    this.ambientAudio = null;  // HTMLAudioElement instance
     
     // Load enabled state from localStorage
     const savedState = localStorage.getItem('skillswap-sounds-enabled');
@@ -25,86 +23,29 @@ class SoundManager {
     }
   }
 
-  // Generate inspirational ambient music for learning platform
+  // Play the uploaded ambient track via HTMLAudioElement
   startAmbientMusic() {
-    if (!this.musicEnabled || this.musicContext) return;
+    if (!this.musicEnabled || this.ambientAudio) return;
 
     try {
-      this.musicContext = new (window.AudioContext || window.webkitAudioContext)();
-      const now = this.musicContext.currentTime;
-
-      // Uplifting chord progression: C - G - Am - F (motivational progression)
-      const frequencies = [261.63, 392.00, 440.00, 349.23]; // C4, G4, A4, F4
-      
-      frequencies.forEach((freq, i) => {
-        const oscillator = this.musicContext.createOscillator();
-        const gainNode = this.musicContext.createGain();
-        const filter = this.musicContext.createBiquadFilter();
-
-        oscillator.type = 'triangle'; // Warmer, more inspirational than sine
-        oscillator.frequency.setValueAtTime(freq, now);
-        
-        // Gentle pulsing for energy (like breathing)
-        const lfo = this.musicContext.createOscillator();
-        const lfoGain = this.musicContext.createGain();
-        lfo.frequency.setValueAtTime(0.2 + i * 0.08, now); // Slow pulse
-        lfoGain.gain.setValueAtTime(freq * 0.003, now); // Subtle modulation
-        lfo.connect(lfoGain);
-        lfoGain.connect(oscillator.frequency);
-        lfo.start(now);
-
-        // Bright filter for clarity and focus
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(1200, now); // Brighter than before
-        filter.Q.setValueAtTime(1.2, now);
-
-        // Smooth fade in
-        gainNode.gain.setValueAtTime(0, now);
-        gainNode.gain.linearRampToValueAtTime(this.musicVolume / frequencies.length, now + 2);
-
-        oscillator.connect(filter);
-        filter.connect(gainNode);
-        gainNode.connect(this.musicContext.destination);
-        
-        oscillator.start(now);
-        
-        this.musicNodes.push({ oscillator, gainNode, filter, lfo });
+      this.ambientAudio = new Audio('/audio/Equatorial Complex.mp3');
+      this.ambientAudio.loop = true;
+      this.ambientAudio.volume = 0.25; // Gentle, non-intrusive level
+      this.ambientAudio.play().catch(() => {
+        // Browser autoplay policy: silently ignored — will play on next user gesture
       });
-
-      console.log('Inspirational ambient music started');
     } catch (error) {
       console.warn('Failed to start ambient music:', error);
     }
   }
 
   stopAmbientMusic() {
-    if (!this.musicContext) return;
+    if (!this.ambientAudio) return;
 
     try {
-      const now = this.musicContext.currentTime;
-      
-      // Fade out smoothly
-      this.musicNodes.forEach(({ oscillator, gainNode, lfo }) => {
-        gainNode.gain.linearRampToValueAtTime(0, now + 1.5);
-        setTimeout(() => {
-          try {
-            oscillator.stop();
-            lfo.stop();
-          } catch (e) {
-            // Already stopped
-          }
-        }, 1600);
-      });
-
-      setTimeout(() => {
-        if (this.musicContext) {
-          this.musicContext.close();
-          this.musicContext = null;
-          this.musicNodes = [];
-        }
-      }, 2000);
-
-      console.log('Ambient music stopped');
+      this.ambientAudio.pause();
+      this.ambientAudio.src = ''; // Release the resource
+      this.ambientAudio = null;
     } catch (error) {
       console.warn('Failed to stop ambient music:', error);
     }
