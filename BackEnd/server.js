@@ -137,18 +137,23 @@ io.on("connection", (socket) => {
                 onlineUsers.set(socket.userId, currentCount - 1);
                 console.log(`User ${socket.userId} disconnected one socket (count: ${currentCount - 1})`);
             } else {
-                onlineUsers.delete(socket.userId);
-                io.emit("users-online", Array.from(onlineUsers.keys()));
-                io.emit("user-offline-status", socket.userId);
-                console.log(`User ${socket.userId} went offline`);
-                
-                // Update lastSeen in database
-                try {
-                    const User = require("./models/user");
-                    await User.findByIdAndUpdate(socket.userId, { lastSeen: new Date() });
-                } catch (err) {
-                    console.error("Error updating lastSeen:", err);
-                }
+                onlineUsers.set(socket.userId, 0);
+                setTimeout(async () => {
+                    if (onlineUsers.get(socket.userId) === 0) {
+                        onlineUsers.delete(socket.userId);
+                        io.emit("users-online", Array.from(onlineUsers.keys()));
+                        io.emit("user-offline-status", socket.userId);
+                        console.log(`User ${socket.userId} went offline`);
+                        
+                        // Update lastSeen in database
+                        try {
+                            const User = require("./models/user");
+                            await User.findByIdAndUpdate(socket.userId, { lastSeen: new Date() });
+                        } catch (err) {
+                            console.error("Error updating lastSeen:", err);
+                        }
+                    }
+                }, 3000); // 3 seconds grace period to prevent flicker
             }
         }
     });

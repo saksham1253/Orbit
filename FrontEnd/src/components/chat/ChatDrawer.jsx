@@ -611,7 +611,8 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
 
   // Global socket listener for notifications and online presence
   useEffect(() => {
-    const sock = getSocket();
+    const { connectSocket } = require('../../services/socket');
+    const sock = connectSocket(user?._id);
     if (!sock) return;
 
     sock.emit('get-online-users');

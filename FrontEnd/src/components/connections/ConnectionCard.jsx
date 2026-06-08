@@ -39,30 +39,29 @@ const ConnectionCard = ({ connection, type, onRate, onViewRatings }) => {
   useEffect(() => {
     if (!isEstablished) return;
 
-    const socketUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:8000';
-    const socket = io(socketUrl);
+    const { connectSocket } = require('../../services/socket');
+    const socket = connectSocket(user?._id);
 
-    socket.emit('register', user?._id);
+    // Request initial online users list
+    socket.emit('get-online-users');
 
     // Listen for online status updates
-    socket.on('users-online', (userIds) => {
-      setOnlineUsers(new Set(userIds));
+    const handleUsersOnline = (userIds) => setOnlineUsers(new Set(userIds));
+    const handleUserOnline = (userId) => setOnlineUsers(prev => new Set([...prev, userId]));
+    const handleUserOffline = (userId) => setOnlineUsers(prev => {
+      const next = new Set(prev);
+      next.delete(userId);
+      return next;
     });
 
-    socket.on('user-online', (userId) => {
-      setOnlineUsers(prev => new Set([...prev, userId]));
-    });
-
-    socket.on('user-offline-status', (userId) => {
-      setOnlineUsers(prev => {
-        const next = new Set(prev);
-        next.delete(userId);
-        return next;
-      });
-    });
+    socket.on('users-online', handleUsersOnline);
+    socket.on('user-online', handleUserOnline);
+    socket.on('user-offline-status', handleUserOffline);
 
     return () => {
-      socket.disconnect();
+      socket.off('users-online', handleUsersOnline);
+      socket.off('user-online', handleUserOnline);
+      socket.off('user-offline-status', handleUserOffline);
     };
   }, [isEstablished, user]);
 
