@@ -30,7 +30,7 @@ class SoundManager {
     try {
       this.ambientAudio = new Audio('/audio/Equatorial Complex.mp3');
       this.ambientAudio.loop = true;
-      this.ambientAudio.volume = 0.25; // Gentle, non-intrusive level
+      this.ambientAudio.volume = 0.5; // Gentle, non-intrusive level
       this.ambientAudio.play().catch(() => {
         // Browser autoplay policy: silently ignored — will play on next user gesture
       });
