@@ -18,6 +18,7 @@ const IncomingCallOverlay = ({ call, onAccept, onDecline, onIgnore }) => {
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
       let stopped = false;
+      let timerId = null;
 
       const ring = () => {
         if (stopped) return;
@@ -32,11 +33,12 @@ const IncomingCallOverlay = ({ call, onAccept, onDecline, onIgnore }) => {
         osc.start(ctx.currentTime);
         osc.stop(ctx.currentTime + 0.8);
         // Ring every 2 seconds
-        setTimeout(ring, 2000);
+        timerId = setTimeout(ring, 2000);
       };
       ring();
 
-      audioRef.current = { stop: () => { stopped = true; ctx.close(); } };
+      // stop() clears the pending timer too, so no dangling setTimeout survives unmount
+      audioRef.current = { stop: () => { stopped = true; if (timerId) clearTimeout(timerId); ctx.close(); } };
     } catch (_) {}
 
     return () => {
@@ -65,6 +67,9 @@ const IncomingCallOverlay = ({ call, onAccept, onDecline, onIgnore }) => {
         >
           {/* Card */}
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Incoming video call from ${call.callerName || 'Someone'}`}
             initial={{ scale: 0.85, opacity: 0, y: 40 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.85, opacity: 0, y: 40 }}
@@ -84,6 +89,7 @@ const IncomingCallOverlay = ({ call, onAccept, onDecline, onIgnore }) => {
             <button
               onClick={onIgnore}
               title="Ignore call"
+              aria-label="Ignore call"
               style={{
                 position: 'absolute',
                 top: 16,
@@ -156,6 +162,7 @@ const IncomingCallOverlay = ({ call, onAccept, onDecline, onIgnore }) => {
                 <button
                   onClick={onDecline}
                   title="Decline call"
+                  aria-label="Decline call"
                   style={{
                     width: 68,
                     height: 68,
@@ -179,6 +186,7 @@ const IncomingCallOverlay = ({ call, onAccept, onDecline, onIgnore }) => {
                 <motion.button
                   onClick={onAccept}
                   title="Accept call"
+                  aria-label="Accept call"
                   animate={{ scale: [1, 1.08, 1] }}
                   transition={{ duration: 1.2, repeat: Infinity }}
                   style={{

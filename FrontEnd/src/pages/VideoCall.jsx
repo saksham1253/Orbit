@@ -296,6 +296,7 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller }) => {
         <button
           onClick={toggleAudio}
           title={isAudioEnabled ? 'Mute mic' : 'Unmute mic'}
+          aria-label={isAudioEnabled ? 'Mute microphone' : 'Unmute microphone'}
           style={{ width: 56, height: 56, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: isAudioEnabled ? 'rgba(255,255,255,0.12)' : '#ef4444', border: '2px solid rgba(255,255,255,0.18)', cursor: 'pointer', transition: 'background 0.2s' }}
         >
           {isAudioEnabled ? <Mic size={22} color="#fff" /> : <MicOff size={22} color="#fff" />}
@@ -305,6 +306,7 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller }) => {
         <button
           onClick={handleCallEnd}
           title="End call"
+          aria-label="End call"
           style={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #ff0076, #ff4b4b)', boxShadow: '0 4px 24px rgba(255,0,118,0.5)', border: 'none', cursor: 'pointer' }}
         >
           <PhoneOff size={26} color="#fff" />
@@ -314,6 +316,7 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller }) => {
         <button
           onClick={toggleVideo}
           title={isVideoEnabled ? 'Turn off camera' : 'Turn on camera'}
+          aria-label={isVideoEnabled ? 'Turn off camera' : 'Turn on camera'}
           style={{ width: 56, height: 56, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: isVideoEnabled ? 'rgba(255,255,255,0.12)' : '#ef4444', border: '2px solid rgba(255,255,255,0.18)', cursor: 'pointer', transition: 'background 0.2s' }}
         >
           {isVideoEnabled ? <VideoIcon size={22} color="#fff" /> : <VideoOff size={22} color="#fff" />}
