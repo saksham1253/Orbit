@@ -171,9 +171,9 @@ const BrowseSkills = () => {
                       }}
                       className="w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between hover:bg-surface"
                       style={{
-                        color: sortBy === opt.value ? '#ff0076' : 'rgba(255, 255, 255, 0.7)',
-                        backgroundColor: sortBy === opt.value ? 'rgba(255, 0, 118, 0.1)' : 'transparent',
-                        borderLeft: sortBy === opt.value ? '3px solid #ff0076' : '3px solid transparent'
+                        color: sortBy === opt.value ? 'var(--accent-1)' : 'var(--text-secondary)',
+                        backgroundColor: sortBy === opt.value ? 'color-mix(in srgb, var(--accent-1) 12%, transparent)' : 'transparent',
+                        borderLeft: sortBy === opt.value ? '3px solid var(--accent-1)' : '3px solid transparent'
                       }}
                     >
                       {opt.label}

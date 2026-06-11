@@ -79,27 +79,27 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller }) => {
         socketRef.current = io(socketUrl);
 
         // 3. Setup WebRTC
-        const pc = new RTCPeerConnection({
-          iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' },
-            {
-              urls: 'turn:openrelay.metered.ca:80',
-              username: 'openrelayproject',
-              credential: 'openrelayproject'
-            },
-            {
-              urls: 'turn:openrelay.metered.ca:443',
-              username: 'openrelayproject',
-              credential: 'openrelayproject'
-            },
-            {
-              urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-              username: 'openrelayproject',
-              credential: 'openrelayproject'
-            }
-          ]
-        });
+        // TURN relay is required for symmetric-NAT / cellular peers. Credentials
+        // come from env (VITE_TURN_URL/USERNAME/CREDENTIAL) in production; the
+        // openrelay fallback keeps existing behavior until real TURN is set.
+        const iceServers = [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' },
+        ];
+        if (import.meta.env.VITE_TURN_URL) {
+          iceServers.push({
+            urls: import.meta.env.VITE_TURN_URL.split(','),
+            username: import.meta.env.VITE_TURN_USERNAME,
+            credential: import.meta.env.VITE_TURN_CREDENTIAL,
+          });
+        } else {
+          iceServers.push(
+            { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+            { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+            { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
+          );
+        }
+        const pc = new RTCPeerConnection({ iceServers });
 
         peerConnectionRef.current = pc;
 

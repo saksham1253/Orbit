@@ -91,3 +91,19 @@ exports.sendRegistrationNotification = async (userEmail, userName) => {
         console.error("Error sending registration notification:", error);
     }
 };
+
+// Generic transactional email sender (used by the password-reset flow).
+// Throws on failure so the caller can handle/log it (authController wraps this
+// in its own try/catch). This was the missing export that made the
+// "forgot password" email silently never send.
+exports.sendEmail = async ({ to, subject, html }) => {
+    const mailOptions = {
+        from: `"SkillSwap" <${process.env.EMAIL_USER}>`,
+        to,
+        subject,
+        html
+    };
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Email sent: %s", info.messageId);
+    return info;
+};

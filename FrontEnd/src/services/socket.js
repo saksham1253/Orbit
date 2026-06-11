@@ -1,4 +1,5 @@
 import { io } from 'socket.io-client';
+import { useAuthStore } from '../store/authStore';
 
 const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:8000';
 
@@ -8,6 +9,9 @@ export const connectSocket = (userId) => {
   if (socket) return socket;
 
   socket = io(SOCKET_URL, {
+    // Send the JWT on the handshake so the server can derive a trusted userId.
+    // Function form → the latest token is read again on every (re)connect.
+    auth: (cb) => cb({ token: useAuthStore.getState().token }),
     transports: ['websocket', 'polling'],
     reconnection: true,
     reconnectionAttempts: 5,

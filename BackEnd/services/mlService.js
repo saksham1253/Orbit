@@ -25,6 +25,7 @@ exports.analyzeSentiment = async (text) => {
                 },
                 method: "POST",
                 body: JSON.stringify({ inputs: text }),
+                signal: AbortSignal.timeout(Number(process.env.ML_TIMEOUT_MS) || 8000),
             }
         );
 
@@ -59,9 +60,10 @@ exports.analyzeSentiment = async (text) => {
 /**
  * Transcribes and checks for malicious content in an audio chunk using Groq Whisper API.
  * @param {Buffer} audioBuffer The chunk of audio from the video call
+ * @param {string} langCode    ISO language code for transcription (e.g. "en"); defaults to "en"
  * @returns {Promise<boolean>} True if malicious content is detected, false otherwise.
  */
-exports.analyzeAudioChunkForMalcontent = async (audioBuffer) => {
+exports.analyzeAudioChunkForMalcontent = async (audioBuffer, langCode = "en") => {
     const groqApiKey = process.env.GROQ_API_KEY;
     if (!groqApiKey) {
         console.warn("GROQ_API_KEY is not set. Skipping audio analysis.");
@@ -77,7 +79,9 @@ exports.analyzeAudioChunkForMalcontent = async (audioBuffer) => {
         });
         form.append("model", "whisper-large-v3");
         form.append("response_format", "json");
-        form.append("language", language);
+        // FIX: was referencing an undefined `language` (ReferenceError on every
+        // chunk → moderation silently never ran). Use the caller-supplied code.
+        form.append("language", langCode);
 
         const response = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
             method: "POST",
@@ -87,6 +91,8 @@ exports.analyzeAudioChunkForMalcontent = async (audioBuffer) => {
                 ...form.getHeaders()
             },
             body: form,
+            // Don't let a slow ML provider hang the worker / event loop
+            signal: AbortSignal.timeout(Number(process.env.ML_TIMEOUT_MS) || 8000),
         });
 
         if (!response.ok) {

@@ -7,6 +7,7 @@ const path = require("path");
 const compression = require("compression");
 const helmet = require("helmet");
 const mongoSanitize = require("express-mongo-sanitize");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 // Routes
@@ -32,10 +33,17 @@ const app = express();
 app.set("trust proxy", 1); // Trust first proxy (needed for express-rate-limit on Render)
 const server = http.createServer(app);
 
+// CORS allowlist — set CORS_ORIGIN (comma-separated origins) in production to
+// lock down cross-origin access. Falls back to "*" so existing deploys are
+// unchanged until the env var is configured.
+const CORS_ORIGIN = process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(",").map((s) => s.trim())
+    : "*";
+
 // Socket.IO setup
 const io = new Server(server, {
     cors: {
-        origin: "*",
+        origin: CORS_ORIGIN,
         methods: ["GET", "POST"]
     }
 });
@@ -46,25 +54,47 @@ app.set("io", io);
 // Track online users
 const onlineUsers = new Map();
 
+// ── Socket.IO authentication ──────────────────────────────────────────────
+// Derive the trusted userId from a verified JWT on the handshake instead of
+// trusting a client-sent id (closes the register/room impersonation hole).
+// Connections WITHOUT a valid token are still ALLOWED to connect — so flows
+// that don't carry a token (e.g. WebRTC signaling) keep working — but they
+// get no socket.userId and therefore cannot perform user-scoped actions
+// (register, send-message, mark-read, typing, audio-chunk).
+io.use((socket, next) => {
+    try {
+        const token = socket.handshake.auth?.token || socket.handshake.query?.token;
+        if (token && process.env.JWT_SECRET) {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            if (decoded?.id) socket.userId = decoded.id;
+        }
+    } catch {
+        // invalid/expired token → remain unauthenticated (socket.userId unset)
+    }
+    next();
+});
+
 // Socket.IO connection handling
 io.on("connection", (socket) => {
     console.log("Socket connected:", socket.id);
 
-    // User joins their personal room for notifications
-    socket.on("register", (userId) => {
+    // User joins their personal room for notifications.
+    // Identity comes from the verified JWT (socket.userId), NOT the client arg —
+    // so a socket can only ever join its OWN user room.
+    socket.on("register", () => {
+        const userId = socket.userId;
         if (userId) {
             socket.join(`user_${userId}`);
-            socket.userId = userId;
-            
+
             const currentCount = onlineUsers.get(userId) || 0;
             onlineUsers.set(userId, currentCount + 1);
-            
+
             // Broadcast updated online users list
             io.emit("users-online", Array.from(onlineUsers.keys()));
             if (currentCount === 0) {
                 io.emit("user-online", userId);
             }
-            
+
             console.log(`User ${userId} registered on socket ${socket.id} (count: ${currentCount + 1})`);
         }
     });
@@ -76,17 +106,24 @@ io.on("connection", (socket) => {
 
     // Real-Time Audio Moderation (Whisper/Groq)
     socket.on("audio-chunk", async (data) => {
+        if (!socket.userId) return;            // must be an authenticated socket
         if (!data || !data.audioBuffer) return;
+
+        // Feature flag (default OFF). Audio moderation can flag/disconnect users,
+        // so it stays disabled until explicitly enabled alongside a consent UI +
+        // human-in-the-loop review (see Phase 13 ethics requirements).
+        if (process.env.ML_AUDIO_MODERATION_ENABLED !== "true") return;
 
         const lang = data.language || "English";
         const langCodeMap = { "English": "en", "Spanish": "es", "French": "fr", "Hindi": "hi", "German": "de", "Mandarin": "zh", "Japanese": "ja", "Arabic": "ar", "Portuguese": "pt", "Korean": "ko" };
         const langCode = langCodeMap[lang] || "en";
 
-        // Add to Bull queue (non-blocking)
+        // Add to Bull queue (non-blocking). Use the trusted socket.userId so a
+        // client cannot enqueue moderation jobs attributed to another user.
         moderationQueue.add({
             audioBuffer: data.audioBuffer,
             langCode,
-            userId: data.userId
+            userId: socket.userId
         });
     });
 
@@ -272,12 +309,12 @@ eventEmitter.on('malicious-detected', (userId) => {
 app.use(helmet({
     contentSecurityPolicy: false, // disable if it blocks frontend assets
 }));
-app.use(cors());
+app.use(cors({ origin: CORS_ORIGIN }));
 app.use(compression());
 app.use(express.json({ limit: '10mb' }));
 // app.use(mongoSanitize()); // Disabled due to Express 5 compatibility issue (Cannot set property query of #<IncomingMessage> which has only a getter)
 app.use(generalLimiter); // Apply general rate limiter
-app.use(require('express-session')({ secret: process.env.JWT_SECRET || 'secret', resave: false, saveUninitialized: false }));
+app.use(require('express-session')({ secret: process.env.SESSION_SECRET || process.env.JWT_SECRET || 'secret', resave: false, saveUninitialized: false }));
 app.use(require('./config/passport').initialize());
 
 // Routes
@@ -328,7 +365,13 @@ if (indexHtmlPath) {
 app.use(errorHandler);
 
 // DB Connection
-mongoose.connect(process.env.MONGO_URI)
+// maxPoolSize is set explicitly so (instances × pool) stays under the Atlas
+// connection cap (M0 free ≈ 500). Default 10; tune via DB_MAX_POOL.
+mongoose.connect(process.env.MONGO_URI, {
+    maxPoolSize: Number(process.env.DB_MAX_POOL) || 10,
+    minPoolSize: Number(process.env.DB_MIN_POOL) || 1,
+    serverSelectionTimeoutMS: 10000,
+})
     .then(() => {
         console.log("MongoDB Connected");
         startArchiveWorker(); // Phase 3: Start the nightly archive worker
