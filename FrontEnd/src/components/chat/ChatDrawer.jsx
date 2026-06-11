@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, MessageCircle, Search, ArrowLeft, Check, CheckCheck, Maximize2, Minimize2, Bell, BellOff } from 'lucide-react';
+import { X, Send, MessageCircle, Search, ArrowLeft, Check, CheckCheck, Maximize2, Minimize2, Bell, BellOff, MoreVertical, Trash2, Ban } from 'lucide-react';
 import { formatDistanceToNow, format, isToday, isYesterday, isSameDay } from 'date-fns';
 import api from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
@@ -12,6 +12,7 @@ import { ChatListSkeleton, ChatMessagesSkeleton } from '../skeletons';
 import { requestNotificationPermission, showDesktopNotification, playNotificationSound, startTitleFlash, stopTitleFlash } from '../../utils/notifications';
 import toast from 'react-hot-toast';
 import ErrorBoundary from '../common/ErrorBoundary';
+import ConfirmDialog from '../common/ConfirmDialog';
 
 const formatTimestamp = (date) => {
   if (!date) return '';
@@ -43,8 +44,11 @@ const DateSeparator = ({ date }) => {
 // ──────────────────────────────────────────────────────
 // Conversation List (sidebar)
 // ──────────────────────────────────────────────────────
-const ConversationList = ({ onSelect, selectedId, onlineUsers }) => {
+const ConversationList = ({ onSelect, selectedId, onlineUsers, onConversationDeleted }) => {
   const [search, setSearch] = useState('');
+  const queryClient = useQueryClient();
+  const [confirmUser, setConfirmUser] = useState(null); // conversation user pending delete
+  const [isDeleting, setIsDeleting] = useState(false);
   const { data: convos = [], isLoading } = useQuery({
     queryKey: ['conversations'],
     queryFn: () => api.get('/messages/conversations').then(r => r.data),
@@ -54,6 +58,32 @@ const ConversationList = ({ onSelect, selectedId, onlineUsers }) => {
   const filtered = convos.filter(c =>
     c.user?.name?.toLowerCase()?.includes(search.toLowerCase()) ?? false
   );
+
+  // Delete (clear) an entire conversation "for me" — optimistic, with rollback.
+  const handleDeleteConversation = async () => {
+    if (!confirmUser) return;
+    const userId = confirmUser._id;
+    const prev = queryClient.getQueryData(['conversations']);
+    setIsDeleting(true);
+    // Optimistically remove from the list
+    queryClient.setQueryData(['conversations'], (old = []) =>
+      old.filter(c => c.user?._id !== userId)
+    );
+    try {
+      await api.delete(`/messages/conversation/${userId}`);
+      // Clear the open thread's cache so it shows the empty state
+      queryClient.setQueryData(['messages', userId], { messages: [], hasMore: false, nextCursor: null });
+      queryClient.invalidateQueries({ queryKey: ['unread-count'] });
+      onConversationDeleted?.(userId);
+      toast.success('Chat deleted');
+      setConfirmUser(null);
+    } catch {
+      queryClient.setQueryData(['conversations'], prev); // rollback
+      toast.error('Failed to delete chat');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -89,17 +119,14 @@ const ConversationList = ({ onSelect, selectedId, onlineUsers }) => {
           const isOnline = onlineUsers.has(convo.user._id);
           
           return (
+            <div key={convo.user._id} className="relative group" style={{ marginBottom: '8px' }}>
             <button
-              key={convo.user._id}
               onClick={() => onSelect(convo.user)}
               className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all duration-200 relative rounded-lg ${
-                isSelected 
-                  ? 'bg-accent/10 border-2 border-accent shadow-lg' 
+                isSelected
+                  ? 'bg-accent/10 border-2 border-accent shadow-lg'
                   : 'hover:bg-white/4 border-2 border-border-subtle hover:border-border-subtle'
               }`}
-              style={{
-                marginBottom: '8px',
-              }}
               aria-label={`Chat with ${convo.user.name}`}
             >
               <div className="relative flex-shrink-0">
@@ -126,13 +153,33 @@ const ConversationList = ({ onSelect, selectedId, onlineUsers }) => {
                   </span>
                 </div>
                 <p className={`text-xs truncate ${convo.unreadCount > 0 ? 'text-text-secondary font-medium' : 'text-text-muted'}`}>
-                  {convo.lastMessage?.content || 'No messages yet'}
+                  {convo.lastMessage?.deletedForEveryone ? '🚫 Message deleted' : (convo.lastMessage?.content || 'No messages yet')}
                 </p>
               </div>
             </button>
+            {/* Delete chat (reveals on hover / focus) */}
+            <button
+              onClick={(e) => { e.stopPropagation(); setConfirmUser(convo.user); }}
+              className="absolute right-2 top-2 p-1.5 rounded-lg text-text-muted opacity-0 group-hover:opacity-100 focus:opacity-100 hover:text-danger hover:bg-danger/10 transition-all"
+              title="Delete chat"
+              aria-label={`Delete chat with ${convo.user.name}`}
+            >
+              <Trash2 size={14} />
+            </button>
+            </div>
           );
         })}
       </div>
+
+      <ConfirmDialog
+        isOpen={!!confirmUser}
+        onClose={() => { if (!isDeleting) setConfirmUser(null); }}
+        onConfirm={handleDeleteConversation}
+        title="Delete chat?"
+        description={confirmUser ? `This removes your copy of the conversation with ${confirmUser.name}. They keep their own copy.` : ''}
+        confirmLabel="Delete"
+        isLoading={isDeleting}
+      />
     </div>
   );
 };
@@ -152,6 +199,12 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
   const [otherUserTyping, setOtherUserTyping] = useState(false);
   const [showNewMessagesPill, setShowNewMessagesPill] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  // Deletion UI state
+  const [openMsgMenu, setOpenMsgMenu] = useState(null);    // messageId with open action menu
+  const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
+  const [confirmMsg, setConfirmMsg] = useState(null);      // { id, scope } pending message delete
+  const [confirmClear, setConfirmClear] = useState(false); // clear-chat confirm
+  const [isActioning, setIsActioning] = useState(false);
   const isNearBottomRef = useRef(true); // Track if user is scrolled near bottom
   const prevMessageCountRef = useRef(0); // Track previous message count for new-message detection
 
@@ -211,14 +264,28 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
       if (senderId === otherUser._id) setOtherUserTyping(false);
     };
 
+    // Live "delete for everyone" from the other participant → show tombstone
+    const handleMessageDeleted = ({ messageId, otherUserId, scope }) => {
+      if (scope !== 'everyone' || otherUserId !== otherUser._id) return;
+      queryClient.setQueryData(['messages', otherUser._id], (oldData) => {
+        const upd = (m) => (m._id === messageId ? { ...m, deletedForEveryone: true, content: '' } : m);
+        if (oldData && oldData.messages) return { ...oldData, messages: oldData.messages.map(upd) };
+        if (Array.isArray(oldData)) return oldData.map(upd);
+        return oldData;
+      });
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+    };
+
     sock.on('new-message', handleNewMessage);
     sock.on('typing-start', handleTypingStart);
     sock.on('typing-stop', handleTypingStop);
+    sock.on('message-deleted', handleMessageDeleted);
 
     return () => {
       sock.off('new-message', handleNewMessage);
       sock.off('typing-start', handleTypingStart);
       sock.off('typing-stop', handleTypingStop);
+      sock.off('message-deleted', handleMessageDeleted);
       // Clean up typing stop when leaving
       sock.emit('typing-stop', { receiverId: otherUser._id });
     };
@@ -343,7 +410,7 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
 
   const handleInputChange = (e) => {
     setInput(e.target.value);
-    
+
     const sock = getSocket();
     if (!sock) return;
 
@@ -353,11 +420,74 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
     }
 
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-    
+
     typingTimeoutRef.current = setTimeout(() => {
       setIsTyping(false);
       sock.emit('typing-stop', { receiverId: otherUser._id });
     }, 2000);
+  };
+
+  // Close any open action menu on Escape or outside click
+  useEffect(() => {
+    if (!openMsgMenu && !headerMenuOpen) return;
+    const closeAll = () => { setOpenMsgMenu(null); setHeaderMenuOpen(false); };
+    const onKey = (e) => { if (e.key === 'Escape') closeAll(); };
+    window.addEventListener('keydown', onKey);
+    const t = setTimeout(() => window.addEventListener('click', closeAll), 0);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('click', closeAll);
+      clearTimeout(t);
+    };
+  }, [openMsgMenu, headerMenuOpen]);
+
+  // ─── Deletion handlers (optimistic with rollback) ───
+  const deleteMessage = async (messageId, scope) => {
+    setOpenMsgMenu(null);
+    const prev = queryClient.getQueryData(['messages', otherUser._id]);
+    setIsActioning(true);
+    queryClient.setQueryData(['messages', otherUser._id], (oldData) => {
+      const tombstone = (m) => (m._id === messageId ? { ...m, deletedForEveryone: true, content: '' } : m);
+      const drop = (m) => m._id !== messageId;
+      const map = scope === 'everyone' ? tombstone : null;
+      if (oldData && oldData.messages) {
+        return { ...oldData, messages: map ? oldData.messages.map(map) : oldData.messages.filter(drop) };
+      }
+      if (Array.isArray(oldData)) return map ? oldData.map(map) : oldData.filter(drop);
+      return oldData;
+    });
+    try {
+      await api.delete(`/messages/message/${messageId}?scope=${scope}`);
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+    } catch {
+      queryClient.setQueryData(['messages', otherUser._id], prev); // rollback
+      toast.error('Failed to delete message');
+    } finally {
+      setIsActioning(false);
+      setConfirmMsg(null);
+    }
+  };
+
+  const clearChat = async () => {
+    const prevMsgs   = queryClient.getQueryData(['messages', otherUser._id]);
+    const prevConvos = queryClient.getQueryData(['conversations']);
+    setIsActioning(true);
+    queryClient.setQueryData(['messages', otherUser._id], { messages: [], hasMore: false, nextCursor: null });
+    queryClient.setQueryData(['conversations'], (old) =>
+      Array.isArray(old) ? old.filter(c => c.user?._id !== otherUser._id) : old
+    );
+    try {
+      await api.delete(`/messages/conversation/${otherUser._id}`);
+      queryClient.invalidateQueries({ queryKey: ['unread-count'] });
+      toast.success('Chat cleared');
+      setConfirmClear(false);
+    } catch {
+      queryClient.setQueryData(['messages', otherUser._id], prevMsgs); // rollback
+      queryClient.setQueryData(['conversations'], prevConvos);
+      toast.error('Failed to clear chat');
+    } finally {
+      setIsActioning(false);
+    }
   };
 
   return (
@@ -382,6 +512,32 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
           <p className={`text-[11px] font-medium ${isOnline ? 'text-green-400' : 'text-text-muted'}`}>
             {isOnline ? 'Active now' : (otherUser.lastSeen && !isNaN(new Date(otherUser.lastSeen).getTime()) ? `Last seen ${formatDistanceToNow(new Date(otherUser.lastSeen))} ago` : 'Offline')}
           </p>
+        </div>
+        {/* Conversation options */}
+        <div className="relative flex-shrink-0">
+          <button
+            onClick={(e) => { e.stopPropagation(); setHeaderMenuOpen(o => !o); }}
+            className="p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-all"
+            aria-label="Conversation options"
+            aria-haspopup="menu"
+          >
+            <MoreVertical size={18} />
+          </button>
+          {headerMenuOpen && (
+            <div
+              role="menu"
+              className="absolute right-0 top-full mt-1 z-30 min-w-[160px] rounded-xl overflow-hidden shadow-2xl"
+              style={{ background: 'var(--bg-app)', border: '1px solid var(--border-subtle)' }}
+            >
+              <button
+                role="menuitem"
+                onClick={() => { setHeaderMenuOpen(false); setConfirmClear(true); }}
+                className="w-full text-left px-3 py-2.5 text-xs text-danger hover:bg-danger/10 transition-colors flex items-center gap-2"
+              >
+                <Trash2 size={13} /> Clear chat
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -422,27 +578,74 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
                   </div>
                 )}
                 <div className={`max-w-[75%] ${isExpanded ? 'lg:max-w-[60%]' : 'sm:max-w-[70%]'} flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
-                  <div
-                    className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
-                      isMe
-                        ? `rounded-br-sm shadow-lg ${isLastInGroup ? 'rounded-br-md' : ''}`
-                        : `rounded-bl-sm ${isLastInGroup ? 'rounded-bl-md' : ''}`
-                    }`}
-                    style={isMe
-                      ? { 
-                          background: 'var(--bubble-outgoing)', 
-                          boxShadow: 'var(--send-button-shadow)',
-                          color: '#ffffff'
+                  {msg.deletedForEveryone ? (
+                    <div
+                      className="px-4 py-2.5 rounded-2xl text-sm italic flex items-center gap-1.5"
+                      style={{ background: 'var(--bubble-incoming)', border: '1px dashed rgba(128,128,128,0.35)', color: 'var(--text-muted)' }}
+                    >
+                      <Ban size={13} /> This message was deleted
+                    </div>
+                  ) : (
+                    <div className={`relative flex items-center gap-1 group/msg ${isMe ? 'flex-row' : 'flex-row-reverse'}`}>
+                      {/* Per-message options (hover/focus) */}
+                      <div className="relative flex-shrink-0">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setOpenMsgMenu(openMsgMenu === msg._id ? null : msg._id); }}
+                          disabled={String(msg._id).startsWith('temp-')}
+                          className="p-1 rounded-md text-text-muted opacity-0 group-hover/msg:opacity-100 focus:opacity-100 hover:text-text-primary hover:bg-white/10 transition-all disabled:hidden"
+                          aria-label="Message options"
+                          aria-haspopup="menu"
+                        >
+                          <MoreVertical size={14} />
+                        </button>
+                        {openMsgMenu === msg._id && (
+                          <div
+                            role="menu"
+                            className="absolute z-30 bottom-full mb-1 min-w-[160px] rounded-xl overflow-hidden shadow-2xl"
+                            style={{ background: 'var(--bg-app)', border: '1px solid var(--border-subtle)', [isMe ? 'right' : 'left']: 0 }}
+                          >
+                            <button
+                              role="menuitem"
+                              onClick={() => setConfirmMsg({ id: msg._id, scope: 'me' })}
+                              className="w-full text-left px-3 py-2 text-xs text-text-secondary hover:bg-white/8 hover:text-text-primary transition-colors flex items-center gap-2"
+                            >
+                              <Trash2 size={13} /> Delete for me
+                            </button>
+                            {isMe && (
+                              <button
+                                role="menuitem"
+                                onClick={() => setConfirmMsg({ id: msg._id, scope: 'everyone' })}
+                                className="w-full text-left px-3 py-2 text-xs text-danger hover:bg-danger/10 transition-colors flex items-center gap-2"
+                              >
+                                <Ban size={13} /> Delete for everyone
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <div
+                        className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
+                          isMe
+                            ? `rounded-br-sm shadow-lg ${isLastInGroup ? 'rounded-br-md' : ''}`
+                            : `rounded-bl-sm ${isLastInGroup ? 'rounded-bl-md' : ''}`
+                        }`}
+                        style={isMe
+                          ? {
+                              background: 'var(--bubble-outgoing)',
+                              boxShadow: 'var(--send-button-shadow)',
+                              color: '#ffffff'
+                            }
+                          : {
+                              background: 'var(--bubble-incoming)',
+                              border: '1px solid rgba(255,255,255,0.08)',
+                              color: '#ffffff'
+                            }
                         }
-                      : { 
-                          background: 'var(--bubble-incoming)', 
-                          border: '1px solid rgba(255,255,255,0.08)',
-                          color: '#ffffff'
-                        }
-                    }
-                  >
-                    {msg.content}
-                  </div>
+                      >
+                        {msg.content}
+                      </div>
+                    </div>
+                  )}
                   {isLastInGroup && (
                     <div className="flex items-center gap-1 mt-1 px-1">
                       <span className="text-[10px] text-white/25">
@@ -532,6 +735,30 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
           <Send size={16} />
         </button>
       </div>
+
+      {/* Confirm: single-message delete */}
+      <ConfirmDialog
+        isOpen={!!confirmMsg}
+        onClose={() => { if (!isActioning) setConfirmMsg(null); }}
+        onConfirm={() => confirmMsg && deleteMessage(confirmMsg.id, confirmMsg.scope)}
+        title={confirmMsg?.scope === 'everyone' ? 'Delete for everyone?' : 'Delete message?'}
+        description={confirmMsg?.scope === 'everyone'
+          ? 'This message will be removed for both of you and replaced with a “message deleted” note.'
+          : 'This removes the message from your view only. The other person still sees it.'}
+        confirmLabel="Delete"
+        isLoading={isActioning}
+      />
+
+      {/* Confirm: clear whole conversation */}
+      <ConfirmDialog
+        isOpen={confirmClear}
+        onClose={() => { if (!isActioning) setConfirmClear(false); }}
+        onConfirm={clearChat}
+        title="Clear chat?"
+        description={`This clears your copy of the conversation with ${otherUser.name}. They keep their own copy.`}
+        confirmLabel="Clear"
+        isLoading={isActioning}
+      />
     </div>
   );
 };
@@ -827,6 +1054,7 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
                   onSelect={setSelectedUser}
                   selectedId={selectedUser?._id}
                   onlineUsers={onlineUsers}
+                  onConversationDeleted={(id) => { if (selectedUser?._id === id) setSelectedUser(null); }}
                 />
               </div>
 

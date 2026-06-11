@@ -20,6 +20,18 @@ const messageSchema = new mongoose.Schema({
     read: {
         type: Boolean,
         default: false
+    },
+    // Deletion: "delete for me" — list of users who hid this message.
+    // When both participants are present, the doc is hard-deleted (space reclaimed).
+    deletedFor: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: 'User',
+        default: []
+    },
+    // Deletion: "delete for everyone" — sender-only tombstone (content wiped).
+    deletedForEveryone: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: true
@@ -35,6 +47,8 @@ messageSchema.index({ sender: 1, createdAt: -1 });
 messageSchema.index({ receiver: 1, createdAt: -1 });
 // archiveWorker cutoff scan: find hot messages older than threshold
 messageSchema.index({ createdAt: 1 }); // ascending for range pruning
+// Deletion filter: exclude messages a user has hidden (multikey)
+messageSchema.index({ deletedFor: 1 });
 
 // Phase 3 — deterministic conversation key helper (used by archive worker)
 // Returns the smaller ObjectId string first so the key is symmetric

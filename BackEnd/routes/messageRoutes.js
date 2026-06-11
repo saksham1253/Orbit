@@ -8,6 +8,8 @@ const {
     getConversations,
     getArchivedMessages,
     getArchiveMonths,
+    deleteMessage,
+    clearConversation,
 } = require('../controllers/messageController');
 
 // ── Existing routes (unchanged) ───────────────────────────────
@@ -16,6 +18,13 @@ router.get('/conversations', auth, getConversations);
 
 // Get total unread count
 router.get('/unread-count', auth, getUnreadCount);
+
+// ── New deletion routes (additive, auth + ownership enforced) ──
+// Delete a single message: ?scope=me (default) | everyone (sender only)
+router.delete('/message/:messageId', auth, deleteMessage);
+
+// Clear an entire conversation with a user (hide-for-me + reclaim)
+router.delete('/conversation/:userId', auth, clearConversation);
 
 // Get conversation with a specific user (now supports ?cursor + ?limit)
 router.get('/:userId', auth, getConversation);

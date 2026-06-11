@@ -48,6 +48,8 @@ exports.getConversation = async (req, res) => {
                 { sender: myId,    receiver: otherId },
                 { sender: otherId, receiver: myId    },
             ],
+            // Exclude messages this user has deleted "for me"
+            deletedFor: { $ne: myId },
         };
 
         // If cursor provided, load messages older than cursor (createdAt < cursor)
@@ -210,13 +212,102 @@ exports.sendMessage = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────
+// NEW: DELETE /api/messages/message/:messageId?scope=me|everyone
+// "delete for me" (default) hides for the requester only; the doc is
+// hard-deleted once BOTH participants have hidden it (reclaims space).
+// "delete for everyone" is sender-only: wipes content + tombstone flag,
+// then live-notifies the other participant via socket.
+// ─────────────────────────────────────────────────────────────
+exports.deleteMessage = async (req, res) => {
+    try {
+        const myId  = req.user.id;
+        const scope = req.query.scope === 'everyone' ? 'everyone' : 'me';
+
+        const message = await Message.findById(req.params.messageId);
+        if (!message) return res.status(404).json({ message: 'Message not found' });
+
+        const isSender   = message.sender.toString()   === myId;
+        const isReceiver = message.receiver.toString() === myId;
+        if (!isSender && !isReceiver) {
+            return res.status(403).json({ message: 'Not authorized to delete this message' });
+        }
+
+        if (scope === 'everyone') {
+            if (!isSender) {
+                return res.status(403).json({ message: 'Only the sender can delete for everyone' });
+            }
+            // Wipe content (reclaims text) + tombstone. updateOne skips the
+            // `content` required-validator so the empty string is accepted.
+            await Message.updateOne(
+                { _id: message._id },
+                { $set: { deletedForEveryone: true, content: '' } }
+            );
+
+            const io = req.app.get('io');
+            if (io) {
+                const payload = { messageId: message._id.toString(), scope: 'everyone' };
+                io.to(`user_${message.receiver.toString()}`).emit('message-deleted', { ...payload, otherUserId: message.sender.toString() });
+                io.to(`user_${message.sender.toString()}`).emit('message-deleted',   { ...payload, otherUserId: message.receiver.toString() });
+            }
+            return res.status(200).json({ message: 'Message deleted for everyone', messageId: message._id, scope: 'everyone' });
+        }
+
+        // scope === 'me'
+        await Message.updateOne({ _id: message._id }, { $addToSet: { deletedFor: myId } });
+
+        // Reclaim storage if BOTH participants have now hidden it
+        const updated = await Message.findById(message._id).select('deletedFor sender receiver').lean();
+        const hidden  = new Set((updated.deletedFor || []).map(String));
+        if (hidden.has(updated.sender.toString()) && hidden.has(updated.receiver.toString())) {
+            await Message.deleteOne({ _id: message._id });
+        }
+        return res.status(200).json({ message: 'Message deleted', messageId: message._id, scope: 'me' });
+
+    } catch (err) {
+        console.error('deleteMessage error:', err);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// ─────────────────────────────────────────────────────────────
+// NEW: DELETE /api/messages/conversation/:userId
+// "Clear chat" — hides every message in the conversation for the
+// requester, then hard-deletes the ones both participants have hidden.
+// Never touches the other user's view of un-hidden messages.
+// ─────────────────────────────────────────────────────────────
+exports.clearConversation = async (req, res) => {
+    try {
+        const myId    = req.user.id;
+        const otherId = req.params.userId;
+
+        const pair = {
+            $or: [
+                { sender: myId,    receiver: otherId },
+                { sender: otherId, receiver: myId    },
+            ],
+        };
+
+        await Message.updateMany(pair, { $addToSet: { deletedFor: myId } });
+        // Reclaim: drop messages now hidden by BOTH sides
+        await Message.deleteMany({ ...pair, deletedFor: { $all: [myId, otherId] } });
+
+        return res.status(200).json({ message: 'Conversation cleared', otherUserId: otherId });
+
+    } catch (err) {
+        console.error('clearConversation error:', err);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// ─────────────────────────────────────────────────────────────
 // EXISTING: GET /api/messages/unread-count (unchanged)
 // ─────────────────────────────────────────────────────────────
 exports.getUnreadCount = async (req, res) => {
     try {
         const count = await Message.countDocuments({
             receiver: req.user.id,
-            read: false
+            read: false,
+            deletedFor: { $ne: req.user.id }
         });
         res.status(200).json({ count });
     } catch (err) {
@@ -238,7 +329,10 @@ exports.getConversations = async (req, res) => {
                     $or: [
                         { sender:   require('mongoose').Types.ObjectId.createFromHexString(myId) },
                         { receiver: require('mongoose').Types.ObjectId.createFromHexString(myId) }
-                    ]
+                    ],
+                    // Exclude messages this user deleted "for me" so cleared
+                    // conversations drop out of the list and previews stay correct
+                    deletedFor: { $ne: require('mongoose').Types.ObjectId.createFromHexString(myId) }
                 }
             },
             { $sort: { createdAt: -1 } },

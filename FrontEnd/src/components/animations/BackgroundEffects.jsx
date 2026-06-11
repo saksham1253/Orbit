@@ -5,13 +5,14 @@ import { useThemeStore } from '../../store/themeStore';
 /* ─────────────────────────────────────────────────────
    Constellation: Dynamic animated graph with nodes
 ───────────────────────────────────────────────────── */
-const ConstellationCanvas = memo(({ colors, speedMultiplier }) => {
+const ConstellationCanvas = memo(({ colors, speedMultiplier, mode = 'dark' }) => {
   const canvasRef = useRef(null);
   const animRef = useRef(null);
   const mouseRef = useRef({ x: -9999, y: -9999 });
 
   useEffect(() => {
     // if (speedMultiplier === 0) return; // Allow initial frame render
+    const isLight = mode === 'light';
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -91,7 +92,7 @@ const ConstellationCanvas = memo(({ colors, speedMultiplier }) => {
           const dist = Math.sqrt(dx * dx + dy * dy);
 
           if (dist < CONNECT_DIST) {
-            const alpha = (1 - dist / CONNECT_DIST) * 0.5; // Increased from 0.3 to 0.5
+            const alpha = (1 - dist / CONNECT_DIST) * (isLight ? 0.4 : 0.5); // softer on light bg
             const grad = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
             grad.addColorStop(0, `${a.color}${alpha})`);
             grad.addColorStop(1, `${b.color}${alpha})`);
@@ -137,7 +138,7 @@ const ConstellationCanvas = memo(({ colors, speedMultiplier }) => {
       window.removeEventListener('resize', resize);
       window.removeEventListener('mousemove', onMouseMove);
     };
-  }, [colors, speedMultiplier]);
+  }, [colors, speedMultiplier, mode]);
 
   // if (speedMultiplier === 0) return null; // Canvas unmounting disabled to fix desktop layout collapse
 
@@ -184,12 +185,13 @@ MeshBackground.displayName = 'MeshBackground';
 /* ─────────────────────────────────────────────────────
    Particles: Floating dots
 ───────────────────────────────────────────────────── */
-const ParticlesCanvas = memo(({ colors, speedMultiplier }) => {
+const ParticlesCanvas = memo(({ colors, speedMultiplier, mode = 'dark' }) => {
   const canvasRef = useRef(null);
   const animRef = useRef(null);
 
   useEffect(() => {
     if (speedMultiplier === 0) return;
+    const isLight = mode === 'light';
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -235,7 +237,7 @@ const ParticlesCanvas = memo(({ colors, speedMultiplier }) => {
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `${p.color}0.6)`;
+        ctx.fillStyle = `${p.color}${isLight ? 0.5 : 0.6})`;
         ctx.fill();
       });
 
@@ -250,7 +252,7 @@ const ParticlesCanvas = memo(({ colors, speedMultiplier }) => {
       cancelAnimationFrame(animRef.current);
       window.removeEventListener('resize', resize);
     };
-  }, [colors, speedMultiplier]);
+  }, [colors, speedMultiplier, mode]);
 
   // if (speedMultiplier === 0) return null; // Canvas unmounting disabled to fix desktop layout collapse
 
@@ -268,12 +270,13 @@ ParticlesCanvas.displayName = 'ParticlesCanvas';
 /* ─────────────────────────────────────────────────────
    Matrix: Digital rain cascade effect
 ───────────────────────────────────────────────────── */
-const MatrixCanvas = memo(({ colors, speedMultiplier }) => {
+const MatrixCanvas = memo(({ colors, speedMultiplier, mode = 'dark' }) => {
   const canvasRef = useRef(null);
   const animRef = useRef(null);
 
   useEffect(() => {
     if (speedMultiplier === 0) return;
+    const isLight = mode === 'light';
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -301,7 +304,7 @@ const MatrixCanvas = memo(({ colors, speedMultiplier }) => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()';
 
     const draw = () => {
-      ctx.fillStyle = 'rgba(6, 8, 16, 0.08)';
+      ctx.fillStyle = isLight ? 'rgba(245, 247, 252, 0.12)' : 'rgba(6, 8, 16, 0.08)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       ctx.font = `${fontSize}px monospace`;
@@ -332,7 +335,7 @@ const MatrixCanvas = memo(({ colors, speedMultiplier }) => {
       cancelAnimationFrame(animRef.current);
       window.removeEventListener('resize', resize);
     };
-  }, [colors, speedMultiplier]);
+  }, [colors, speedMultiplier, mode]);
 
   // if (speedMultiplier === 0) return null; // Canvas unmounting disabled to fix desktop layout collapse
 
@@ -350,12 +353,13 @@ MatrixCanvas.displayName = 'MatrixCanvas';
 /* ─────────────────────────────────────────────────────
    Waves: Smooth flowing wave patterns
 ───────────────────────────────────────────────────── */
-const WavesCanvas = memo(({ colors, speedMultiplier }) => {
+const WavesCanvas = memo(({ colors, speedMultiplier, mode = 'dark' }) => {
   const canvasRef = useRef(null);
   const animRef = useRef(null);
 
   useEffect(() => {
     if (speedMultiplier === 0) return;
+    const isLight = mode === 'light';
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -398,7 +402,7 @@ const WavesCanvas = memo(({ colors, speedMultiplier }) => {
         ctx.lineTo(0, canvas.height);
         ctx.closePath();
 
-        const alpha = 0.08 - i * 0.02;
+        const alpha = (isLight ? 0.16 : 0.08) - i * 0.02; // stronger on light bg
         ctx.fillStyle = `${COLORS[i]}${alpha})`;
         ctx.fill();
       }
@@ -415,7 +419,7 @@ const WavesCanvas = memo(({ colors, speedMultiplier }) => {
       cancelAnimationFrame(animRef.current);
       window.removeEventListener('resize', resize);
     };
-  }, [colors, speedMultiplier]);
+  }, [colors, speedMultiplier, mode]);
 
   // if (speedMultiplier === 0) return null; // Canvas unmounting disabled to fix desktop layout collapse
 
@@ -433,12 +437,13 @@ WavesCanvas.displayName = 'WavesCanvas';
 /* ─────────────────────────────────────────────────────
    Neural: Pulsing neural network
 ───────────────────────────────────────────────────── */
-const NeuralCanvas = memo(({ colors, speedMultiplier }) => {
+const NeuralCanvas = memo(({ colors, speedMultiplier, mode = 'dark' }) => {
   const canvasRef = useRef(null);
   const animRef = useRef(null);
 
   useEffect(() => {
     if (speedMultiplier === 0) return;
+    const isLight = mode === 'light';
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -483,7 +488,7 @@ const NeuralCanvas = memo(({ colors, speedMultiplier }) => {
 
           if (dist < 300) {
             const pulse = (Math.sin(a.pulsePhase) + Math.sin(b.pulsePhase)) / 2;
-            const alpha = ((1 - dist / 300) * (pulse * 0.3 + 0.2));
+            const alpha = ((1 - dist / 300) * (pulse * 0.3 + 0.2)) * (isLight ? 0.85 : 1);
 
             ctx.beginPath();
             ctx.moveTo(a.x, a.y);
@@ -528,7 +533,7 @@ const NeuralCanvas = memo(({ colors, speedMultiplier }) => {
       cancelAnimationFrame(animRef.current);
       window.removeEventListener('resize', resize);
     };
-  }, [colors, speedMultiplier]);
+  }, [colors, speedMultiplier, mode]);
 
   // if (speedMultiplier === 0) return null; // Canvas unmounting disabled to fix desktop layout collapse
 
@@ -914,9 +919,35 @@ const BackgroundEffects = memo(() => {
         </>
       )}
 
-      {/* LIGHT MODE: Layered Effects */}
+      {/* LIGHT MODE: Layered Effects (soft themed ambient base) */}
       {!effectiveIsDark && backgroundStyle !== 'minimal' && backgroundStyle !== 'gradient' && (
         <LightModeEffects colors={colors} speedMultiplier={effectiveSpeed} themeName={theme} />
+      )}
+
+      {/* LIGHT MODE: the selected style's own animation, colors synced to the
+          active light theme (same components as dark, re-tuned via mode="light").
+          gradient + minimal stay static, exactly like dark mode. */}
+      {!effectiveIsDark && (
+        <>
+          {backgroundStyle === 'constellation' && (
+            <ConstellationCanvas colors={colors} speedMultiplier={effectiveSpeed} mode="light" />
+          )}
+          {backgroundStyle === 'mesh' && (
+            <MeshBackground colors={colors} speedMultiplier={effectiveSpeed} />
+          )}
+          {backgroundStyle === 'particles' && (
+            <ParticlesCanvas colors={colors} speedMultiplier={effectiveSpeed} mode="light" />
+          )}
+          {backgroundStyle === 'matrix' && (
+            <MatrixCanvas colors={colors} speedMultiplier={effectiveSpeed} mode="light" />
+          )}
+          {backgroundStyle === 'waves' && (
+            <WavesCanvas colors={colors} speedMultiplier={effectiveSpeed} mode="light" />
+          )}
+          {backgroundStyle === 'neural' && (
+            <NeuralCanvas colors={colors} speedMultiplier={effectiveSpeed} mode="light" />
+          )}
+        </>
       )}
     </>
   );

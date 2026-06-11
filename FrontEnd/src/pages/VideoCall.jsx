@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { PhoneOff, Video, Clock, Phone, PhoneIncoming, PhoneMissed, Mic, MicOff, VideoIcon, VideoOff } from 'lucide-react';
+import { PhoneOff, Video, Clock, Phone, PhoneIncoming, PhoneMissed, Mic, MicOff, VideoIcon, VideoOff, Trash2 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
 import { useNotificationStore } from '../store/notificationStore';
@@ -10,6 +10,7 @@ import api from '../services/api';
 import { formatDistanceToNow } from 'date-fns';
 import Avatar from '../components/common/Avatar';
 import { VideoCallHistorySkeleton } from '../components/skeletons';
+import ConfirmDialog from '../components/common/ConfirmDialog';
 import io from 'socket.io-client';
 
 /* ── Direct WebRTC Video Call Component ── */
@@ -348,12 +349,57 @@ const VideoCall = () => {
   const [onlineUsers, setOnlineUsers] = useState(new Set());
 
   /* Fetch call history */
+  const queryClient = useQueryClient();
   const { data: historyData, isLoading } = useQuery({
     queryKey: ['call-history'],
     queryFn: () => api.get('/video/history').then(r => r.data),
     refetchInterval: 3000, // Update in real-time
   });
   const calls = historyData?.calls || [];
+
+  /* Deletion state */
+  const [confirmDelete, setConfirmDelete] = useState(null); // call pending single delete
+  const [confirmClearAll, setConfirmClearAll] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const patchCalls = (updater) =>
+    queryClient.setQueryData(['call-history'], (old) =>
+      old ? { ...old, calls: updater(old.calls || []) } : old
+    );
+
+  const handleDeleteCall = async () => {
+    if (!confirmDelete) return;
+    const callId = confirmDelete._id;
+    const prev = queryClient.getQueryData(['call-history']);
+    setIsDeleting(true);
+    patchCalls((list) => list.filter(c => c._id !== callId)); // optimistic
+    try {
+      await api.delete(`/video/history/${callId}`);
+      addToast('Call deleted', 'success');
+      setConfirmDelete(null);
+    } catch {
+      queryClient.setQueryData(['call-history'], prev); // rollback
+      addToast('Failed to delete call', 'error');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleClearAll = async () => {
+    const prev = queryClient.getQueryData(['call-history']);
+    setIsDeleting(true);
+    patchCalls(() => []); // optimistic
+    try {
+      await api.delete('/video/history');
+      addToast('Call history cleared', 'success');
+      setConfirmClearAll(false);
+    } catch {
+      queryClient.setQueryData(['call-history'], prev); // rollback
+      addToast('Failed to clear call history', 'error');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   /* Track online users via socket */
   useEffect(() => {
@@ -449,9 +495,20 @@ const VideoCall = () => {
 
       {/* Call history */}
       <div className="space-y-3">
-        <h2 className="font-display font-bold text-text-primary flex items-center gap-2">
-          <Clock size={16} className="text-text-muted" /> Call History
-        </h2>
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="font-display font-bold text-text-primary flex items-center gap-2">
+            <Clock size={16} className="text-text-muted" /> Call History
+          </h2>
+          {calls.length > 0 && (
+            <button
+              onClick={() => setConfirmClearAll(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-text-secondary hover:text-danger hover:bg-danger/10 border border-border-subtle transition-all"
+              aria-label="Clear all call history"
+            >
+              <Trash2 size={13} /> Clear all
+            </button>
+          )}
+        </div>
 
         {isLoading ? (
           <VideoCallHistorySkeleton count={4} />
@@ -499,12 +556,42 @@ const VideoCall = () => {
                       )}
                     </button>
                   )}
+                  <button
+                    onClick={() => setConfirmDelete(call)}
+                    className="p-1.5 rounded-lg text-text-muted hover:text-danger hover:bg-danger/10 transition-all flex-shrink-0"
+                    title="Delete call"
+                    aria-label={`Delete call with ${otherName}`}
+                  >
+                    <Trash2 size={14} />
+                  </button>
                 </div>
               </motion.div>
             );
           })
         )}
       </div>
+
+      {/* Confirm: delete a single call entry */}
+      <ConfirmDialog
+        isOpen={!!confirmDelete}
+        onClose={() => { if (!isDeleting) setConfirmDelete(null); }}
+        onConfirm={handleDeleteCall}
+        title="Delete call?"
+        description="This removes the call from your history. The other person keeps their own copy."
+        confirmLabel="Delete"
+        isLoading={isDeleting}
+      />
+
+      {/* Confirm: clear all call history */}
+      <ConfirmDialog
+        isOpen={confirmClearAll}
+        onClose={() => { if (!isDeleting) setConfirmClearAll(false); }}
+        onConfirm={handleClearAll}
+        title="Clear all call history?"
+        description="This removes every call from your history. This cannot be undone."
+        confirmLabel="Clear all"
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

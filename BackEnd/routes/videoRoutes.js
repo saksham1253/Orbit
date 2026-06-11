@@ -170,7 +170,8 @@ router.get("/history", auth, async (req, res) => {
         const userId = req.user.id;
 
         const calls = await CallHistory.find({
-            $or: [{ caller: userId }, { receiver: userId }]
+            $or: [{ caller: userId }, { receiver: userId }],
+            hiddenFor: { $ne: userId }   // exclude entries this user deleted
         })
             .sort({ createdAt: -1 })
             .limit(50)
@@ -190,6 +191,54 @@ router.get("/history", auth, async (req, res) => {
     } catch (err) {
         console.error("Call history error:", err.message);
         res.status(500).json({ message: "Failed to load call history" });
+    }
+});
+
+// DELETE /api/video/history — clear ALL call history for the current user.
+// Hides every entry for the requester; hard-deletes those both parties hid.
+// NOTE: declared before "/history/:callId" so the literal path wins.
+router.delete("/history", auth, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const mine = { $or: [{ caller: userId }, { receiver: userId }] };
+
+        await CallHistory.updateMany(mine, { $addToSet: { hiddenFor: userId } });
+        // Reclaim: drop entries where BOTH participants are now in hiddenFor
+        await CallHistory.deleteMany({
+            ...mine,
+            $expr: { $setIsSubset: [["$caller", "$receiver"], "$hiddenFor"] }
+        });
+
+        res.json({ message: "Call history cleared" });
+    } catch (err) {
+        console.error("Clear call history error:", err.message);
+        res.status(500).json({ message: "Failed to clear call history" });
+    }
+});
+
+// DELETE /api/video/history/:callId — delete one entry for the current user.
+router.delete("/history/:callId", auth, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const call = await CallHistory.findById(req.params.callId);
+        if (!call) return res.status(404).json({ message: "Call not found" });
+
+        const isParticipant = call.caller.toString() === userId || call.receiver.toString() === userId;
+        if (!isParticipant) return res.status(403).json({ message: "Not authorized" });
+
+        await CallHistory.updateOne({ _id: call._id }, { $addToSet: { hiddenFor: userId } });
+
+        // Reclaim storage once both participants have hidden it
+        const updated = await CallHistory.findById(call._id).select("hiddenFor caller receiver").lean();
+        const hidden = new Set((updated.hiddenFor || []).map(String));
+        if (hidden.has(updated.caller.toString()) && hidden.has(updated.receiver.toString())) {
+            await CallHistory.deleteOne({ _id: call._id });
+        }
+
+        res.json({ message: "Call deleted", callId: call._id });
+    } catch (err) {
+        console.error("Delete call error:", err.message);
+        res.status(500).json({ message: "Failed to delete call" });
     }
 });
 
