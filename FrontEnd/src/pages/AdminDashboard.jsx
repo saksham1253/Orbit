@@ -3,9 +3,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldAlert, Database, Trash2, ArrowRight, Server, Activity, HardDrive, Key, CheckCircle } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
-import api from '../../services/api';
-import { useUIStore } from '../../store/uiStore';
-import { SkelBox } from '../skeletons/SkeletonPrimitives';
+import api from '../services/api';
+import { useUIStore } from '../store/uiStore';
+import { SkelBox } from '../components/ui/SkeletonPrimitives';
 
 const AdminDashboard = () => {
   const [secret, setSecret] = useState('');
