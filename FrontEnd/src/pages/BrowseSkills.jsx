@@ -65,10 +65,10 @@ const BrowseSkills = () => {
     if (debouncedSearch.trim()) {
       const q = debouncedSearch.toLowerCase();
       list = list.filter(s =>
-        s.skillOffered?.toLowerCase().includes(q) ||
-        s.skillWanted?.toLowerCase().includes(q) ||
-        s.description?.toLowerCase().includes(q) ||
-        s.userId?.name?.toLowerCase().includes(q)
+        (s.skillOffered || '').toLowerCase().includes(q) ||
+        (s.skillWanted || '').toLowerCase().includes(q) ||
+        (s.description || '').toLowerCase().includes(q) ||
+        (s.userId?.name || '').toLowerCase().includes(q)
       );
     }
     
@@ -78,7 +78,7 @@ const BrowseSkills = () => {
     } else if (sortBy === 'rating') {
       list.sort((a, b) => (b.userId?.trustScore || 0) - (a.userId?.trustScore || 0));
     } else if (sortBy === 'name') {
-      list.sort((a, b) => a.skillOffered.localeCompare(b.skillOffered));
+      list.sort((a, b) => (a.skillOffered || '').localeCompare(b.skillOffered || ''));
     }
     
     return list;
