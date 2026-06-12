@@ -40,6 +40,11 @@ const allowedOrigins = [
   "https://react-skill-swap-fully-fledged.vercel.app",
   "http://localhost:5173",
   "http://localhost:3000",
+  // Honour the CORS_ORIGIN env var (comma-separated) so origins can be added
+  // from the Render dashboard without a code change.
+  ...(process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(",").map((o) => o.trim()).filter(Boolean)
+    : []),
 ];
 
 const corsOptions = {
