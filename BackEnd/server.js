@@ -444,12 +444,23 @@ server.listen(PORT, () => {
 // so the instance never sleeps. Render injects RENDER_EXTERNAL_URL automatically,
 // so this needs no external cron and no config. Interval (10 min) stays safely
 // under the 15-min sleep threshold.
-const SELF_PING_URL = process.env.RENDER_EXTERNAL_URL;
+// Resolve our own public URL: Render injects RENDER_EXTERNAL_URL, but fall back
+// to the known production host so the keep-warm works even if that env var is
+// absent. Disabled outside production (NODE_ENV !== production) and when fetch
+// is unavailable (Node < 18).
+const SELF_PING_URL =
+    process.env.RENDER_EXTERNAL_URL ||
+    process.env.PUBLIC_URL ||
+    (process.env.NODE_ENV === "production" ? "https://skillswap-backend-mb4k.onrender.com" : null);
+
 if (SELF_PING_URL && typeof fetch === "function") {
-    const KEEP_WARM_MS = 10 * 60 * 1000;
-    setInterval(() => {
-        fetch(`${SELF_PING_URL}/api/health`).catch(() => { /* best-effort; ignore */ });
-    }, KEEP_WARM_MS).unref();
+    const KEEP_WARM_MS = 10 * 60 * 1000; // every 10 min — under Render's 15-min sleep threshold
+    const ping = () => {
+        fetch(`${SELF_PING_URL}/api/health`)
+            .then((r) => console.log(`[keep-warm] self-ping ${r.status}`))
+            .catch((e) => console.log(`[keep-warm] self-ping failed: ${e.message}`));
+    };
+    setInterval(ping, KEEP_WARM_MS).unref();
     console.log(`Keep-warm self-ping enabled → ${SELF_PING_URL}/api/health every 10 min`);
 }
 
