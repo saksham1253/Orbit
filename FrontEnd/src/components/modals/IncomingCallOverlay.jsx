@@ -1,6 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Phone, PhoneOff, X } from 'lucide-react';
+import useAppearanceStore from '../../store/appearanceStore';
+
+// Brand palette (cyan → purple → magenta), consistent with the dark theme.
+const RING_COLORS = ['#00c6ff', '#7c3aed', '#ff0076'];
 
 /**
  * IncomingCallOverlay
@@ -10,6 +14,21 @@ import { Phone, PhoneOff, X } from 'lucide-react';
  */
 const IncomingCallOverlay = ({ call, onAccept, onDecline, onIgnore }) => {
   const audioRef = useRef(null);
+
+  // Honor the Animation Speed setting + prefers-reduced-motion for the rings.
+  const getSpeedMultiplier = useAppearanceStore((s) => s.getSpeedMultiplier);
+  const [reduceMotion, setReduceMotion] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReduceMotion(mq.matches);
+    const handler = (e) => setReduceMotion(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  const speed = getSpeedMultiplier();          // 0 (off) | 0.5 | 1 | 1.5
+  const ringsAnimate = !reduceMotion && speed > 0;
+  const ringDuration = 2.2 / (speed || 1);     // slower speed → longer, calmer cycle
 
   // Play a ringing tone while overlay is visible
   useEffect(() => {
@@ -111,18 +130,33 @@ const IncomingCallOverlay = ({ call, onAccept, onDecline, onIgnore }) => {
 
             {/* Animated ringing avatar */}
             <div style={{ position: 'relative', width: 100, height: 100, margin: '0 auto 20px' }}>
-              {/* Pulsing rings */}
-              {[0, 1, 2].map(i => (
-                <motion.div
+              {/* Smooth concentric ripple rings — pure CSS, GPU-friendly
+                  (transform/opacity only). Honors reduced-motion + Animation Speed. */}
+              <style>{`
+                @keyframes ssCallRipple {
+                  0%   { transform: scale(1);   opacity: 0.6; }
+                  70%  { opacity: 0.15; }
+                  100% { transform: scale(2.2); opacity: 0; }
+                }
+              `}</style>
+              {RING_COLORS.map((color, i) => (
+                <div
                   key={i}
+                  aria-hidden="true"
                   style={{
                     position: 'absolute',
-                    inset: -10 * (i + 1),
+                    inset: 0,
                     borderRadius: '50%',
-                    border: '2px solid rgba(0,198,255,0.4)',
+                    border: `2px solid ${color}`,
+                    boxShadow: `0 0 12px ${color}66`,
+                    transformOrigin: 'center',
+                    willChange: 'transform, opacity',
+                    ...(ringsAnimate
+                      ? {
+                          animation: `ssCallRipple ${ringDuration}s cubic-bezier(0.22, 0.61, 0.36, 1) ${i * (ringDuration / 3)}s infinite`,
+                        }
+                      : { opacity: i === 0 ? 0.4 : 0 }),
                   }}
-                  animate={{ scale: [1, 1.4], opacity: [0.6, 0] }}
-                  transition={{ duration: 1.6, delay: i * 0.5, repeat: Infinity, ease: 'easeOut' }}
                 />
               ))}
               {/* Avatar circle */}

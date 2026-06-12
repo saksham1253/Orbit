@@ -24,6 +24,8 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller }) => {
   const socketRef = useRef(null);
   const localStreamRef = useRef(null);
   const callStartTimeRef = useRef(null);
+  const endedRef = useRef(false);      // guard: teardown runs exactly once
+  const iceTimerRef = useRef(null);    // grace timer for transient ICE "disconnected"
 
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
@@ -119,6 +121,27 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller }) => {
           }
         };
 
+        // Auto-end on a lost/closed peer connection (closed tab, dropped network).
+        // "failed"/"closed" end immediately; "disconnected" can be transient on
+        // mobile, so we give it a short grace window to recover before tearing down.
+        pc.oniceconnectionstatechange = () => {
+          const st = pc.iceConnectionState;
+          if (st === 'failed' || st === 'closed') {
+            handleCallEnd();
+          } else if (st === 'disconnected') {
+            if (iceTimerRef.current) clearTimeout(iceTimerRef.current);
+            iceTimerRef.current = setTimeout(() => {
+              const s = peerConnectionRef.current?.iceConnectionState;
+              if (s === 'disconnected' || s === 'failed' || s === 'closed') {
+                addToast('Call ended', 'info');
+                handleCallEnd();
+              }
+            }, 4000);
+          } else if (st === 'connected' || st === 'completed') {
+            if (iceTimerRef.current) { clearTimeout(iceTimerRef.current); iceTimerRef.current = null; }
+          }
+        };
+
         // Handle ICE candidates
         pc.onicecandidate = (event) => {
           if (event.candidate) {
@@ -169,7 +192,7 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller }) => {
 
         socketRef.current.on('user-left', () => {
           setIsConnected(false);
-          addToast('User left the call', 'info');
+          addToast('Call ended', 'info');
           handleCallEnd();
         });
 
@@ -186,8 +209,10 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller }) => {
 
     return () => {
       mounted = false;
-      
+
       // Cleanup
+      if (iceTimerRef.current) { clearTimeout(iceTimerRef.current); iceTimerRef.current = null; }
+
       if (localStreamRef.current) {
         localStreamRef.current.getTracks().forEach(track => track.stop());
       }
@@ -204,13 +229,26 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller }) => {
   }, [roomId, user, addToast]);
 
   const handleCallEnd = () => {
+    // Run exactly once — this can be triggered by the End button, an ICE-state
+    // drop, or the peer's user-left at the same time.
+    if (endedRef.current) return;
+    endedRef.current = true;
+
+    // Tell the other peer to tear down FIRST, while the socket is still alive
+    // (the room-scoped relay flows through the adapter). Doing this here — not
+    // only in unmount cleanup — avoids the emit racing socket.disconnect(), which
+    // is why the call previously did not auto-end on the other side.
+    if (socketRef.current) {
+      socketRef.current.emit('leave-video-room', { roomId });
+    }
+
     // Calculate call duration
     let callDuration = 0;
     if (callStartTimeRef.current) {
       callDuration = Math.floor((Date.now() - callStartTimeRef.current) / 1000);
     }
 
-    // Emit call-ended event to trigger rating modal
+    // Emit call-ended event to trigger rating modal (unchanged payload/flow)
     if (socketRef.current && otherUser && callDuration > 0) {
       socketRef.current.emit('call-ended', {
         roomId,

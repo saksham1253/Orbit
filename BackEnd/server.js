@@ -335,12 +335,36 @@ io.on("connection", (socket) => {
         if (!socket.userId || !senderId) return;
         try {
             const Message = require("./models/Message");
-            await Message.updateMany(
+            const result = await Message.updateMany(
                 { sender: senderId, receiver: socket.userId, read: false },
-                { $set: { read: true } }
+                { $set: { read: true, delivered: true } }
             );
+            // Push live read-receipt to the SENDER so their grey ticks turn blue
+            // in real time (no reopen). Room broadcast → flows through the adapter.
+            if (result.modifiedCount > 0) {
+                io.to(`user_${senderId}`).emit("messages-seen", { readerId: socket.userId });
+            }
         } catch (err) {
             console.error("mark-read error:", err);
+        }
+    });
+
+    // Recipient's socket acknowledges it received a message → mark delivered and
+    // notify the sender so their single grey tick becomes a double grey tick live.
+    socket.on("message-delivered", async ({ messageId, senderId }) => {
+        if (!socket.userId || !messageId || !senderId) return;
+        try {
+            const Message = require("./models/Message");
+            // Only the genuine recipient can mark delivered; skip if already set.
+            const result = await Message.updateOne(
+                { _id: messageId, receiver: socket.userId, delivered: false },
+                { $set: { delivered: true } }
+            );
+            if (result.modifiedCount > 0) {
+                io.to(`user_${senderId}`).emit("message-status", { messageId, delivered: true });
+            }
+        } catch (err) {
+            console.error("message-delivered error:", err);
         }
     });
 

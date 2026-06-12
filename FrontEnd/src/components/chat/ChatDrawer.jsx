@@ -276,16 +276,45 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
     };
 
+    // The reader opened/viewed our messages → flip my grey ticks to blue live.
+    const handleMessagesSeen = ({ readerId }) => {
+      if (readerId !== otherUser._id) return;
+      queryClient.setQueryData(['messages', otherUser._id], (oldData) => {
+        const upd = (m) => {
+          const mineToReader = (m.sender?._id === user?._id || m.sender === user?._id);
+          return mineToReader && !m.read ? { ...m, read: true, delivered: true } : m;
+        };
+        if (oldData && oldData.messages) return { ...oldData, messages: oldData.messages.map(upd) };
+        if (Array.isArray(oldData)) return oldData.map(upd);
+        return oldData;
+      });
+    };
+
+    // The recipient's socket received a specific message → single → double grey.
+    const handleMessageStatus = ({ messageId, delivered }) => {
+      if (!delivered) return;
+      queryClient.setQueryData(['messages', otherUser._id], (oldData) => {
+        const upd = (m) => (m._id === messageId && !m.read ? { ...m, delivered: true } : m);
+        if (oldData && oldData.messages) return { ...oldData, messages: oldData.messages.map(upd) };
+        if (Array.isArray(oldData)) return oldData.map(upd);
+        return oldData;
+      });
+    };
+
     sock.on('new-message', handleNewMessage);
     sock.on('typing-start', handleTypingStart);
     sock.on('typing-stop', handleTypingStop);
     sock.on('message-deleted', handleMessageDeleted);
+    sock.on('messages-seen', handleMessagesSeen);
+    sock.on('message-status', handleMessageStatus);
 
     return () => {
       sock.off('new-message', handleNewMessage);
       sock.off('typing-start', handleTypingStart);
       sock.off('typing-stop', handleTypingStop);
       sock.off('message-deleted', handleMessageDeleted);
+      sock.off('messages-seen', handleMessagesSeen);
+      sock.off('message-status', handleMessageStatus);
       // Clean up typing stop when leaving
       sock.emit('typing-stop', { receiverId: otherUser._id });
     };
@@ -652,7 +681,11 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
                         {msg.createdAt ? formatTimestamp(msg.createdAt) : ''}
                       </span>
                       {isMe && (
-                        msg.read ? <CheckCheck size={12} className="text-accent" /> : <Check size={12} className="text-white/25" />
+                        msg.read
+                          ? <CheckCheck size={12} className="text-accent" aria-label="Read" />
+                          : msg.delivered
+                            ? <CheckCheck size={12} className="text-white/40" aria-label="Delivered" />
+                            : <Check size={12} className="text-white/25" aria-label="Sent" />
                       )}
                     </div>
                   )}
@@ -855,9 +888,16 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
     const handleGlobalNewMessage = (msg) => {
       // Is it for us?
       if (msg.receiver?._id !== user?._id && msg.receiver !== user?._id) return;
-      
+
       const senderId = msg.sender?._id || msg.sender;
-      
+
+      // Acknowledge delivery for ANY incoming message (this listener is always
+      // mounted) so the sender's tick turns to double-grey live, even when the
+      // conversation isn't open. Relayed to the sender via the adapter.
+      if (msg._id && !String(msg._id).startsWith('temp-')) {
+        sock.emit('message-delivered', { messageId: msg._id, senderId });
+      }
+
       // If we are currently looking at this conversation, do nothing (handled by ChatWindow)
       if (isOpenRef.current && selectedUserIdRef.current === senderId) return;
 

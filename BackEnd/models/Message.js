@@ -21,6 +21,12 @@ const messageSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    // Tick state: true once the recipient's socket has received the message
+    // ("delivered" double-grey tick). `read` (above) drives the blue tick.
+    delivered: {
+        type: Boolean,
+        default: false
+    },
     // Deletion: "delete for me" — list of users who hid this message.
     // When both participants are present, the doc is hard-deleted (space reclaimed).
     deletedFor: {
