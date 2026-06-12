@@ -5,6 +5,7 @@ const api = axios.create({
   // Fallback to absolute Render URL in production if VITE_API_URL is missing/malformed
   baseURL: import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://skillswap-backend.onrender.com/api' : '/api'),
   timeout: 15000,
+  withCredentials: true,
 });
 
 // Request interceptor: attach JWT

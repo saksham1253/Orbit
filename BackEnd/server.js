@@ -36,18 +36,38 @@ const app = express();
 app.set("trust proxy", 1); // Trust first proxy (needed for express-rate-limit on Render)
 const server = http.createServer(app);
 
-// CORS allowlist — set CORS_ORIGIN (comma-separated origins) in production to
-// lock down cross-origin access. Falls back to "*" so existing deploys are
-// unchanged until the env var is configured.
-const CORS_ORIGIN = process.env.CORS_ORIGIN
-    ? process.env.CORS_ORIGIN.split(",").map((s) => s.trim())
-    : "*";
+const allowedOrigins = [
+  "https://react-skill-swap-fully-fledged.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:3000",
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+        return callback(null, true);
+    }
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 // Socket.IO setup
 const io = new Server(server, {
     cors: {
-        origin: CORS_ORIGIN,
-        methods: ["GET", "POST"]
+        origin: function(origin, callback) {
+            if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+                return callback(null, true);
+            }
+            return callback(new Error("Not allowed by CORS"));
+        },
+        credentials: true,
+        methods: ["GET", "POST", "OPTIONS"]
     }
 });
 
@@ -334,7 +354,7 @@ app.use(helmet({
     },
     crossOriginEmbedderPolicy: false, // allow cross-origin images to load if needed
 }));
-app.use(cors({ origin: CORS_ORIGIN }));
+// CORS is already applied at the top of the file
 app.use(compression());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
