@@ -235,7 +235,7 @@ exports.reportUser = async (req, res) => {
 
 async function recalculateTrustScore(userId) {
     const user    = await User.findById(userId);
-    const ratings = await Rating.find({ toUser: userId });
+    const ratings = await Rating.find({ toUser: userId }).lean();
 
     const count = ratings.length;
     const avg   = count > 0

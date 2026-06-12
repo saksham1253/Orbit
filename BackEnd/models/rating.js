@@ -39,4 +39,8 @@ const ratingSchema = new mongoose.Schema({
 // A user can only rate another user once
 ratingSchema.index({ fromUser: 1, toUser: 1 }, { unique: true });
 
+// Hot read path: ratings received by a user, newest first
+// (getUserRatings / getMyTrustScore / recalculateTrustScore all filter on toUser)
+ratingSchema.index({ toUser: 1, createdAt: -1 });
+
 module.exports = mongoose.model("Rating", ratingSchema);

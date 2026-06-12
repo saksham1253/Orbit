@@ -10,11 +10,11 @@ exports.getStats = async (req, res) => {
         const skillCount = await Skill.countDocuments();
         const connectionCount = await Connection.countDocuments({ status: 'accepted' });
         
-        // Calculate average trust score
-        const users = await User.find().select('trustScore');
-        const avgTrustScore = users.length > 0 
-            ? users.reduce((sum, u) => sum + (u.trustScore || 0), 0) / users.length 
-            : 0;
+        // Calculate average trust score in the DB (avoids loading every user doc).
+        const [agg] = await User.aggregate([
+            { $group: { _id: null, avgTrustScore: { $avg: "$trustScore" } } }
+        ]);
+        const avgTrustScore = agg?.avgTrustScore || 0;
 
         res.status(200).json({
             users: userCount,

@@ -189,7 +189,8 @@ exports.getNearbySkills = async (req, res) => {
 
         // Get all skills from other users
         const skills = await Skill.find({ userId: { $ne: req.user.id } })
-            .populate("userId", "name location coordinates trustScore averageRating sentimentScore languages");
+            .populate("userId", "name location coordinates trustScore averageRating sentimentScore languages")
+            .lean();
 
         // Filter to those within radius
         const nearbySkills = skills
