@@ -8,7 +8,7 @@ import api from '../../services/api';
 import ChatDrawer from '../chat/ChatDrawer';
 import {
   LogOut, Layers, Compass, Users, Map,
-  ShieldCheck, UserCircle, Menu, X, Handshake, Video, Settings as SettingsIcon, MessageCircle,
+  ShieldCheck, UserCircle, Menu, X, Handshake, Video, Settings as SettingsIcon, MessageCircle, Phone
 } from 'lucide-react';
 
 const NAV = [
@@ -17,7 +17,7 @@ const NAV = [
   { name: 'Matches',      path: '/matches',      Icon: Handshake  },
   { name: 'Connections',  path: '/connections',  Icon: Users      },
   { name: 'Nearby',       path: '/nearby',       Icon: Map        },
-  { name: 'Video',        path: '/video',        Icon: Video      },
+  { name: 'Calls',        path: '/video',        Icon: Phone      },
   { name: 'Trust',        path: '/trust',        Icon: ShieldCheck},
 ];
 

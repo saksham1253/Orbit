@@ -959,4 +959,4 @@ body, html {
 }
 .animate-typing-bounce {
   animation: typing-bounce 1.4s infinite ease-in-out both;
-}
+}@layer utilities { .text-gradient-fix { -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; } }

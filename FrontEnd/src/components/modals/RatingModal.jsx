@@ -97,6 +97,7 @@ const RatingModal = ({ isOpen, onClose, otherUser, callDuration }) => {
           {[1, 2, 3, 4, 5].map((star) => (
             <button
               key={star}
+              aria-label={`Rate ${star} stars`}
               onClick={() => handleRatingClick(star)}
               onMouseEnter={() => setHoveredRating(star)}
               onMouseLeave={() => setHoveredRating(0)}

@@ -60,4 +60,9 @@ export default defineConfig({
       'date-fns',
     ],
   },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/setupTests.js',
+  },
 });

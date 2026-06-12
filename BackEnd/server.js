@@ -6,9 +6,12 @@ const { Server } = require("socket.io");
 const path = require("path");
 const compression = require("compression");
 const helmet = require("helmet");
-const mongoSanitize = require("express-mongo-sanitize");
 const jwt = require("jsonwebtoken");
+const hpp = require("hpp");
+const mongoSanitize = require("./middleware/sanitize");
 require("dotenv").config();
+const { createAdapter } = require("@socket.io/redis-adapter");
+const Redis = require("ioredis");
 
 // Routes
 const authRoutes = require("./routes/authRoutes");
@@ -48,6 +51,16 @@ const io = new Server(server, {
     }
 });
 
+// Phase 6: Configure Redis adapter for stateless Socket.io scaling
+const redisUrl = process.env.REDIS_URL || "redis://localhost:6379";
+const pubClient = new Redis(redisUrl);
+const subClient = pubClient.duplicate();
+
+pubClient.on("error", (err) => console.error("Redis Pub Client Error", err));
+subClient.on("error", (err) => console.error("Redis Sub Client Error", err));
+
+io.adapter(createAdapter(pubClient, subClient));
+
 // Make io accessible to routes
 app.set("io", io);
 
@@ -76,7 +89,7 @@ io.use((socket, next) => {
 
 // Socket.IO connection handling
 io.on("connection", (socket) => {
-    console.log("Socket connected:", socket.id);
+    // console.log("Socket connected:", socket.id);
 
     // User joins their personal room for notifications.
     // Identity comes from the verified JWT (socket.userId), NOT the client arg —
@@ -95,7 +108,7 @@ io.on("connection", (socket) => {
                 io.emit("user-online", userId);
             }
 
-            console.log(`User ${userId} registered on socket ${socket.id} (count: ${currentCount + 1})`);
+            // console.log(`User ${userId} registered on socket ${socket.id} (count: ${currentCount + 1})`);
         }
     });
 
@@ -165,14 +178,14 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", async () => {
-        console.log("Socket disconnected:", socket.id);
+        // console.log("Socket disconnected:", socket.id);
         
         // Remove user from online list
         if (socket.userId) {
             const currentCount = onlineUsers.get(socket.userId) || 0;
             if (currentCount > 1) {
                 onlineUsers.set(socket.userId, currentCount - 1);
-                console.log(`User ${socket.userId} disconnected one socket (count: ${currentCount - 1})`);
+                // console.log(`User ${socket.userId} disconnected one socket (count: ${currentCount - 1})`);
             } else {
                 onlineUsers.set(socket.userId, 0);
                 setTimeout(async () => {
@@ -180,7 +193,7 @@ io.on("connection", (socket) => {
                         onlineUsers.delete(socket.userId);
                         io.emit("users-online", Array.from(onlineUsers.keys()));
                         io.emit("user-offline-status", socket.userId);
-                        console.log(`User ${socket.userId} went offline`);
+                        // console.log(`User ${socket.userId} went offline`);
                         
                         // Update lastSeen in database
                         try {
@@ -199,7 +212,7 @@ io.on("connection", (socket) => {
     socket.on("join-video-room", async ({ roomId, userId }) => {
         socket.join(roomId);
         socket.to(roomId).emit("user-joined", { userId });
-        console.log(`User ${userId} joined video room ${roomId}`);
+        // console.log(`User ${userId} joined video room ${roomId}`);
         
         try {
             const CallHistory = require("./models/callHistory");
@@ -307,12 +320,26 @@ eventEmitter.on('malicious-detected', (userId) => {
 
 // Middleware
 app.use(helmet({
-    contentSecurityPolicy: false, // disable if it blocks frontend assets
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+            imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
+            connectSrc: ["'self'", "wss:", "ws:", "https://api.groq.com", "https://api-inference.huggingface.co"],
+            mediaSrc: ["'self'", "blob:", "data:"],
+            workerSrc: ["'self'", "blob:"],
+        }
+    },
+    crossOriginEmbedderPolicy: false, // allow cross-origin images to load if needed
 }));
 app.use(cors({ origin: CORS_ORIGIN }));
 app.use(compression());
 app.use(express.json({ limit: '10mb' }));
-// app.use(mongoSanitize()); // Disabled due to Express 5 compatibility issue (Cannot set property query of #<IncomingMessage> which has only a getter)
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(mongoSanitize); // Use custom sanitizer for Express 5 compatibility
+app.use(hpp()); // Protect against HTTP Parameter Pollution attacks
 app.use(generalLimiter); // Apply general rate limiter
 app.use(require('express-session')({ secret: process.env.SESSION_SECRET || process.env.JWT_SECRET || 'secret', resave: false, saveUninitialized: false }));
 app.use(require('./config/passport').initialize());
@@ -369,8 +396,8 @@ app.use(errorHandler);
 // connection cap (M0 free ≈ 500). Default 10; tune via DB_MAX_POOL.
 mongoose.connect(process.env.MONGO_URI, {
     maxPoolSize: Number(process.env.DB_MAX_POOL) || 10,
-    minPoolSize: Number(process.env.DB_MIN_POOL) || 1,
-    serverSelectionTimeoutMS: 10000,
+    minPoolSize: Number(process.env.DB_MIN_POOL) || 2,
+    serverSelectionTimeoutMS: Number(process.env.DB_TIMEOUT_MS) || 5000,
 })
     .then(() => {
         console.log("MongoDB Connected");
@@ -384,3 +411,28 @@ const PORT = process.env.PORT || 8000;
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+
+// Graceful Shutdown implementation
+const gracefulShutdown = () => {
+    console.log("Received kill signal, shutting down gracefully...");
+    server.close(() => {
+        console.log("Closed out remaining HTTP and Socket.io connections.");
+        // Close DB connection
+        mongoose.connection.close(false).then(() => {
+            console.log("MongoDb connection closed.");
+            // Close Redis clients
+            pubClient.quit();
+            subClient.quit();
+            process.exit(0);
+        });
+    });
+
+    // Force close after 10s
+    setTimeout(() => {
+        console.error("Could not close connections in time, forcefully shutting down");
+        process.exit(1);
+    }, 10000);
+};
+
+process.on("SIGTERM", gracefulShutdown);
+process.on("SIGINT", gracefulShutdown);

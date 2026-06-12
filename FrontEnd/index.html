@@ -43,6 +43,8 @@
         const themeState = JSON.parse(localStorage.getItem('skillswap-theme-mode'));
         const isDark = themeState?.state?.isDark ?? true; // default to dark
         document.documentElement.setAttribute('data-mode', isDark ? 'dark' : 'light');
+        document.documentElement.style.backgroundColor = isDark ? '#060810' : '#f5f7fc';
+        document.documentElement.style.color = isDark ? '#ffffff' : '#0f172a';
         
         const appearanceState = JSON.parse(localStorage.getItem('skillswap-appearance'));
         const theme = appearanceState?.state?.theme || 'cyan-purple';
@@ -50,6 +52,8 @@
       } catch (e) {
         document.documentElement.setAttribute('data-mode', 'dark');
         document.documentElement.setAttribute('data-theme', 'cyan-purple');
+        document.documentElement.style.backgroundColor = '#060810';
+        document.documentElement.style.color = '#ffffff';
       }
     </script>
   </head>

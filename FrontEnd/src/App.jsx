@@ -33,6 +33,7 @@ const TrustScore   = lazy(() => import('./pages/TrustScore'));
 const VideoCall    = lazy(() => import('./pages/VideoCall'));
 const Settings     = lazy(() => import('./pages/Settings'));
 const PublicProfile = lazy(() => import('./pages/PublicProfile'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center py-24">
@@ -241,6 +242,7 @@ function AppInner() {
         <Route path="/settings"    element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         <Route path="/video"       element={<ProtectedRoute><VideoCall /></ProtectedRoute>} />
         <Route path="/call/:roomId" element={<ProtectedRoute><VideoCall /></ProtectedRoute>} />
+        <Route path="/admin"       element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
 
         {/* 404 — catch-all */}
         <Route path="*" element={<NotFound />} />

@@ -112,10 +112,27 @@ exports.submitRating = async (req, res) => {
             { upsert: true, new: true }
         );
 
-        // Recalculate trust score AND sentiment score for the rated user
+        // Recalculate trust score for the rated user
         await recalculateTrustScore(toUserId);
 
         res.status(201).json({ message: "Rating submitted successfully" });
+
+        // Non-blocking ML sentiment analysis
+        if (review) {
+            mlService.analyzeSentiment(review).then(async (sentiment) => {
+                // sentiment is -1.0 to 1.0
+                if (sentiment !== 0) { 
+                    const user = await User.findById(toUserId);
+                    if (user) {
+                        // Normalize -1.0 to 1.0 into 0.0 to 1.0
+                        const normalizedSentiment = (sentiment + 1) / 2;
+                        // Blend with existing score (50/50 split)
+                        user.sentimentScore = (user.sentimentScore + normalizedSentiment) / 2;
+                        await user.save();
+                    }
+                }
+            }).catch(console.error);
+        }
 
     } catch (err) {
         console.log(err);
@@ -255,13 +272,12 @@ async function recalculateTrustScore(userId) {
     user.trustScore    = calculateTrustScore(user, { count, avg });
 
     // ─────────────────────────────────────────────
-    // SENTIMENT ANALYSIS: Star Rating Average Method
-    // Convert average rating (1-5 scale) to sentiment score (0-1 scale)
-    // This ensures Browse Skills sorts by user reputation
+    // SENTIMENT ANALYSIS: Base initialization
     // ─────────────────────────────────────────────
-    if (count > 0) {
-        user.sentimentScore = avg / 5; // Normalize to 0-1 scale
-    } else {
+    if (user.sentimentScore === 0.5 && count > 0) {
+        // Initialize base sentiment from stars if it hasn't been modified by ML yet
+        user.sentimentScore = avg / 5; 
+    } else if (count === 0) {
         user.sentimentScore = 0.5; // Neutral for users with no ratings
     }
 

@@ -99,6 +99,7 @@ const UserRatingsModal = ({ user, isOpen, onClose }) => {
                 </div>
               </div>
               <button
+                aria-label="Close ratings modal"
                 onClick={onClose}
                 style={{
                   background: 'rgba(255,255,255,0.07)', border: 'none', borderRadius: '50%',

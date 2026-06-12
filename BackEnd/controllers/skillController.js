@@ -290,7 +290,7 @@ exports.getMatches = async (req, res) => {
                     { "userId.bannedUntil": { $lte: new Date() } }
                 ]
             }},
-            { $sort: { "userId.trustScore": -1 } },
+            { $sort: { "userId.sentimentScore": -1, "userId.trustScore": -1 } },
             { $limit: 50 },
             { $project: {
                 "userId.password": 0,

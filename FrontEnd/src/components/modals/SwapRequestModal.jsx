@@ -64,7 +64,7 @@ const SwapRequestModal = ({ isOpen, onClose, skill, owner }) => {
             <h3 className="text-lg font-display font-bold text-text-primary flex items-center gap-2">
               <Send size={18} className="text-accent" /> Request Swap
             </h3>
-            <button onClick={onClose} className="p-1.5 text-text-secondary hover:text-text-primary rounded-lg hover:bg-surface-hover transition-colors">
+            <button aria-label="Close" onClick={onClose} className="p-1.5 text-text-secondary hover:text-text-primary rounded-lg hover:bg-surface-hover transition-colors">
               <X size={18} />
             </button>
           </div>
