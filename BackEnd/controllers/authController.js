@@ -139,17 +139,13 @@ exports.forgotPassword = async (req, res) => {
 
         const resetUrl = `${process.env.FRONTEND_URL || 'https://react-skill-swap-fully-fledged.vercel.app'}/reset-password/${resetToken}`;
 
-        // Send email
-        try {
-            const { sendEmail } = require('../utils/sendEmail');
-            await sendEmail({
-                to: user.email,
-                subject: 'SkillSwap – Password Reset',
-                html: `<p>Hello ${user.name},</p><p>You requested a password reset. Click the link below (valid for 1 hour):</p><a href="${resetUrl}">${resetUrl}</a><p>If you did not request this, ignore this email.</p>`
-            });
-        } catch (mailErr) {
-            console.error('Forgot password email failed:', mailErr.message);
-        }
+        // Send email asynchronously (prevents 15s Axios timeout if SMTP is slow/blocked)
+        const { sendEmail } = require('../utils/sendEmail');
+        sendEmail({
+            to: user.email,
+            subject: 'SkillSwap – Password Reset',
+            html: `<p>Hello ${user.name},</p><p>You requested a password reset. Click the link below (valid for 1 hour):</p><a href="${resetUrl}">${resetUrl}</a><p>If you did not request this, ignore this email.</p>`
+        }).catch(mailErr => console.error('Forgot password email failed:', mailErr.message));
 
         res.status(200).json({ message: "If an account exists, a reset link has been sent." });
 
