@@ -78,7 +78,7 @@ const PublicProfile = () => {
               {user.languages?.length > 0 && (
                 <span className="flex items-center gap-1.5"><Globe size={14} /> {user.languages.join(', ')}</span>
               )}
-              {user.createdAt && (
+              {user.createdAt && !isNaN(new Date(user.createdAt).getTime()) && (
                 <span className="flex items-center gap-1.5"><Calendar size={14} /> Joined {format(new Date(user.createdAt), 'MMM yyyy')}</span>
               )}
             </div>

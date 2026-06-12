@@ -2,7 +2,8 @@ import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  // Fallback to absolute Render URL in production if VITE_API_URL is missing/malformed
+  baseURL: import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://skillswap-backend.onrender.com/api' : '/api'),
   timeout: 15000,
 });
 
