@@ -55,7 +55,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
 
 // Socket.IO setup
 const io = new Server(server, {
