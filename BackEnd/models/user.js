@@ -129,6 +129,42 @@ const userSchema = new mongoose.Schema({
     lastSeen: {
         type: Date,
         default: Date.now
+    },
+
+    // ─────────────────────────────────────────────────────────────
+    //  COSMIC LEADERBOARD (additive — see COSMIC_LEADERBOARD_IMPLEMENTATION_PLAN.md)
+    //  NOTE: the legacy `coordinates {lat,lng}` field above is the existing
+    //  source of truth for the Nearby map and is left UNTOUCHED. `geo.point`
+    //  below is an ADDITIVE GeoJSON mirror used only for $geoNear leaderboard
+    //  queries; it is backfilled from `coordinates` and never replaces it.
+    // ─────────────────────────────────────────────────────────────
+
+    // GeoJSON Point [lng, lat] for 2dsphere $geoNear (additive mirror of coordinates)
+    geo: {
+        point: {
+            type: { type: String, enum: ["Point"] },          // undefined until set
+            coordinates: { type: [Number] }                    // [lng, lat]
+        }
+    },
+
+    // Administrative scope (reverse-geocoded; used for sparse-town fallback)
+    city:    { type: String, default: "" },
+    region:  { type: String, default: "" },
+    country: { type: String, default: "" },
+    cityCentroid: { type: [Number], default: undefined },      // snapped [lng, lat] for privacy
+
+    // Cosmic ranking state (all additive; everyone defaults to Moon IV)
+    cosmic: {
+        score:      { type: Number, default: 0 },              // 0..100 CosmicScore
+        tierId:     { type: String, default: "moon_4" },
+        peakTierId: { type: String, default: "moon_4" },       // lifetime best, survives resets
+        seasonId:   { type: String, default: "" },
+        lastTierChangeAt: { type: Date, default: null },
+        unlockedTitles:   { type: [String], default: [] },
+        currentTitle:     { type: String, default: "" },
+        flair:            { type: [String], default: [] },
+        activeDaysThisSeason: { type: Number, default: 0 },
+        weightedReviews:  { type: Number, default: 0 }         // for eligibility gates
     }
 
 }, {
@@ -144,5 +180,13 @@ userSchema.index({ bannedUntil: 1 });
 // Since current schema uses {lat, lng}, we should make sure we can index it, but MongoDB 2dsphere requires specific format. 
 // However, the prompt mentioned adding 2dsphere index. If we add it, we might need to adjust the coordinates field format or use 2d index.
 userSchema.index({ 'coordinates.lng': 1, 'coordinates.lat': 1 }); // Fallback compound index if 2dsphere is tricky, but let's try standard 2d or 2dsphere. Actually, 2dsphere requires GeoJSON. I will just add the compound index for now to speed up standard queries, or change the schema if needed. Let's keep it simple.
+
+// ── Cosmic Leaderboard indexes (additive) ──────────────────────────────────
+// 2dsphere over the additive GeoJSON mirror powers $geoNear scope queries.
+// Mongoose only indexes docs where geo.point exists, so users without a
+// backfilled point are simply skipped — no impact on existing queries.
+userSchema.index({ 'geo.point': '2dsphere' });
+// Season-scoped ranking: fetch a city's pool ordered by CosmicScore.
+userSchema.index({ 'cosmic.seasonId': 1, 'cosmic.score': -1 });
 
 module.exports = mongoose.models.User || mongoose.model("User", userSchema);

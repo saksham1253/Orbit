@@ -31,7 +31,24 @@ const ratingSchema = new mongoose.Schema({
         type: String,
         trim: true,
         default: ""
-    }
+    },
+
+    // ─────────────────────────────────────────────────────────────
+    //  COSMIC LEADERBOARD (additive). The existing `score` (1-5 stars)
+    //  above is the user's real rating and is NEVER modified by sentiment.
+    //  Sentiment is precomputed off the request path by the sentiment worker
+    //  and only nudges the CosmicScore; null means "not yet computed".
+    // ─────────────────────────────────────────────────────────────
+    sentiment: {
+        score:      { type: Number, default: null },   // -1..+1 from BERT, null = uncomputed
+        label:      { type: String, default: "" },     // "positive" | "neutral" | "negative"
+        model:      { type: String, default: "" },     // model id/version for auditability
+        computedAt: { type: Date,   default: null }
+    },
+
+    // Whether this review is tied to a completed swap (Connection.status==="completed").
+    // Only completed-swap reviews count toward the CosmicScore (anti-gaming gate).
+    tiedToCompletedSwap: { type: Boolean, default: false }
 }, {
     timestamps: true
 });
