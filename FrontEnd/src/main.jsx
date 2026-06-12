@@ -13,11 +13,23 @@ useThemeStore.getState().initializeTheme();
 // Initialize Web Vitals reporting
 initWebVitals();
 
+// Retry transient failures (network errors + 5xx, including Render cold-start
+// 502/503 bursts) with exponential backoff, but never retry 4xx — those are
+// deterministic (401/403/404/422) and retrying just delays the real error.
+const shouldRetry = (failureCount, error) => {
+  const status = error?.response?.status;
+  if (status && status >= 400 && status < 500) return false;
+  return failureCount < 3;
+};
+
+const retryDelay = (attempt) => Math.min(1000 * 2 ** attempt, 8000);
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
-      retry: 1,
+      retry: shouldRetry,
+      retryDelay,
       staleTime: 60_000, // Consider data fresh for 1 minute
       gcTime: 5 * 60_000, // Keep unused data in cache for 5 minutes
     },

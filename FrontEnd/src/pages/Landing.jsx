@@ -117,7 +117,7 @@ const Landing = () => {
   // Fetch real platform stats
   const { data: stats } = useQuery({
     queryKey: ['platform-stats'],
-    queryFn: () => api.get('/users/stats').then(res => res.data),
+    queryFn: () => api.get('/user/stats').then(res => res.data),
     staleTime: 60000, // Cache for 1 minute
   });
 
