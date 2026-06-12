@@ -363,6 +363,12 @@ app.use(generalLimiter); // Apply general rate limiter
 app.use(require('express-session')({ secret: process.env.SESSION_SECRET || process.env.JWT_SECRET || 'secret', resave: false, saveUninitialized: false }));
 app.use(require('./config/passport').initialize());
 
+// Lightweight health check — no DB/Redis hit, so the keep-warm self-ping
+// (and any external uptime monitor) stays cheap and always-200.
+app.get("/api/health", (req, res) => {
+    res.status(200).json({ status: "ok", uptime: process.uptime() });
+});
+
 // Routes
 app.use("/api/auth", authLimiter, authRoutes); // Apply auth limiter here
 app.use("/api/auth", oauthRoutes);
@@ -430,6 +436,22 @@ const PORT = process.env.PORT || 8000;
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+
+// ── Keep-warm self-ping ────────────────────────────────────────────────────
+// Render's free tier sleeps after ~15 min of INBOUND inactivity, and waking
+// takes 30–60s (during which the edge returns fast 503s → "Oops!"/slow loads).
+// Hitting our own public URL is an inbound request that resets the idle timer,
+// so the instance never sleeps. Render injects RENDER_EXTERNAL_URL automatically,
+// so this needs no external cron and no config. Interval (10 min) stays safely
+// under the 15-min sleep threshold.
+const SELF_PING_URL = process.env.RENDER_EXTERNAL_URL;
+if (SELF_PING_URL && typeof fetch === "function") {
+    const KEEP_WARM_MS = 10 * 60 * 1000;
+    setInterval(() => {
+        fetch(`${SELF_PING_URL}/api/health`).catch(() => { /* best-effort; ignore */ });
+    }, KEEP_WARM_MS).unref();
+    console.log(`Keep-warm self-ping enabled → ${SELF_PING_URL}/api/health every 10 min`);
+}
 
 // Graceful Shutdown implementation
 const gracefulShutdown = () => {
