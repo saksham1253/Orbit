@@ -16,17 +16,17 @@ initWebVitals();
 // Retry transient failures (network errors + 5xx, including Render cold-start
 // 502/503 bursts) with exponential backoff, but never retry 4xx — those are
 // deterministic (401/403/404/422) and retrying just delays the real error.
-// Render free-tier returns 503 *fast* (~0.5s) while an instance wakes from
-// sleep, and a full cold start takes 30–60s. So the retry window must be wide
-// enough to outlast that — up to 6 attempts with backoff capped at 15s gives
-// a ~50s total window that bridges a cold start instead of giving up at ~7s.
+// Retry transient failures (network errors + 5xx) a couple of times with short
+// backoff — enough to ride out a one-off blip, but NOT so long that a genuine
+// outage leaves the user staring at a skeleton for a minute. Never retry 4xx
+// (401/403/404/422 are deterministic).
 const shouldRetry = (failureCount, error) => {
   const status = error?.response?.status;
   if (status && status >= 400 && status < 500) return false;
-  return failureCount < 6;
+  return failureCount < 2;
 };
 
-const retryDelay = (attempt) => Math.min(1000 * 2 ** attempt, 15000);
+const retryDelay = (attempt) => Math.min(1000 * 2 ** attempt, 4000);
 
 const queryClient = new QueryClient({
   defaultOptions: {

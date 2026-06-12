@@ -75,15 +75,35 @@ const io = new Server(server, {
     }
 });
 
-// Phase 6: Configure Redis adapter for stateless Socket.io scaling
-const redisUrl = process.env.REDIS_URL || "redis://localhost:6379";
-const pubClient = new Redis(redisUrl);
-const subClient = pubClient.duplicate();
+// ── Socket.IO scaling adapter (OPTIONAL) ───────────────────────────────────
+// A SINGLE instance (the free tier) must use Socket.IO's default in-memory
+// adapter — that is what shipped and worked before. The Redis adapter is ONLY
+// needed to broadcast across MULTIPLE instances. Wiring it to an unhealthy
+// REDIS_URL destabilizes the process (ioredis error loops, hung publishes),
+// which silently breaks presence, chat and video signaling all at once.
+//
+// So: stay in-memory by default, and only switch to Redis when explicitly
+// opted in (ENABLE_REDIS_ADAPTER=true) WITH a REDIS_URL — and even then use a
+// fail-fast ioredis config so Redis problems can never hang or crash the app.
+let pubClient = null;
+let subClient = null;
 
-pubClient.on("error", (err) => console.error("Redis Pub Client Error", err));
-subClient.on("error", (err) => console.error("Redis Sub Client Error", err));
-
-io.adapter(createAdapter(pubClient, subClient));
+if (process.env.ENABLE_REDIS_ADAPTER === "true" && process.env.REDIS_URL) {
+    const redisOpts = {
+        maxRetriesPerRequest: 1,
+        enableOfflineQueue: false,            // don't pile up commands when Redis is down
+        connectTimeout: 5000,
+        retryStrategy: (times) => (times > 5 ? null : Math.min(times * 200, 2000)),
+    };
+    pubClient = new Redis(process.env.REDIS_URL, redisOpts);
+    subClient = pubClient.duplicate();
+    pubClient.on("error", (err) => console.error("Redis Pub Client Error:", err.message));
+    subClient.on("error", (err) => console.error("Redis Sub Client Error:", err.message));
+    io.adapter(createAdapter(pubClient, subClient));
+    console.log("Socket.IO Redis adapter ENABLED (multi-instance mode)");
+} else {
+    console.log("Socket.IO using default in-memory adapter (single instance)");
+}
 
 // Make io accessible to routes
 app.set("io", io);
@@ -477,9 +497,9 @@ const gracefulShutdown = () => {
         // Close DB connection
         mongoose.connection.close(false).then(() => {
             console.log("MongoDb connection closed.");
-            // Close Redis clients
-            pubClient.quit();
-            subClient.quit();
+            // Close Redis clients (only created when the adapter is enabled)
+            if (pubClient) pubClient.quit();
+            if (subClient) subClient.quit();
             process.exit(0);
         });
     });
