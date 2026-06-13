@@ -5,7 +5,9 @@ const {
     normSwaps,
     normActivity,
     compositeScore,
+    rebaseScore,
     computeCosmicScore,
+    FLOOR,
     PRIOR_MEAN,
     PRIOR_STRENGTH,
     WEIGHTS,
@@ -111,34 +113,33 @@ describe('cosmicScore — normSwaps / normActivity (§6.4)', () => {
     });
 });
 
-describe('cosmicScore — compositeScore (§6.5)', () => {
-    it('a perfect mentor scores 100', () => {
-        const { score } = compositeScore({
+describe('cosmicScore — compositeScore (v2 §2.1, returns 0..1)', () => {
+    it('a perfect mentor composites to 1.0', () => {
+        const { composite01 } = compositeScore({
             normRating: 1, normSentiment: 1, sentimentAvailable: true,
             normSwaps: 1, normActivity: 1,
         });
-        expect(score).toBeCloseTo(100, 5);
+        expect(composite01).toBeCloseTo(1, 5);
     });
 
     it('uses the documented weights when sentiment is available', () => {
-        const { score, sentimentUsed, weights } = compositeScore({
+        const { composite01, sentimentUsed, weights } = compositeScore({
             normRating: 1, normSentiment: 0, sentimentAvailable: true,
             normSwaps: 0, normActivity: 0,
         });
         expect(sentimentUsed).toBe(true);
         expect(weights.rating).toBeCloseTo(WEIGHTS.rating, 5);
-        expect(score).toBeCloseTo(62, 5);
+        expect(composite01).toBeCloseTo(0.62, 5);
     });
 
-    it('redistributes the 0.16 sentiment weight into rating when unavailable (§6.5 fallback)', () => {
-        const { score, sentimentUsed, weights } = compositeScore({
+    it('redistributes the 0.16 sentiment weight into rating when unavailable', () => {
+        const { composite01, sentimentUsed, weights } = compositeScore({
             normRating: 1, normSentiment: 0, sentimentAvailable: false,
             normSwaps: 0, normActivity: 0,
         });
         expect(sentimentUsed).toBe(false);
         expect(weights.rating).toBeCloseTo(0.78, 5);
-        expect(weights.sentiment).toBe(0);
-        expect(score).toBeCloseTo(78, 5);
+        expect(composite01).toBeCloseTo(0.78, 5);
     });
 
     it('respects the global sentimentEnabled=false flag even if data exists', () => {
@@ -149,22 +150,47 @@ describe('cosmicScore — compositeScore (§6.5)', () => {
         expect(sentimentUsed).toBe(false);
         expect(weights.rating).toBeCloseTo(0.78, 5);
     });
+});
 
-    it('never returns a score outside 0..100', () => {
-        const hi = compositeScore({ normRating: 5, normSentiment: 5, sentimentAvailable: true, normSwaps: 5, normActivity: 5 });
-        const lo = compositeScore({ normRating: -5, normSentiment: -5, sentimentAvailable: true, normSwaps: -5, normActivity: -5 });
-        expect(hi.score).toBeLessThanOrEqual(100);
-        expect(lo.score).toBeGreaterThanOrEqual(0);
+describe('cosmicScore — rebaseScore (v2 §2.1 warm start + confidence)', () => {
+    it('returns exactly the floor below the ranking threshold', () => {
+        expect(rebaseScore(1, 0)).toBe(FLOOR);   // brand-new → 50
+        expect(rebaseScore(0.5, 0.5)).toBe(FLOOR);
+    });
+    it('few reviews stay near the floor (confidence ramp)', () => {
+        // composite 0.567, 2 weighted reviews → 50 + 50*0.567*0.2 ≈ 55.67
+        expect(rebaseScore(0.567, 2)).toBeCloseTo(55.67, 1);
+    });
+    it('full confidence at 10+ reviews maps composite across 50..100', () => {
+        expect(rebaseScore(1, 10)).toBeCloseTo(100, 5);
+        expect(rebaseScore(0, 10)).toBe(FLOOR);
+        expect(rebaseScore(0.5, 20)).toBeCloseTo(75, 5);
+    });
+    it('never returns below the floor or above 100', () => {
+        expect(rebaseScore(-1, 50)).toBe(FLOOR);
+        expect(rebaseScore(5, 50)).toBe(100);
     });
 });
 
-describe('cosmicScore — computeCosmicScore (end-to-end)', () => {
-    it('a brand-new user with no reviews gets a low, finite score', () => {
+describe('cosmicScore — computeCosmicScore (end-to-end, v2)', () => {
+    it('a brand-new user with no reviews scores exactly the floor (50)', () => {
         const out = computeCosmicScore({ reviews: [], completedSwaps: 0, activeDaysThisSeason: 0 });
-        expect(out.score).toBeGreaterThanOrEqual(0);
-        expect(out.score).toBeLessThan(60);
+        expect(out.score).toBe(FLOOR);
         expect(out.weightedReviews).toBe(0);
-        expect(Number.isFinite(out.score)).toBe(true);
+    });
+
+    it('the worked example: 2 strong reviews → ~55 (a Moon score, NOT Planet)', () => {
+        const out = computeCosmicScore({
+            reviews: [
+                { rating: 5, ageDays: 0, reviewsFromThisReviewer: 1, tiedToCompletedSwap: true },
+                { rating: 5, ageDays: 0, reviewsFromThisReviewer: 1, tiedToCompletedSwap: true },
+            ],
+            completedSwaps: 0, activeDaysThisSeason: 0,
+        });
+        // sentiment unavailable → rating weight 0.78; bayes(5,5)=4.14 → normRating 0.785
+        // composite ≈ 0.78*0.785 = 0.612; confidence 0.2 → 50 + 50*0.612*0.2 ≈ 56.1
+        expect(out.score).toBeGreaterThan(53);
+        expect(out.score).toBeLessThan(62);    // hard rule: < 62 is always Moon
     });
 
     it('excludes non-completed-swap reviews from the weighted count', () => {
@@ -178,27 +204,26 @@ describe('cosmicScore — computeCosmicScore (end-to-end)', () => {
         expect(out.weightedReviews).toBeCloseTo(1, 5);
     });
 
-    it('falls back gracefully (no error, sentimentUsed=false) when reviews lack sentiment', () => {
-        const out = computeCosmicScore({
-            reviews: [
-                { rating: 5, ageDays: 0, reviewsFromThisReviewer: 1, tiedToCompletedSwap: true },
-                { rating: 4, ageDays: 10, reviewsFromThisReviewer: 1, tiedToCompletedSwap: true },
-            ],
-            completedSwaps: 5,
-            activeDaysThisSeason: 10,
+    it('two users with different reviews get different scores', () => {
+        const weak = computeCosmicScore({
+            reviews: Array.from({ length: 12 }, () => ({ rating: 3, ageDays: 0, reviewsFromThisReviewer: 1, tiedToCompletedSwap: true })),
+            completedSwaps: 2,
         });
-        expect(out.sentimentUsed).toBe(false);
-        expect(out.weights.rating).toBeCloseTo(0.78, 5);
-        expect(Number.isFinite(out.score)).toBe(true);
+        const strong = computeCosmicScore({
+            reviews: Array.from({ length: 12 }, () => ({ rating: 5, ageDays: 0, reviewsFromThisReviewer: 1, tiedToCompletedSwap: true })),
+            completedSwaps: 20,
+        });
+        expect(strong.score).toBeGreaterThan(weak.score);
+        expect(strong.score).not.toBeCloseTo(weak.score, 1);
     });
 
-    it('uses sentiment when present and produces a higher rating-region score', () => {
-        const withPos = computeCosmicScore({
-            reviews: [{ rating: 5, sentiment: 1, ageDays: 0, reviewsFromThisReviewer: 1, tiedToCompletedSwap: true }],
-            completedSwaps: 10, activeDaysThisSeason: 30,
+    it('never errors and stays within [50,100] under fallback weighting', () => {
+        const out = computeCosmicScore({
+            reviews: [{ rating: 4, ageDays: 10, reviewsFromThisReviewer: 1, tiedToCompletedSwap: true }],
+            completedSwaps: 5, activeDaysThisSeason: 10,
         });
-        expect(withPos.sentimentUsed).toBe(true);
-        expect(withPos.score).toBeGreaterThan(0);
-        expect(withPos.score).toBeLessThanOrEqual(100);
+        expect(out.sentimentUsed).toBe(false);
+        expect(out.score).toBeGreaterThanOrEqual(50);
+        expect(out.score).toBeLessThanOrEqual(100);
     });
 });

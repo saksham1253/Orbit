@@ -102,13 +102,18 @@ export default function Leaderboard() {
               <div className="text-xs text-text-muted">
                 Score {data.you.score} · {data.you.rank ? `Rank #${data.you.rank} in scope` : 'Not yet ranked here'}
               </div>
-              {/* progress to next tier */}
+              {/* progress to next tier (locked / progress / max) */}
               <div className="mt-2 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border-subtle)' }}>
                 <div className="h-full rounded-full" style={{
-                  width: `${Math.round((data.you.progressToNext || 0) * 100)}%`,
-                  background: 'linear-gradient(90deg, var(--accent-1), var(--accent-3))',
+                  width: `${Math.round(((data.you.progress?.pct ?? data.you.progressToNext) || 0) * 100)}%`,
+                  background: data.you.progress?.mode === 'locked'
+                    ? 'linear-gradient(90deg, #6b7280, #9ca3af)'
+                    : 'linear-gradient(90deg, var(--accent-1), var(--accent-3))',
                 }} />
               </div>
+              {data.you.progress?.label && (
+                <p className="text-[11px] text-text-muted mt-1">{data.you.progress.label}</p>
+              )}
             </div>
           </motion.div>
         )}

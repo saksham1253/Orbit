@@ -7,7 +7,7 @@
  * and on error it renders nothing so it can never break the profile page.
  */
 import { memo } from 'react';
-import { Sparkles, TrendingUp } from 'lucide-react';
+import { Sparkles, TrendingUp, Lock, Trophy } from 'lucide-react';
 import CosmicBadge from './CosmicBadge';
 import { getTier } from './tiers';
 import { useMentorCosmic } from './useCosmic';
@@ -42,9 +42,12 @@ const CosmicProfileCard = memo(function CosmicProfileCard({ userId, self = false
   }
 
   const tier = getTier(data.tierId);
-  const pct = Math.round((data.progressToNext || 0) * 100);
+  const progress = data.progress || { mode: 'progress', pct: data.progressToNext || 0, label: '' };
+  const pct = Math.round((progress.pct || 0) * 100);
   const flair = (data.flair || []).map((k) => FLAIR[k]).filter(Boolean);
   const atPeak = data.peakTierId && data.peakTierId !== data.tierId;
+  const isLocked = progress.mode === 'locked';
+  const isMax = progress.mode === 'max';
 
   return (
     <div className="p-5 rounded-2xl"
@@ -68,26 +71,29 @@ const CosmicProfileCard = memo(function CosmicProfileCard({ userId, self = false
         </div>
       </div>
 
-      {/* Progress to next tier (encouraging — never shows a drop, spec §15.2) */}
-      {data.tierId !== 'galaxy_1' && data.tierId !== 'quasar' && (
-        <div className="mt-4">
-          <div className="flex items-center justify-between text-[11px] text-text-muted mb-1">
-            <span className="flex items-center gap-1"><TrendingUp size={11} /> Progress to next tier</span>
-            <span>{pct}%</span>
-          </div>
-          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border-subtle)' }}>
-            <div className="h-full rounded-full" style={{
-              width: `${pct}%`,
-              background: 'linear-gradient(90deg, var(--accent-1), var(--accent-3))',
-            }} />
-          </div>
-          {data.gated && data.gateReason && (
-            <p className="text-[11px] text-text-muted mt-1.5">
-              {self ? 'To climb further: ' : ''}{data.gateReason}.
-            </p>
-          )}
+      {/* Progress — three modes (v2 §1.1): progress / locked / max */}
+      <div className="mt-4">
+        <div className="flex items-center justify-between text-[11px] text-text-muted mb-1">
+          <span className="flex items-center gap-1">
+            {isMax ? <Trophy size={11} /> : isLocked ? <Lock size={11} /> : <TrendingUp size={11} />}
+            {isMax ? 'Highest tier in the cosmos' : isLocked ? 'Next tier locked' : 'Progress to next tier'}
+          </span>
+          {!isLocked && !isMax && <span>{pct}%</span>}
         </div>
-      )}
+        <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border-subtle)' }}>
+          <div className="h-full rounded-full" style={{
+            width: `${isMax ? 100 : pct}%`,
+            background: isLocked
+              ? 'linear-gradient(90deg, #6b7280, #9ca3af)'
+              : 'linear-gradient(90deg, var(--accent-1), var(--accent-3))',
+          }} />
+        </div>
+        {progress.label && (
+          <p className="text-[11px] text-text-muted mt-1.5">
+            {self && !isMax ? '' : ''}{progress.label}{isMax ? '.' : ''}
+          </p>
+        )}
+      </div>
 
       {/* Live flair */}
       {flair.length > 0 && (

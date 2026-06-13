@@ -4,7 +4,7 @@ const Connection = require("../models/Connection");
 const Legend = require("../models/Legend");
 const { buildLeaderboard, scorePool, mentorsWithin } = require("../services/leaderboardService");
 const { computeCosmicScore } = require("../services/cosmicScore");
-const { assignTier } = require("../services/cosmicTier");
+const { assignTier, nameGlowFor, higherTier } = require("../services/cosmicTier");
 
 // ─────────────────────────────────────────────────────────────
 //  GET /api/cosmic/leaderboard
@@ -18,7 +18,7 @@ exports.getLeaderboard = async (req, res) => {
         const season = req.query.season || "";
 
         const me = await User.findById(req.user.id)
-            .select("name city region country coordinates geo cosmic")
+            .select("name avatar city region country coordinates geo cosmic")
             .lean();
         if (!me) return res.status(404).json({ message: "User not found" });
 
@@ -82,7 +82,16 @@ exports.getMentorCosmic = async (req, res) => {
             sentimentEnabled: process.env.COSMIC_SENTIMENT_ENABLED !== "false",
         });
         const tier = assignTier(result.score, { weightedReviews: result.weightedReviews, seasonsPlayed: 0 });
-        const peakId = (mentor.cosmic && mentor.cosmic.peakTierId) || tier.tierId;
+
+        // v2 §1.2 — peakTierId is monotonic: max(stored, current). Persist the
+        // raise fire-and-forget so it sticks without blocking the response.
+        const storedPeak = (mentor.cosmic && mentor.cosmic.peakTierId) || "moon_4";
+        const peakId = higherTier(storedPeak, tier.tierId);
+        const glow = nameGlowFor(tier.tierId);
+        if (peakId !== storedPeak || (mentor.cosmic && mentor.cosmic.nameGlowTier) !== glow) {
+            User.updateOne({ _id: mentor._id },
+                { $set: { "cosmic.peakTierId": peakId, "cosmic.nameGlowTier": glow } }).catch(() => {});
+        }
 
         res.status(200).json({
             tierId: tier.tierId,
@@ -91,9 +100,11 @@ exports.getMentorCosmic = async (req, res) => {
             displayName: tier.displayName,
             score: Math.round(result.score * 10) / 10,
             peakTierId: peakId,
+            progress: tier.progress,              // { mode, pct, label } (v2 §1.1)
             progressToNext: tier.progressToNext,
             gated: tier.gated,
             gateReason: tier.gateReason,
+            nameGlowTier: glow,                   // v2 §8
             unlockedTitles: (mentor.cosmic && mentor.cosmic.unlockedTitles) || [],
             currentTitle: (mentor.cosmic && mentor.cosmic.currentTitle) || "",
             flair: (mentor.cosmic && mentor.cosmic.flair) || [],

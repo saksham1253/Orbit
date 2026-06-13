@@ -27,94 +27,110 @@ describe('cosmicTier — ladder integrity', () => {
     });
 });
 
-describe('cosmicTier — rawTierFromScore (§6.6 table)', () => {
-    it('0 → Moon IV', () => {
-        expect(rawTierFromScore(0).tierId).toBe('moon_4');
+describe('cosmicTier — rawTierFromScore (v2 floors, 50..100)', () => {
+    it('floor 50 → Moon IV', () => {
+        expect(rawTierFromScore(50).tierId).toBe('moon_4');
     });
 
-    it('boundaries map to the upper tier (inclusive min)', () => {
-        expect(rawTierFromScore(6).tierId).toBe('moon_3');
-        expect(rawTierFromScore(24).tierId).toBe('planet_4');
-        expect(rawTierFromScore(48).tierId).toBe('star_4');
-        expect(rawTierFromScore(71).tierId).toBe('pulsar_4');
-        expect(rawTierFromScore(89).tierId).toBe('supernova_4');
-        expect(rawTierFromScore(97.5).tierId).toBe('galaxy_4');
+    it('entry scores map to the expected tier (v2 floors)', () => {
+        expect(rawTierFromScore(53).tierId).toBe('moon_3');
+        expect(rawTierFromScore(62).tierId).toBe('planet_4');
+        expect(rawTierFromScore(74).tierId).toBe('star_4');
+        expect(rawTierFromScore(85).tierId).toBe('pulsar_4');
+        expect(rawTierFromScore(93).tierId).toBe('supernova_4');
+        expect(rawTierFromScore(98).tierId).toBe('galaxy_4');
+    });
+
+    it('HARD RULE: any score < 62 is always a Moon tier', () => {
+        for (const s of [50, 52, 55.7, 58, 61.99]) {
+            expect(rawTierFromScore(s).category).toBe('moon');
+        }
     });
 
     it('just-below a boundary stays in the lower tier', () => {
-        expect(rawTierFromScore(5.99).tierId).toBe('moon_4');
-        expect(rawTierFromScore(23.99).tierId).toBe('moon_1');
-        expect(rawTierFromScore(99.59).tierId).toBe('galaxy_2'); // galaxy_1 starts at 99.6
+        expect(rawTierFromScore(52.99).tierId).toBe('moon_4');
+        expect(rawTierFromScore(61.99).tierId).toBe('moon_1');
+        expect(rawTierFromScore(99.69).tierId).toBe('galaxy_2'); // galaxy_1 starts at 99.7
     });
 
     it('100 → Galaxy I', () => {
         expect(rawTierFromScore(100).tierId).toBe('galaxy_1');
     });
 
-    it('clamps out-of-range and non-finite scores', () => {
-        expect(rawTierFromScore(-50).tierId).toBe('moon_4');
+    it('clamps out-of-range and non-finite scores to a Moon floor', () => {
+        expect(rawTierFromScore(0).tierId).toBe('moon_4');
         expect(rawTierFromScore(150).tierId).toBe('galaxy_1');
         expect(rawTierFromScore(NaN).tierId).toBe('moon_4');
     });
 });
 
-describe('cosmicTier — eligibility gates (§6.6)', () => {
-    it('caps a high score at Planet I when below the Star gate (8 weighted reviews)', () => {
-        const raw = rawTierFromScore(70); // would be star_1 region
+describe('cosmicTier — eligibility gates (50..100)', () => {
+    it('caps a Star-region score at Planet I when below the 8-review gate', () => {
+        const raw = rawTierFromScore(75); // star_4 region
         const { tier, gated } = applyGates(raw, { weightedReviews: 3 });
         expect(tier.tierId).toBe('planet_1');
         expect(gated).toBe(true);
     });
 
     it('allows Star when the 8-review gate is cleared', () => {
-        const raw = rawTierFromScore(55); // star_3
+        const raw = rawTierFromScore(78); // star_3
         const { tier, gated } = applyGates(raw, { weightedReviews: 8 });
         expect(tier.tierId).toBe('star_3');
         expect(gated).toBe(false);
     });
 
     it('caps Pulsar+ at Star I below 20 weighted reviews', () => {
-        const raw = rawTierFromScore(80); // pulsar region
+        const raw = rawTierFromScore(88); // pulsar region
         const { tier, gated } = applyGates(raw, { weightedReviews: 10 });
         expect(tier.tierId).toBe('star_1');
         expect(gated).toBe(true);
     });
 
     it('caps Galaxy at Supernova I without a full season even with 50 reviews', () => {
-        const raw = rawTierFromScore(99); // galaxy region
+        const raw = rawTierFromScore(98.5); // galaxy region
         const { tier, gated } = applyGates(raw, { weightedReviews: 60, seasonsPlayed: 0 });
         expect(tier.tierId).toBe('supernova_1');
         expect(gated).toBe(true);
     });
 
     it('allows Galaxy with 50 reviews and 1 season', () => {
-        const raw = rawTierFromScore(99); // 99 is in the galaxy_3 band (98.4–99.1)
+        const raw = rawTierFromScore(98.5); // galaxy_4 band (98.0–98.7)
         const { tier, gated } = applyGates(raw, { weightedReviews: 50, seasonsPlayed: 1 });
-        expect(tier.tierId).toBe('galaxy_3');
+        expect(tier.tierId).toBe('galaxy_4');
         expect(gated).toBe(false);
     });
 
     it('never gates Moon/Planet tiers', () => {
-        expect(applyGates(rawTierFromScore(10), { weightedReviews: 0 }).gated).toBe(false);
-        expect(applyGates(rawTierFromScore(40), { weightedReviews: 0 }).gated).toBe(false);
+        expect(applyGates(rawTierFromScore(55), { weightedReviews: 0 }).gated).toBe(false);
+        expect(applyGates(rawTierFromScore(70), { weightedReviews: 0 }).gated).toBe(false);
     });
 });
 
-describe('cosmicTier — progressToNext', () => {
-    it('is 0 at the bottom of a tier and approaches 1 near the next threshold', () => {
-        expect(progressToNext(0, rawTierFromScore(0))).toBeCloseTo(0, 5);
-        // Moon IV spans 0..6; score 3 = halfway
-        expect(progressToNext(3, rawTierFromScore(3))).toBeCloseTo(0.5, 5);
+describe('cosmicTier — progress (v2 §1.1 modes)', () => {
+    it('progress mode within a band: 0 at floor, ~0.5 mid-band', () => {
+        expect(progressToNext(50, rawTierFromScore(50))).toBeCloseTo(0, 5);
+        // Moon IV spans 50..53; score 51.5 = halfway
+        expect(progressToNext(51.5, rawTierFromScore(51.5))).toBeCloseTo(0.5, 5);
     });
 
-    it('is 1 at the top tier (Galaxy I)', () => {
-        expect(progressToNext(100, rawTierFromScore(100))).toBe(1);
+    it('locked mode when the next tier is gated (Planet I → Star needs 8)', () => {
+        const t = assignTier(72, { weightedReviews: 3 });
+        expect(t.progress.mode).toBe('locked');
+        expect(t.progress.label).toMatch(/more weighted review/);
+        expect(t.progress.pct).toBeCloseTo(3 / 8, 5);
+    });
+
+    it('max mode at Galaxy I', () => {
+        const t = assignTier(100, { weightedReviews: 1000, seasonsPlayed: 5 });
+        expect(t.tierId).toBe('galaxy_1');
+        expect(t.progress.mode).toBe('max');
+        expect(t.progress.pct).toBe(1);
     });
 });
 
-describe('cosmicTier — assignTier (end-to-end)', () => {
-    it('a new user (score 0) is Moon IV, ungated', () => {
-        const t = assignTier(0, { weightedReviews: 0 });
+describe('cosmicTier — assignTier (end-to-end, v2)', () => {
+    it('a new user (score 50) is Moon IV, ungated', () => {
+        const t = assignTier(50, { weightedReviews: 0 });
         expect(t.tierId).toBe('moon_4');
         expect(t.category).toBe('moon');
         expect(t.division).toBe(4);
@@ -122,11 +138,8 @@ describe('cosmicTier — assignTier (end-to-end)', () => {
         expect(t.displayName).toMatch(/Deimos/);
     });
 
-    it('reports a gate reason when capped', () => {
-        // 80 is in the pulsar_3 band (76–81). With only 5 weighted reviews the
-        // mentor fails the Pulsar gate (→Star I) AND the Star gate (5<8), so it
-        // cascades to Planet I.
-        const t = assignTier(80, { weightedReviews: 5 });
+    it('reports a gate reason when capped (Pulsar score, few reviews → Planet I)', () => {
+        const t = assignTier(88, { weightedReviews: 5 });
         expect(t.tierId).toBe('planet_1');
         expect(t.rawTierId).toBe('pulsar_3');
         expect(t.gated).toBe(true);

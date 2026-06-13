@@ -13,13 +13,20 @@
  * See COSMIC_LEADERBOARD_IMPLEMENTATION_PLAN.md §4.
  */
 
-// ── Tunable constants (spec §6) ────────────────────────────────────────────
+// ── Tunable constants (spec §6 + v2 §2) ────────────────────────────────────
 const RECENCY_HALFLIFE_DAYS = 90;   // exp(-Δdays / 90) soft half-life
 const REVIEWER_CAP_N        = 3;    // min(1, 3 / reviewsFromThisReviewer)
 const PRIOR_MEAN            = 3.8;  // m — platform-wide mean rating (Bayesian prior)
 const PRIOR_STRENGTH        = 5;    // C — prior strength (~5 virtual average reviews)
 const SWAP_SATURATION       = 50;   // normSwaps saturates ~50 completed swaps
 const ACTIVITY_DAYS_FULL    = 30;   // normActivity hits 1.0 at 30 active days
+
+// v2 §2 — warm start + confidence ramp. No user ever sees 0/empty:
+//   new users start at exactly FLOOR (50 = Moon IV); the climbable range is
+//   50..100; and a handful of reviews can't rocket someone up the ladder.
+const FLOOR                   = 50;  // warm-start score
+const MIN_REVIEWS_FOR_RANKING = 1;   // below this → pure floor
+const FULL_CONFIDENCE_REVIEWS = 10;  // confidence = min(1, n / 10)
 
 // Composite weights (sum = 1.0) — spec §6.5
 const W = Object.freeze({
@@ -99,20 +106,12 @@ function normActivity(activeDaysThisSeason) {
 }
 
 /**
- * Composite CosmicScore on 0..100 (spec §6.5).
- *
+ * Composite01 — the 0..1 blend of the four normalized components (v2 §2.1).
  * When sentiment is unavailable OR explicitly disabled, the 0.16 sentiment
  * weight is folded into the rating weight (→ 0.78) so the score never depends
  * on BERT and never errors.
  *
- * @param {object} parts
- * @param {number}  parts.normRating
- * @param {number}  parts.normSentiment
- * @param {boolean} parts.sentimentAvailable
- * @param {number}  parts.normSwaps
- * @param {number}  parts.normActivity
- * @param {boolean} [parts.sentimentEnabled=true]  global BERT feature flag
- * @returns {{ score:number, weights:object, sentimentUsed:boolean }}
+ * @returns {{ composite01:number, weights:object, sentimentUsed:boolean }}
  */
 function compositeScore({
     normRating,
@@ -128,18 +127,31 @@ function compositeScore({
         ? W
         : { rating: W.rating + W.sentiment, sentiment: 0, swaps: W.swaps, activity: W.activity };
 
-    const score = 100 * (
+    const composite01 = clamp01(
         weights.rating    * clamp01(normRating) +
         weights.sentiment * clamp01(normSentiment) +
         weights.swaps     * clamp01(ns) +
         weights.activity  * clamp01(na)
     );
 
-    return {
-        score: Math.max(0, Math.min(100, score)),
-        weights,
-        sentimentUsed: useSentiment,
-    };
+    return { composite01, weights, sentimentUsed: useSentiment };
+}
+
+/**
+ * Map a 0..1 composite into the warm-start 50..100 range, scaled by a
+ * confidence ramp so few reviews can't climb far (v2 §2.1).
+ *
+ *   score = FLOOR + (100 - FLOOR) · composite01 · confidence
+ *   confidence = min(1, weightedReviews / 10)
+ *
+ * Brand-new users (below MIN_REVIEWS_FOR_RANKING weighted reviews) get exactly
+ * FLOOR (50 = Moon IV). Result is always clamped to [FLOOR, 100].
+ */
+function rebaseScore(composite01, weightedReviews) {
+    if (weightedReviews < MIN_REVIEWS_FOR_RANKING) return FLOOR;
+    const confidence = Math.min(1, weightedReviews / FULL_CONFIDENCE_REVIEWS);
+    const score = FLOOR + (100 - FLOOR) * clamp01(composite01) * confidence;
+    return Math.min(100, Math.max(FLOOR, score));
 }
 
 /**
@@ -174,7 +186,7 @@ function computeCosmicScore({
     const ns = normSwaps(completedSwaps);
     const na = normActivity(activeDaysThisSeason);
 
-    const { score, weights, sentimentUsed } = compositeScore({
+    const { composite01, weights, sentimentUsed } = compositeScore({
         normRating,
         normSentiment,
         sentimentAvailable: available,
@@ -183,10 +195,16 @@ function computeCosmicScore({
         sentimentEnabled,
     });
 
+    // v2 §2.1 — warm-start floor + confidence ramp.
+    const score = rebaseScore(composite01, sumW);
+    const confidence = Math.min(1, sumW / FULL_CONFIDENCE_REVIEWS);
+
     return {
-        score,
+        score,                                 // 50..100 (warm start)
         weightedReviews: sumW,                 // Σ weights — drives eligibility gates (§6.6)
         countedReviews: counted.length,
+        confidence,
+        composite01,
         parts: { bayesRating, normRating, normSentiment, normSwaps: ns, normActivity: na },
         sentimentUsed,
         weights,
@@ -197,7 +215,8 @@ module.exports = {
     // constants (exported for tests / tier engine reuse)
     RECENCY_HALFLIFE_DAYS, REVIEWER_CAP_N, PRIOR_MEAN, PRIOR_STRENGTH,
     SWAP_SATURATION, ACTIVITY_DAYS_FULL, WEIGHTS: W,
+    FLOOR, MIN_REVIEWS_FOR_RANKING, FULL_CONFIDENCE_REVIEWS,
     // pure pieces
     clamp01, reviewWeight, bayesianRating, sentimentScore, normSwaps, normActivity,
-    compositeScore, computeCosmicScore,
+    compositeScore, rebaseScore, computeCosmicScore,
 };

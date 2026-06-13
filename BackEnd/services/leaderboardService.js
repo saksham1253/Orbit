@@ -16,7 +16,7 @@ const User       = require("../models/user");
 const Rating     = require("../models/rating");
 const Connection = require("../models/Connection");
 const { computeCosmicScore } = require("./cosmicScore");
-const { assignTier } = require("./cosmicTier");
+const { assignTier, nameGlowFor } = require("./cosmicTier");
 const { detectReviewRings } = require("./seasonService");
 
 // ── Adaptive radius config (spec §11.2) ────────────────────────────────────
@@ -271,7 +271,7 @@ async function buildLeaderboard({ me, lat, lng, scope = "city", season = "" }) {
     const scores = await scorePool(idsForScoring);
 
     const entries = rankEntries(pool.map((u) => {
-        const s = scores.get(String(u._id)) || { score: 0, tier: assignTier(0, {}), weightedReviews: 0, reviewsCount: 0 };
+        const s = scores.get(String(u._id)) || { score: 50, tier: assignTier(50, {}), weightedReviews: 0, reviewsCount: 0 };
         return {
             userId: String(u._id),
             name: u.name,
@@ -282,27 +282,38 @@ async function buildLeaderboard({ me, lat, lng, scope = "city", season = "" }) {
             title: (u.cosmic && u.cosmic.currentTitle) || "",
             flair: (u.cosmic && u.cosmic.flair) || [],
             badge: s.tier.tierId,
+            nameGlowTier: nameGlowFor(s.tier.tierId),     // v2 §8
             weightedReviews: s.weightedReviews,
             reviewsCount: s.reviewsCount,
         };
     }));
 
-    // "you" block — find the viewer's own rank within this scope.
-    const meScore = scores.get(String(me._id)) || { score: 0, tier: assignTier(0, {}) };
+    // "you" block — find the viewer's own rank within this scope (v2 §5.1:
+    // always surfaced, even when outside the top 50, so the row can be pinned).
+    const meScore = scores.get(String(me._id)) || { score: 50, tier: assignTier(50, {}) };
     const youRankIdx = entries.findIndex((e) => e.userId === String(me._id));
+    const youEntry = youRankIdx >= 0 ? entries[youRankIdx] : null;
     const you = {
-        rank: youRankIdx >= 0 ? entries[youRankIdx].rank : null,
+        rank: youEntry ? youEntry.rank : null,
+        userId: String(me._id),
+        name: me.name,
+        avatar: me.avatar || "",
         tierId: meScore.tier.tierId,
         score: Math.round(meScore.score * 10) / 10,
+        nameGlowTier: nameGlowFor(meScore.tier.tierId),
+        progress: meScore.tier.progress,              // { mode, pct, label }
         progressToNext: meScore.tier.progressToNext,
+        inTop: youRankIdx >= 0 && youRankIdx < 50,
     };
 
+    const TOP_N = 50;
     const payload = {
         scope,
         label,
         seasonId: season || null,
         you,
-        entries: entries.map(({ weightedReviews, reviewsCount, ...rest }) => rest),
+        total: entries.length,
+        entries: entries.slice(0, TOP_N).map(({ weightedReviews, reviewsCount, ...rest }) => rest),
         usedFallback,
     };
     cacheSet(cacheKey, payload);

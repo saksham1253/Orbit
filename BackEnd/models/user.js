@@ -155,7 +155,7 @@ const userSchema = new mongoose.Schema({
 
     // Cosmic ranking state (all additive; everyone defaults to Moon IV)
     cosmic: {
-        score:      { type: Number, default: 0 },              // 0..100 CosmicScore
+        score:      { type: Number, default: 50 },             // 50..100 CosmicScore (v2 warm start)
         tierId:     { type: String, default: "moon_4" },
         peakTierId: { type: String, default: "moon_4" },       // lifetime best, survives resets
         seasonId:   { type: String, default: "" },
@@ -164,7 +164,9 @@ const userSchema = new mongoose.Schema({
         currentTitle:     { type: String, default: "" },
         flair:            { type: [String], default: [] },
         activeDaysThisSeason: { type: Number, default: 0 },
-        weightedReviews:  { type: Number, default: 0 }         // for eligibility gates
+        weightedReviews:  { type: Number, default: 0 },        // for eligibility gates
+        hasSeenIntroForTier: { type: String, default: null },  // last tierId we auto-played the intro for (v2 §7)
+        nameGlowTier:        { type: String, default: null }   // "supernova" | "galaxy" | "quasar" | null (v2 §8)
     }
 
 }, {
