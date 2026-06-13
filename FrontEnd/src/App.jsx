@@ -36,6 +36,7 @@ const Settings     = lazy(() => import('./pages/Settings'));
 const PublicProfile = lazy(() => import('./pages/PublicProfile'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const BadgeGallery   = lazy(() => import('./pages/BadgeGallery'));
+const Leaderboard    = lazy(() => import('./pages/Leaderboard'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center py-24">
@@ -258,6 +259,7 @@ function AppInner() {
         <Route path="/profile/:userId" element={<Layout><Suspense fallback={<PageLoader />}><PublicProfile /></Suspense></Layout>} />
         <Route path="/nearby"      element={<ProtectedRoute><NearbyMap /></ProtectedRoute>} />
         <Route path="/trust"       element={<ProtectedRoute><TrustScore /></ProtectedRoute>} />
+        <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
         <Route path="/settings"    element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         <Route path="/video"       element={<ProtectedRoute><VideoCall /></ProtectedRoute>} />
         <Route path="/call/:roomId" element={<ProtectedRoute><VideoCall /></ProtectedRoute>} />

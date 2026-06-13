@@ -24,6 +24,7 @@ const videoRoutes = require("./routes/videoRoutes");
 const connectionRoutes = require("./routes/connectionRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const cosmicRoutes = require("./routes/cosmicRoutes");
 
 // Middleware
 const errorHandler = require("./middleware/errorHandler");
@@ -429,6 +430,7 @@ app.use("/api/video", videoRoutes);
 app.use("/api/connections", connectionRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/cosmic", cosmicRoutes);
 
 // Serve Frontend statically (combined origin) if present
 const fs = require("fs");
