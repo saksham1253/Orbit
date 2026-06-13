@@ -1,0 +1,85 @@
+/* ─────────────────────────────────────────────────────────────
+   CosmicBadge styles (spec §7). Scoped to .cb-* so it cannot touch
+   any existing styles or the sacred dark theme.
+
+   Motion is driven by the inherited --anim-speed CSS variable (set once at the
+   app root from the Animation Speed setting). When --anim-speed is 0 (Off) or
+   the user prefers reduced motion, every animation freezes to a static pose.
+───────────────────────────────────────────────────────────── */
+
+.cb-badge {
+  --cb-speed: var(--anim-speed, 1);
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  vertical-align: middle;
+  flex: none;                 /* never shrink in flex lists → no layout shift */
+  line-height: 0;
+}
+.cb-svg { width: 100%; height: 100%; display: block; }
+
+/* ── Emitter medallions glow against their own patch of space (dark theme) ── */
+.cb-star,
+.cb-pulsar,
+.cb-supernova,
+.cb-galaxy,
+.cb-quasar {
+  box-shadow:
+    0 0 14px rgba(var(--cb-glow), 0.45),
+    0 0 4px  rgba(var(--cb-glow), 0.65);
+}
+
+/* Light mode: dial the outer glow down so the medallion still reads cleanly
+   without blooming on pastel backgrounds. Targets the app's real attribute. */
+:is([data-mode="light"]) .cb-star,
+:is([data-mode="light"]) .cb-pulsar,
+:is([data-mode="light"]) .cb-supernova,
+:is([data-mode="light"]) .cb-galaxy,
+:is([data-mode="light"]) .cb-quasar {
+  box-shadow:
+    0 1px 6px rgba(13, 2, 33, 0.28),
+    0 0 8px rgba(var(--cb-glow), 0.30);
+}
+
+/* Solid bodies (Moon/Planet): no glow ever; the SVG drop-shadow does the work. */
+.cb-moon, .cb-planet { box-shadow: none; }
+
+/* ── Animations (full badges only) ──────────────────────────── */
+.cb-spin       { animation: cb-spin       calc(6s   / var(--cb-speed)) linear infinite; }
+.cb-spin-slow  { animation: cb-spin       calc(16s  / var(--cb-speed)) linear infinite; }
+.cb-pulse      { animation: cb-pulse      calc(1.8s / var(--cb-speed)) ease-in-out infinite alternate; }
+.cb-flicker    { animation: cb-flicker    calc(2.4s / var(--cb-speed)) ease-in-out infinite; }
+.cb-swell      { animation: cb-swell      calc(2.2s / var(--cb-speed)) ease-in-out infinite alternate; }
+.cb-shock      { animation: cb-shock      calc(3s   / var(--cb-speed)) ease-out infinite; }
+.cb-jet        { animation: cb-flicker    calc(1.4s / var(--cb-speed)) ease-in-out infinite; }
+.cb-planet-bands { animation: cb-drift    calc(8s   / var(--cb-speed)) ease-in-out infinite alternate; }
+
+@keyframes cb-spin   { to { transform: rotate(360deg); } }
+@keyframes cb-pulse  { from { transform: scale(1); opacity: 0.92; } to { transform: scale(1.16); opacity: 1; } }
+@keyframes cb-flicker{ 0%,100% { opacity: 0.85; } 50% { opacity: 1; } }
+@keyframes cb-swell  { from { transform: scale(0.96); } to { transform: scale(1.08); } }
+@keyframes cb-shock  { 0% { transform: scale(0.7); opacity: 0.8; } 100% { transform: scale(1.15); opacity: 0; } }
+@keyframes cb-drift  { from { transform: translateX(-1px); } to { transform: translateX(1px); } }
+
+/* ── Animation Speed = Off → freeze everything (set on <html> by App) ── */
+[data-anim-off="true"] .cb-badge * {
+  animation: none !important;
+}
+
+/* ── Reduced motion → freeze to a calm static pose ── */
+@media (prefers-reduced-motion: reduce) {
+  .cb-badge * { animation: none !important; }
+  .cb-pulse  { transform: scale(1.06); }
+}
+
+/* ── Mini variant: static, no blur filters, no star field (§7.2) ── */
+.cb-mini { box-shadow: none; }
+.cb-mini.cb-star,
+.cb-mini.cb-pulsar,
+.cb-mini.cb-supernova,
+.cb-mini.cb-galaxy,
+.cb-mini.cb-quasar {
+  box-shadow: 0 0 4px rgba(var(--cb-glow), 0.4);
+}
+.cb-mini .cb-stars { display: none; }
+.cb-mini * { animation: none !important; }

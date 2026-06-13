@@ -13,6 +13,7 @@ import IncomingCallOverlay from './components/modals/IncomingCallOverlay';
 import NotFound from './pages/NotFound';
 import { connectSocket } from './services/socket';
 import { Toaster } from 'react-hot-toast';
+import BadgeDefsSprite from './cosmic/BadgeDefsSprite';
 
 // Eagerly loaded (first paint)
 import Landing from './pages/Landing';
@@ -34,6 +35,7 @@ const VideoCall    = lazy(() => import('./pages/VideoCall'));
 const Settings     = lazy(() => import('./pages/Settings'));
 const PublicProfile = lazy(() => import('./pages/PublicProfile'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const BadgeGallery   = lazy(() => import('./pages/BadgeGallery'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center py-24">
@@ -85,12 +87,27 @@ function AppInner() {
 
   const { initializeTheme } = useThemeStore();
   const { initializeAppearance } = useAppearanceStore();
+  // Animation Speed multiplier (off=0 / slow=0.5 / medium=1 / fast=1.5)
+  const animationSpeed = useAppearanceStore((s) => s.animationSpeed);
+  const getSpeedMultiplier = useAppearanceStore((s) => s.getSpeedMultiplier);
 
   // Apply persisted theme attributes to <html> on mount
   useEffect(() => {
     initializeTheme();
     initializeAppearance();
   }, [initializeTheme, initializeAppearance]);
+
+  // Expose the Animation Speed as a global CSS var so purely-CSS animations
+  // (cosmic badges, future liftoff effects) honor the setting — including
+  // 0 = Off. Additive: nothing else reads --anim-speed / data-anim-off, so
+  // this is inert for every existing component. When Off, we keep --anim-speed
+  // at 1 (so calc() divisions stay valid) and disable via data-anim-off.
+  useEffect(() => {
+    const m = getSpeedMultiplier();
+    const root = document.documentElement;
+    root.style.setProperty('--anim-speed', String(m > 0 ? m : 1));
+    root.setAttribute('data-anim-off', m === 0 ? 'true' : 'false');
+  }, [animationSpeed, getSpeedMultiplier]);
 
   // Incoming call state — drives the full-screen overlay
   const [incomingCall, setIncomingCall] = useState(null); // { callerName, roomId }
@@ -183,6 +200,8 @@ function AppInner() {
     <>
       {/* Global background — rendered once, stays behind everything */}
       <BackgroundEffects />
+      {/* Shared SVG <defs> for cosmic badges — mounted once (ID-collision fix) */}
+      <BadgeDefsSprite />
       <ToastContainer />
       <Toaster 
         position="bottom-right" 
@@ -243,6 +262,9 @@ function AppInner() {
         <Route path="/video"       element={<ProtectedRoute><VideoCall /></ProtectedRoute>} />
         <Route path="/call/:roomId" element={<ProtectedRoute><VideoCall /></ProtectedRoute>} />
         <Route path="/admin"       element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+
+        {/* Cosmic badge gallery — dev/QA route, reachable by URL, not in nav */}
+        <Route path="/cosmic-gallery" element={<Layout><Suspense fallback={<PageLoader />}><BadgeGallery /></Suspense></Layout>} />
 
         {/* 404 — catch-all */}
         <Route path="*" element={<NotFound />} />
