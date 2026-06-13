@@ -59,6 +59,29 @@ function MedallionRim({ glow }) {
   );
 }
 
+/* ── Cosmic Sigil frame: a category-material rim + division pips (v2 §3.1) ──
+   The rim escalates by category (stone → metal → light → plasma → ember →
+   holo → gold). Division pips at N/E/S/W light up as you climb IV→I
+   (Moon IV = 1 lit … Moon I = 4 lit; Quasar = all 4). Full size only. */
+const PIP_POS = [
+  { cx: 50, cy: 6 }, { cx: 94, cy: 50 }, { cx: 50, cy: 94 }, { cx: 6, cy: 50 },
+];
+function SigilFrame({ category, division, litColor }) {
+  const lit = category === 'quasar' ? 4 : Math.max(0, Math.min(4, 5 - division));
+  return (
+    <>
+      <circle cx="50" cy="50" r="47" fill="none" stroke={`url(#cb-rim-${category})`} strokeWidth="3" />
+      <g>
+        {PIP_POS.map((p, i) => (
+          <circle key={i} cx={p.cx} cy={p.cy} r="1.8"
+            fill={i < lit ? litColor : '#FFFFFF'}
+            opacity={i < lit ? 0.95 : 0.18} />
+        ))}
+      </g>
+    </>
+  );
+}
+
 /* ─────────────────────────────────────────────────────────────
    Per-category geometry. Each returns the inner <g>/elements.
    `div` is the division (4..1); higher = more layers (within-tier growth).
@@ -250,7 +273,7 @@ const CosmicBadge = memo(function CosmicBadge({ tierId, size = 'full', className
       className={`cb-badge cb-${tier.category} ${mini ? 'cb-mini' : ''} ${className}`}
       role="img"
       aria-label={tier.displayName}
-      title={title ?? tier.displayName}
+      title={title ?? (tier.blurb ? `${tier.displayName} — ${tier.blurb}` : tier.displayName)}
       style={{
         width: px, height: px,
         // emitter medallion glow (dark); CSS dials it down in light mode
@@ -264,6 +287,8 @@ const CosmicBadge = memo(function CosmicBadge({ tierId, size = 'full', className
           ? <QuasarArt anim={anim} />
           : <Art tier={tier} div={div} anim={anim} />}
         {emitter && <MedallionRim glow={glow} />}
+        {/* Cosmic Sigil frame + division pips — full size only (§3) */}
+        {!mini && <SigilFrame category={tier.category} division={div} litColor={`rgb(${glow})`} />}
       </svg>
     </span>
   );

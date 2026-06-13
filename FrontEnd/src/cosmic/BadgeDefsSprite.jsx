@@ -100,6 +100,29 @@ const BadgeDefsSprite = memo(function BadgeDefsSprite() {
           <stop offset="60%" stopColor="#FF8FCF" /><stop offset="100%" stopColor="#9B6BFF" />
         </radialGradient>
 
+        {/* ── Cosmic Sigil frames (rim material escalates by category, v2 §3.1) ── */}
+        <linearGradient id="cb-rim-moon" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#6E665B" /><stop offset="50%" stopColor="#4A453E" /><stop offset="100%" stopColor="#2A2622" />
+        </linearGradient>
+        <linearGradient id="cb-rim-planet" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#E8E2D6" /><stop offset="50%" stopColor="#A9A395" /><stop offset="100%" stopColor="#6E685B" />
+        </linearGradient>
+        <linearGradient id="cb-rim-star" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#FFFFFF" /><stop offset="50%" stopColor="#A9D6FF" /><stop offset="100%" stopColor="#4F86C6" />
+        </linearGradient>
+        <linearGradient id="cb-rim-pulsar" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#E0FBFF" /><stop offset="50%" stopColor="#4CC9F0" /><stop offset="100%" stopColor="#1A6E8E" />
+        </linearGradient>
+        <linearGradient id="cb-rim-supernova" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#FFE9A8" /><stop offset="50%" stopColor="#FF6B35" /><stop offset="100%" stopColor="#8B0000" />
+        </linearGradient>
+        <linearGradient id="cb-rim-galaxy" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#F6C667" /><stop offset="45%" stopColor="#FF8FCF" /><stop offset="100%" stopColor="#9B6BFF" />
+        </linearGradient>
+        <linearGradient id="cb-rim-quasar" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#FFF6D6" /><stop offset="50%" stopColor="#F6C667" /><stop offset="100%" stopColor="#8EC5FF" />
+        </linearGradient>
+
         {/* ── QUASAR jet ── */}
         <linearGradient id="cb-quasar-jet" x1="50%" y1="0%" x2="50%" y2="100%">
           <stop offset="0%" stopColor="#8EC5FF" stopOpacity="0" />
