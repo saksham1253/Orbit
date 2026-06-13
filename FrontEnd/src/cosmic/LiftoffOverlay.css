@@ -1,0 +1,148 @@
+/* ─────────────────────────────────────────────────────────────
+   LiftoffOverlay styles. Scoped to .liftoff-* so they cannot touch
+   any existing styles or the dark theme. Theme-agnostic: the overlay
+   is always deep space, so it reads identically in light and dark.
+───────────────────────────────────────────────────────────── */
+
+.liftoff-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 50% 42%, rgba(26,11,46,0.92), rgba(8,3,20,0.97) 70%);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.liftoff-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.liftoff-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: rgba(255,255,255,0.7);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 2;
+}
+.liftoff-close:hover { color: #fff; background: rgba(255,255,255,0.12); }
+
+.liftoff-stage {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 24px;
+  cursor: default;
+  max-width: 640px;
+}
+
+.liftoff-badge-wrap { margin-bottom: 28px; }
+
+/* Big animated halo behind the revealed badge (category-tinted) */
+.liftoff-badge-halo {
+  display: grid;
+  place-items: center;
+  padding: 36px;
+  border-radius: 50%;
+  animation: liftoff-halo-pulse calc(2.4s / var(--anim-speed, 1)) ease-in-out infinite;
+}
+/* The badge span receives .liftoff-badge via CosmicBadge's className prop */
+.liftoff-badge {
+  transform: scale(2.4);             /* show the 57px badge BIG on the stage */
+}
+
+.cb-halo-planet    { box-shadow: 0 0 90px 30px rgba(216,164,127,0.35); }
+.cb-halo-star      { box-shadow: 0 0 120px 40px rgba(169,214,255,0.45); }
+.cb-halo-pulsar    { box-shadow: 0 0 120px 40px rgba(76,201,240,0.5); }
+.cb-halo-supernova { box-shadow: 0 0 140px 46px rgba(255,107,53,0.5); }
+.cb-halo-galaxy    { box-shadow: 0 0 140px 46px rgba(255,143,207,0.45); }
+.cb-halo-quasar    { box-shadow: 0 0 160px 52px rgba(142,197,255,0.6); }
+.cb-halo-moon      { box-shadow: 0 0 70px 24px rgba(180,172,158,0.3); }
+
+@keyframes liftoff-halo-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50%      { transform: scale(1.06); opacity: 1; }
+}
+
+.liftoff-kicker {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  color: rgba(207,230,255,0.85);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.liftoff-headline {
+  font-size: clamp(22px, 4vw, 34px);
+  font-weight: 800;
+  line-height: 1.2;
+  color: #fff;
+  text-shadow: 0 2px 24px rgba(120,160,255,0.5);
+  margin: 0 0 8px;
+}
+
+.liftoff-score {
+  font-size: 13px;
+  color: rgba(232,226,245,0.7);
+  margin-bottom: 22px;
+}
+
+.liftoff-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.liftoff-share, .liftoff-dismiss {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.2s;
+}
+.liftoff-share {
+  color: #0D0221;
+  background: linear-gradient(135deg, #cfe6ff, #8ec5ff);
+  border: none;
+  box-shadow: 0 6px 24px rgba(142,197,255,0.45);
+}
+.liftoff-share:hover { transform: translateY(-2px); }
+.liftoff-share:disabled { opacity: 0.6; cursor: default; transform: none; }
+.liftoff-dismiss {
+  color: rgba(255,255,255,0.85);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.14);
+}
+.liftoff-dismiss:hover { background: rgba(255,255,255,0.12); }
+
+/* Reduced motion: kill the halo pulse (crossfade mode already skips canvas) */
+@media (prefers-reduced-motion: reduce) {
+  .liftoff-badge-halo { animation: none; }
+}
+[data-anim-off="true"] .liftoff-badge-halo { animation: none; }

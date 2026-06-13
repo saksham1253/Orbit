@@ -10,6 +10,40 @@
 import { Helmet } from 'react-helmet-async';
 import CosmicBadge from '../cosmic/CosmicBadge';
 import { TIER_ORDER, getTier } from '../cosmic/tiers';
+import useLiftoffStore from '../cosmic/liftoffStore';
+
+// Representative rank-ups so every Liftoff choreography can be previewed.
+const LIFTOFFS = [
+  { label: '→ Planet',    to: 'planet_4',    from: 'moon_1' },
+  { label: '→ Star',      to: 'star_4',      from: 'planet_1' },
+  { label: '→ Pulsar',    to: 'pulsar_4',    from: 'star_1' },
+  { label: '→ Supernova', to: 'supernova_4', from: 'pulsar_1' },
+  { label: '→ Galaxy',    to: 'galaxy_4',    from: 'supernova_1' },
+  { label: '→ Quasar',    to: 'quasar',      from: 'galaxy_1' },
+  { label: 'Within-tier', to: 'moon_3',      from: 'moon_4' },
+];
+
+function LiftoffPreview() {
+  const play = useLiftoffStore((s) => s.play);
+  return (
+    <div style={{ padding: '16px 20px', borderRadius: 14, marginBottom: 24,
+      background: 'rgba(142,197,255,0.06)', border: '1px solid rgba(142,197,255,0.18)' }}>
+      <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>🚀 Preview rank-up “Liftoff” moments</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        {LIFTOFFS.map((l) => (
+          <button key={l.to} onClick={() => play(l.to, { fromTierId: l.from, score: 88.8, city: 'Jaipur' })}
+            style={{ padding: '8px 14px', borderRadius: 999, fontSize: 12, fontWeight: 600, cursor: 'pointer',
+              color: '#0D0221', background: 'linear-gradient(135deg,#cfe6ff,#8ec5ff)', border: 'none' }}>
+            {l.label}
+          </button>
+        ))}
+      </div>
+      <p style={{ fontSize: 11, opacity: 0.6, marginTop: 8 }}>
+        Honors Animation Speed (Off → crossfade), prefers-reduced-motion, and the UI Sounds toggle.
+      </p>
+    </div>
+  );
+}
 
 function ThemeColumn({ mode, label }) {
   const bg = mode === 'dark' ? '#0D0221' : '#F4F1FA';
@@ -56,6 +90,7 @@ export default function BadgeGallery() {
           All 25 tiers, full + mini, in both themes. Dev/QA route — verifies the dual-theme rule
           and that the shared &lt;defs&gt; sprite prevents blank badges when many render at once.
         </p>
+        <LiftoffPreview />
         <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-start' }}>
           <ThemeColumn mode="dark" label="Dark theme" />
           <ThemeColumn mode="light" label="Light theme" />

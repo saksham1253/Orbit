@@ -14,6 +14,7 @@ import NotFound from './pages/NotFound';
 import { connectSocket } from './services/socket';
 import { Toaster } from 'react-hot-toast';
 import BadgeDefsSprite from './cosmic/BadgeDefsSprite';
+import LiftoffWatcher from './cosmic/LiftoffWatcher';
 
 // Eagerly loaded (first paint)
 import Landing from './pages/Landing';
@@ -37,6 +38,9 @@ const PublicProfile = lazy(() => import('./pages/PublicProfile'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const BadgeGallery   = lazy(() => import('./pages/BadgeGallery'));
 const Leaderboard    = lazy(() => import('./pages/Leaderboard'));
+// Heavy cinematics (canvas engine + share card) — split out of the initial
+// bundle; only fetched when a rank-up actually fires.
+const LiftoffOverlay = lazy(() => import('./cosmic/LiftoffOverlay'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center py-24">
@@ -203,6 +207,10 @@ function AppInner() {
       <BackgroundEffects />
       {/* Shared SVG <defs> for cosmic badges — mounted once (ID-collision fix) */}
       <BadgeDefsSprite />
+      {/* Rank-up "Liftoff" — overlay code-split, fetched only when it fires;
+          watcher fires it on a genuine tier increase for the logged-in user */}
+      <Suspense fallback={null}><LiftoffOverlay /></Suspense>
+      {token && user && <LiftoffWatcher />}
       <ToastContainer />
       <Toaster 
         position="bottom-right" 
