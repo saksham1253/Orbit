@@ -15,12 +15,24 @@ const useLiftoffStore = create(
     (set, get) => ({
       event: null,                 // { id, fromTierId, toTierId, city, score }
       lastSeen: {},                // userId → tierId (persisted)
+      introsSeen: {},              // `${userId}:${tierId}` → true (persisted; v2 §7.1)
 
       /** Queue a Liftoff. fromTierId may be null for a first-time reveal. */
       play: (toTierId, { fromTierId = null, city = '', score = null } = {}) =>
         set({ event: { id: ++_seq, fromTierId, toTierId, city, score } }),
 
       clear: () => set({ event: null }),
+
+      /**
+       * Mark the one-time intro reveal for a (user, tier) as seen.
+       * Returns true if it was ALREADY seen (so the caller skips replaying).
+       */
+      markIntroSeen: (userId, tierId) => {
+        const key = `${userId}:${tierId}`;
+        if (get().introsSeen[key]) return true;
+        set({ introsSeen: { ...get().introsSeen, [key]: true } });
+        return false;
+      },
 
       /**
        * Record the latest tier for a user and return the previously-seen tier
@@ -36,7 +48,7 @@ const useLiftoffStore = create(
     }),
     {
       name: 'skillswap-liftoff',
-      partialize: (s) => ({ lastSeen: s.lastSeen }), // never persist a pending event
+      partialize: (s) => ({ lastSeen: s.lastSeen, introsSeen: s.introsSeen }), // never persist a pending event
     }
   )
 );

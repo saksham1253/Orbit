@@ -152,6 +152,50 @@ export const TIER_ORDER = [
 
 export const getTier = (tierId) => TIERS[tierId] || TIERS.moon_4;
 
+// Entry score (core) per tier — mirrors backend TIER_FLOORS (v2 §2.2.1).
+export const TIER_FLOORS = {
+  moon_4: 50.0, moon_3: 53.0, moon_2: 56.0, moon_1: 59.0,
+  planet_4: 62.0, planet_3: 65.0, planet_2: 68.0, planet_1: 71.0,
+  star_4: 74.0, star_3: 77.0, star_2: 80.0, star_1: 82.5,
+  pulsar_4: 85.0, pulsar_3: 87.0, pulsar_2: 89.0, pulsar_1: 91.0,
+  supernova_4: 93.0, supernova_3: 94.5, supernova_2: 96.0, supernova_1: 97.0,
+  galaxy_4: 98.0, galaxy_3: 98.7, galaxy_2: 99.3, galaxy_1: 99.7,
+};
+
+const LADDER_IDS = TIER_ORDER.filter((id) => id !== 'quasar');
+
+/** CosmicScore range "X – Y" for a tier (Galaxy I → "99.7 – 100"). */
+export const scoreRange = (tierId) => {
+  const i = LADDER_IDS.indexOf(tierId);
+  if (i < 0) return null;
+  const lo = TIER_FLOORS[tierId];
+  const hi = i < LADDER_IDS.length - 1 ? TIER_FLOORS[LADDER_IDS[i + 1]] : 100;
+  return { lo, hi };
+};
+
+// Eligibility requirement per category (v2 §2.2 / §6.6).
+const CATEGORY_REQ = {
+  moon: '', planet: '',
+  star: 'Requires ≥ 8 weighted reviews',
+  pulsar: 'Requires ≥ 20 weighted reviews',
+  supernova: 'Requires ≥ 20 weighted reviews',
+  galaxy: 'Requires ≥ 50 weighted reviews + 1 full season',
+  quasar: 'Awarded only to retired #1 city champions',
+};
+export const tierRequirement = (tierId) => CATEGORY_REQ[(TIERS[tierId] || {}).category] || '';
+
+// Perks unlocked, by category (v2 §6).
+const CATEGORY_PERKS = {
+  moon: ['Cosmic badge on your profile', 'A place on the local leaderboard'],
+  planet: ['Larger, detailed planet badge', 'Climb the local board'],
+  star: ['Light-emitter badge with glow', 'Earned titles begin'],
+  pulsar: ['Animated pulsar badge', 'Stronger leaderboard presence'],
+  supernova: ['Name-glow perk begins (warm halo)', 'Eligible for Supernova of the Month'],
+  galaxy: ['Animated gradient name-glow', 'Community-pillar status', 'Observatory prominence'],
+  quasar: ['Legendary pulsing name-glow', 'Permanent star in the Legends Archive', 'Brightest object in the known universe'],
+};
+export const tierPerks = (tierId) => CATEGORY_PERKS[(TIERS[tierId] || {}).category] || [];
+
 /** Name-glow tier (v2 §8): only Supernova+ glow; null below. */
 export const nameGlowFor = (tierId) => {
   const cat = (TIERS[tierId] || {}).category;

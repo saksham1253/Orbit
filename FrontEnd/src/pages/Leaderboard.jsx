@@ -7,11 +7,12 @@
  *
  * Additive page — reuses existing common components, api, and CosmicBadge.
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Trophy, MapPin, Info, Telescope, Building2, Map as MapIcon, Globe, Medal } from 'lucide-react';
+import useLiftoffStore from '../cosmic/liftoffStore';
+import { Trophy, MapPin, Info, Telescope, Building2, Map as MapIcon, Globe, Medal, Compass } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useLeaderboard } from '../cosmic/useCosmic';
 import CosmicBadge from '../cosmic/CosmicBadge';
@@ -51,6 +52,19 @@ export default function Leaderboard() {
   const [scope, setScope] = useState('city');
 
   const { data, isLoading, isError, error, refetch } = useLeaderboard({ scope });
+  const playLiftoff = useLiftoffStore((s) => s.play);
+  const markIntroSeen = useLiftoffStore((s) => s.markIntroSeen);
+
+  // v2 §7.1 — first time the viewer opens the board at a given tier, play a
+  // welcome rank-up reveal for their current tier (once per tier per account).
+  useEffect(() => {
+    const you = data?.you;
+    if (!you?.tierId || !user?._id) return;
+    const already = markIntroSeen(user._id, you.tierId);
+    if (!already) {
+      playLiftoff(you.tierId, { score: you.score, city: data?.label });
+    }
+  }, [data?.you?.tierId, user?._id, data?.label, markIntroSeen, playLiftoff]);
 
   const needsLocation = error?.response?.data?.needsLocation;
 
@@ -68,10 +82,16 @@ export default function Leaderboard() {
             <h1 className="text-xl font-display font-bold text-text-primary">Cosmic Leaderboard</h1>
             <p className="text-xs text-text-muted">Climb your local sky — rank is relative, tier is earned.</p>
           </div>
-          <button onClick={() => navigate('/observatory')}
-            className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-text-secondary hover:text-text-primary bg-surface border border-border-subtle transition-all">
-            <Telescope size={13} /> Observatory
-          </button>
+          <div className="ml-auto flex items-center gap-1.5">
+            <button onClick={() => navigate('/cosmic-atlas')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-text-secondary hover:text-text-primary bg-surface border border-border-subtle transition-all">
+              <Compass size={13} /> Explore tiers
+            </button>
+            <button onClick={() => navigate('/observatory')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-text-secondary hover:text-text-primary bg-surface border border-border-subtle transition-all">
+              <Telescope size={13} /> Observatory
+            </button>
+          </div>
         </div>
 
         {/* Scope toggle */}
