@@ -1,0 +1,45 @@
+/* ─────────────────────────────────────────────────────────────
+   Name-glow perk (v2 §8) — escalating status glow on display names.
+   Below Supernova: no glow. Honors anim-speed + prefers-reduced-motion.
+   Scoped to .cname-* so it can't touch any existing styles.
+───────────────────────────────────────────────────────────── */
+
+.cname { display: inline; }
+
+/* Supernova — subtle warm static halo */
+.cname--supernova {
+  color: #FFE9D6;
+  text-shadow: 0 0 4px rgba(255,107,53,.55), 0 0 10px rgba(255,107,53,.30);
+}
+
+/* Galaxy — animated gradient text + shimmer */
+.cname--galaxy {
+  background: linear-gradient(90deg, #F6C667, #FF8FCF, #9B6BFF, #F6C667);
+  background-size: 300% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  text-shadow: 0 0 8px rgba(155,107,255,.45);
+  animation: cname-shimmer calc(6s / var(--anim-speed, 1)) linear infinite;
+}
+@keyframes cname-shimmer { to { background-position: 300% 0; } }
+
+/* Quasar — intense multi-layer legendary glow with a gentle pulse */
+.cname--quasar {
+  color: #FFFFFF;
+  text-shadow: 0 0 6px #8EC5FF, 0 0 14px #4CC9F0,
+               0 0 26px rgba(76,201,240,.7), 0 0 44px rgba(142,197,255,.5);
+  animation: cname-quasar calc(2.4s / var(--anim-speed, 1)) ease-in-out infinite alternate;
+}
+/* amplified glow when another user explores/hovers the legend */
+.cname--quasar.is-exploring,
+.cname--quasar:hover {
+  text-shadow: 0 0 8px #FFFFFF, 0 0 18px #8EC5FF, 0 0 34px #4CC9F0,
+               0 0 60px rgba(76,201,240,.85), 0 0 90px rgba(142,197,255,.6);
+}
+@keyframes cname-quasar { from { filter: brightness(1); } to { filter: brightness(1.28); } }
+
+/* Reduced motion / Animation Speed = Off → keep the static glow, drop motion */
+@media (prefers-reduced-motion: reduce) {
+  .cname--galaxy, .cname--quasar { animation: none; }
+}
+[data-anim-off="true"] .cname--galaxy,
+[data-anim-off="true"] .cname--quasar { animation: none; }

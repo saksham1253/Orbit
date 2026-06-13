@@ -17,7 +17,8 @@ import { Telescope, Crown, Star, Sparkles, Quote, Info } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useObservatory } from '../cosmic/useCosmic';
 import CosmicBadge from '../cosmic/CosmicBadge';
-import { getTier } from '../cosmic/tiers';
+import CosmicName from '../cosmic/CosmicName';
+import { getTier, nameGlowFor } from '../cosmic/tiers';
 import Avatar from '../components/common/Avatar';
 import EmptyState from '../components/common/EmptyState';
 import ErrorState from '../components/common/ErrorState';
@@ -147,7 +148,9 @@ export default function Observatory() {
                 <div style={{ transform: 'scale(1.5)' }}>
                   <CosmicBadge tierId={data.northStar.tierId} size="full" />
                 </div>
-                <span className="text-xs font-bold text-text-primary mt-2">{data.northStar.name}</span>
+                <span className="text-xs font-bold text-text-primary mt-2">
+                  <CosmicName glow={nameGlowFor(data.northStar.tierId)} exploring>{data.northStar.name}</CosmicName>
+                </span>
                 <span className="text-[10px] text-text-muted">{getTier(data.northStar.tierId).displayName}</span>
               </button>
             </div>

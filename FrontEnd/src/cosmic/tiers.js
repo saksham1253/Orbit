@@ -151,3 +151,12 @@ export const TIER_ORDER = [
 ];
 
 export const getTier = (tierId) => TIERS[tierId] || TIERS.moon_4;
+
+/** Name-glow tier (v2 §8): only Supernova+ glow; null below. */
+export const nameGlowFor = (tierId) => {
+  const cat = (TIERS[tierId] || {}).category;
+  if (cat === 'quasar') return 'quasar';
+  if (cat === 'galaxy') return 'galaxy';
+  if (cat === 'supernova') return 'supernova';
+  return null;
+};

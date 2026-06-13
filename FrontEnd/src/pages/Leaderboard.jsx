@@ -15,6 +15,7 @@ import { Trophy, MapPin, Info, Telescope, Building2, Map as MapIcon, Globe, Meda
 import { useAuthStore } from '../store/authStore';
 import { useLeaderboard } from '../cosmic/useCosmic';
 import CosmicBadge from '../cosmic/CosmicBadge';
+import CosmicName from '../cosmic/CosmicName';
 import { getTier } from '../cosmic/tiers';
 import Avatar from '../components/common/Avatar';
 import EmptyState from '../components/common/EmptyState';
@@ -174,7 +175,7 @@ export default function Leaderboard() {
                     <Avatar name={e.name} url={e.avatar} size="sm" userId={e.userId} />
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-semibold text-text-primary truncate flex items-center gap-1.5">
-                        {e.name}{isMe && <span className="text-[10px] text-accent font-bold">YOU</span>}
+                        <CosmicName glow={e.nameGlowTier}>{e.name}</CosmicName>{isMe && <span className="text-[10px] text-accent font-bold">YOU</span>}
                       </div>
                       <div className="text-xs text-text-muted truncate">
                         {getTier(e.tierId).displayName}{e.title ? ` · ${e.title}` : ''}
@@ -199,7 +200,7 @@ export default function Leaderboard() {
               <Avatar name={data.you.name} url={data.you.avatar} size="sm" userId={data.you.userId} />
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-semibold text-text-primary truncate flex items-center gap-1.5">
-                  {data.you.name}<span className="text-[10px] text-accent font-bold">YOU</span>
+                  <CosmicName glow={data.you.nameGlowTier}>{data.you.name}</CosmicName><span className="text-[10px] text-accent font-bold">YOU</span>
                 </div>
                 <div className="text-xs text-text-muted truncate">{getTier(data.you.tierId).displayName}</div>
               </div>
