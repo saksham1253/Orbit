@@ -11,7 +11,7 @@ import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Trophy, MapPin, Info } from 'lucide-react';
+import { Trophy, MapPin, Info, Telescope } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useLeaderboard } from '../cosmic/useCosmic';
 import CosmicBadge from '../cosmic/CosmicBadge';
@@ -60,6 +60,10 @@ export default function Leaderboard() {
             <h1 className="text-xl font-display font-bold text-text-primary">Cosmic Leaderboard</h1>
             <p className="text-xs text-text-muted">Climb your local sky — rank is relative, tier is earned.</p>
           </div>
+          <button onClick={() => navigate('/observatory')}
+            className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-text-secondary hover:text-text-primary bg-surface border border-border-subtle transition-all">
+            <Telescope size={13} /> Observatory
+          </button>
         </div>
 
         {/* Scope toggle */}

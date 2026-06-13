@@ -1,7 +1,8 @@
 const User = require("../models/user");
 const Rating = require("../models/rating");
 const Connection = require("../models/Connection");
-const { buildLeaderboard } = require("../services/leaderboardService");
+const Legend = require("../models/Legend");
+const { buildLeaderboard, scorePool, mentorsWithin } = require("../services/leaderboardService");
 const { computeCosmicScore } = require("../services/cosmicScore");
 const { assignTier } = require("../services/cosmicTier");
 
@@ -102,6 +103,109 @@ exports.getMentorCosmic = async (req, res) => {
         });
     } catch (err) {
         console.error("getMentorCosmic error:", err);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+// ─────────────────────────────────────────────────────────────
+//  GET /api/cosmic/observatory/:city  — Hall of Fame for a city (spec §10)
+//  North Star (#1), orbiting ranks, Supernova-of-the-Month (+ BERT-picked
+//  best quote), and the Legends Archive (Quasars).
+// ─────────────────────────────────────────────────────────────
+const escapeRegex = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+exports.getObservatory = async (req, res) => {
+    try {
+        const cityParam = (req.params.city || "").trim();
+        const me = await User.findById(req.user.id).select("city coordinates").lean();
+
+        const SELECT = "name avatar city cosmic";
+
+        // Primary pool: users whose city field matches. Fall back to a distance
+        // pool around the viewer when the city field isn't populated yet.
+        let pool = [];
+        let label = cityParam || (me && me.city) || "your city";
+        if (cityParam) {
+            pool = await User.find({ city: new RegExp(`^${escapeRegex(cityParam)}$`, "i") })
+                .select(SELECT).limit(200).lean();
+        }
+        if (pool.length < 3 && me && me.coordinates && me.coordinates.lat != null) {
+            pool = await mentorsWithin(me.coordinates.lat, me.coordinates.lng, 50, me._id);
+            label = cityParam || (me && me.city) || "within 50 km";
+        }
+
+        const ids = pool.map((u) => u._id);
+        const scores = await scorePool(ids);
+
+        const ranked = pool
+            .map((u) => {
+                const s = scores.get(String(u._id)) || { score: 0, tier: assignTier(0, {}), weightedReviews: 0, reviewsCount: 0 };
+                return {
+                    userId: String(u._id),
+                    name: u.name,
+                    avatar: u.avatar || "",
+                    score: Math.round(s.score * 10) / 10,
+                    tierId: s.tier.tierId,
+                    weightedReviews: s.weightedReviews,
+                    reviewsCount: s.reviewsCount,
+                };
+            })
+            .sort((a, b) =>
+                b.score - a.score ||
+                b.weightedReviews - a.weightedReviews ||
+                String(a.name).localeCompare(String(b.name)))
+            .map((e, i) => ({ ...e, rank: i + 1 }));
+
+        const northStar = ranked[0] || null;
+        const orbiting = ranked.slice(1, 20);
+
+        // Supernova of the Month spotlight: top mentor + their best review quote,
+        // BERT-picked (highest sentiment among completed-swap reviews, length guard).
+        let spotlight = null;
+        if (northStar) {
+            let best = await Rating.findOne({
+                toUser: northStar.userId,
+                tiedToCompletedSwap: true,
+                "sentiment.score": { $ne: null },
+                review: { $regex: /.{40,}/ },
+            }).sort({ "sentiment.score": -1 }).select("review sentiment.score fromUser").populate("fromUser", "name").lean();
+
+            // Fallback: most recent substantive review if no sentiment computed yet.
+            if (!best) {
+                best = await Rating.findOne({
+                    toUser: northStar.userId,
+                    review: { $regex: /.{30,}/ },
+                }).sort({ createdAt: -1 }).select("review fromUser").populate("fromUser", "name").lean();
+            }
+
+            spotlight = {
+                ...northStar,
+                quote: best ? best.review : "",
+                quoteBy: best && best.fromUser ? best.fromUser.name : "",
+            };
+        }
+
+        // Legends Archive (Quasars) for this city.
+        const legends = await Legend.find({ city: new RegExp(`^${escapeRegex(label)}$`, "i") })
+            .sort({ archivedAt: -1 }).limit(12)
+            .populate("userId", "name avatar").lean();
+
+        res.status(200).json({
+            city: label,
+            northStar,
+            orbiting,
+            spotlight,
+            legends: legends.map((l) => ({
+                userId: l.userId ? String(l.userId._id) : null,
+                name: l.userId ? l.userId.name : "A legend",
+                avatar: l.userId ? l.userId.avatar : "",
+                starName: l.starName,
+                seasonId: l.seasonId,
+            })),
+            count: ranked.length,
+        });
+    } catch (err) {
+        console.error("getObservatory error:", err);
         res.status(500).json({ message: "Server error" });
     }
 };

@@ -35,3 +35,15 @@ export function useMentorCosmic(userId, enabled = true) {
     retry: 1,
   });
 }
+
+/** The Observatory (Hall of Fame) for a city. */
+export function useObservatory(city, enabled = true) {
+  const key = city && city.trim() ? city.trim() : 'me';
+  return useQuery({
+    queryKey: ['cosmic', 'observatory', key],
+    queryFn: () => api.get(`/cosmic/observatory/${encodeURIComponent(key)}`).then((r) => r.data),
+    enabled,
+    staleTime: 3 * 60 * 1000,
+    retry: 1,
+  });
+}

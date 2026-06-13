@@ -38,6 +38,7 @@ const PublicProfile = lazy(() => import('./pages/PublicProfile'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const BadgeGallery   = lazy(() => import('./pages/BadgeGallery'));
 const Leaderboard    = lazy(() => import('./pages/Leaderboard'));
+const Observatory    = lazy(() => import('./pages/Observatory'));
 // Heavy cinematics (canvas engine + share card) — split out of the initial
 // bundle; only fetched when a rank-up actually fires.
 const LiftoffOverlay = lazy(() => import('./cosmic/LiftoffOverlay'));
@@ -268,6 +269,7 @@ function AppInner() {
         <Route path="/nearby"      element={<ProtectedRoute><NearbyMap /></ProtectedRoute>} />
         <Route path="/trust"       element={<ProtectedRoute><TrustScore /></ProtectedRoute>} />
         <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
+        <Route path="/observatory" element={<ProtectedRoute><Observatory /></ProtectedRoute>} />
         <Route path="/settings"    element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         <Route path="/video"       element={<ProtectedRoute><VideoCall /></ProtectedRoute>} />
         <Route path="/call/:roomId" element={<ProtectedRoute><VideoCall /></ProtectedRoute>} />
