@@ -13,7 +13,7 @@ import { useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Telescope, Crown, Star, Sparkles, Quote } from 'lucide-react';
+import { Telescope, Crown, Star, Sparkles, Quote, Info } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useObservatory } from '../cosmic/useCosmic';
 import CosmicBadge from '../cosmic/CosmicBadge';
@@ -82,6 +82,18 @@ export default function Observatory() {
               View
             </button>
           </form>
+        </div>
+
+        {/* Explainer (v2 §9.1) */}
+        <div className="flex items-start gap-2 p-3 rounded-2xl mb-5 text-xs text-text-secondary"
+          style={{ background: 'var(--surface)', border: '1px solid var(--border-subtle)' }}>
+          <Info size={14} className="mt-0.5 flex-none text-accent" />
+          <p>
+            <strong className="text-text-primary">The Observatory</strong> is SkillSwap’s hall of fame — a living star
+            map of your city’s greatest mentors. The current #1 shines as the <strong>North Star</strong>, the month’s
+            biggest climber earns a <strong>Supernova spotlight</strong>, and retired champions become permanent
+            <strong> Quasar legends</strong> in the archive.
+          </p>
         </div>
 
         {isLoading && (
@@ -187,7 +199,7 @@ export default function Observatory() {
               ) : (
                 <p className="text-xs text-text-muted p-4 rounded-2xl text-center"
                   style={{ background: 'var(--surface)', border: '1px solid var(--border-subtle)' }}>
-                  No legends yet. The first retired #1 champion becomes a permanent Quasar here. 🌠
+                  No legends yet. The first retired #1 champion becomes a permanent Quasar here.
                 </p>
               )}
             </div>

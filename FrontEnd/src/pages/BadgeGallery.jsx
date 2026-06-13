@@ -28,7 +28,7 @@ function LiftoffPreview() {
   return (
     <div style={{ padding: '16px 20px', borderRadius: 14, marginBottom: 24,
       background: 'rgba(142,197,255,0.06)', border: '1px solid rgba(142,197,255,0.18)' }}>
-      <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>🚀 Preview rank-up “Liftoff” moments</div>
+      <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Preview rank-up “Liftoff” moments</div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
         {LIFTOFFS.map((l) => (
           <button key={l.to} onClick={() => play(l.to, { fromTierId: l.from, score: 88.8, city: 'Jaipur' })}

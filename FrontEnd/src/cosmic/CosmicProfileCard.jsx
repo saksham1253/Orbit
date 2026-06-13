@@ -7,20 +7,20 @@
  * and on error it renders nothing so it can never break the profile page.
  */
 import { memo } from 'react';
-import { Sparkles, TrendingUp, Lock, Trophy } from 'lucide-react';
+import { Sparkles, TrendingUp, Lock, Trophy, Flame, MoveUpRight, Sun, Radio, Orbit, BadgeCheck, Star } from 'lucide-react';
 import CosmicBadge from './CosmicBadge';
 import { getTier } from './tiers';
 import { useMentorCosmic } from './useCosmic';
 
-// Live flair key → display (spec §9.2).
+// Live flair key → professional icon + label (v2 §4, no emoji).
 const FLAIR = {
-  orbit_streak:     { emoji: '🔥', label: 'Orbit Streak' },
-  comet_trail:      { emoji: '☄️', label: 'Comet Trail' },
-  solar_flare:      { emoji: '🌞', label: 'Solar Flare' },
-  pulsing:          { emoji: '💫', label: 'Pulsing' },
-  strong_gravity:   { emoji: '🪐', label: 'Strong Gravity' },
-  verified_voyager: { emoji: '✅', label: 'Verified Voyager' },
-  north_star:       { emoji: '⭐', label: 'North Star' },
+  orbit_streak:     { Icon: Flame,       label: 'Orbit Streak' },
+  comet_trail:      { Icon: MoveUpRight, label: 'Comet Trail' },
+  solar_flare:      { Icon: Sun,         label: 'Solar Flare' },
+  pulsing:          { Icon: Radio,       label: 'Pulsing' },
+  strong_gravity:   { Icon: Orbit,       label: 'Strong Gravity' },
+  verified_voyager: { Icon: BadgeCheck,  label: 'Verified Voyager' },
+  north_star:       { Icon: Star,        label: 'North Star' },
 };
 
 const CosmicProfileCard = memo(function CosmicProfileCard({ userId, self = false }) {
@@ -98,13 +98,16 @@ const CosmicProfileCard = memo(function CosmicProfileCard({ userId, self = false
       {/* Live flair */}
       {flair.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mt-4">
-          {flair.map((f) => (
-            <span key={f.label}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium"
-              style={{ background: 'var(--accent-1, #00c6ff)12', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)' }}>
-              <span>{f.emoji}</span>{f.label}
-            </span>
-          ))}
+          {flair.map((f) => {
+            const Icon = f.Icon;
+            return (
+              <span key={f.label}
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium"
+                style={{ background: 'var(--accent-1, #00c6ff)12', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)' }}>
+                <Icon size={11} />{f.label}
+              </span>
+            );
+          })}
         </div>
       )}
 

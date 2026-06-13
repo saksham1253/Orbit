@@ -178,7 +178,7 @@ export default function LiftoffOverlay() {
                 className="liftoff-text"
               >
                 <div className="liftoff-kicker">
-                  {promotion ? '🚀 LIFTOFF' : '✨ RANK UP'} · {head.kicker}
+                  {promotion ? 'LIFTOFF' : 'RANK UP'} · {head.kicker}
                 </div>
                 <h2 className="liftoff-headline">{head.line}</h2>
                 {event.score != null && (

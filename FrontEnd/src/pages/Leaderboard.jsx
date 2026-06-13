@@ -11,7 +11,7 @@ import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Trophy, MapPin, Info, Telescope } from 'lucide-react';
+import { Trophy, MapPin, Info, Telescope, Building2, Map as MapIcon, Globe, Medal } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useLeaderboard } from '../cosmic/useCosmic';
 import CosmicBadge from '../cosmic/CosmicBadge';
@@ -21,18 +21,25 @@ import EmptyState from '../components/common/EmptyState';
 import ErrorState from '../components/common/ErrorState';
 
 const SCOPES = [
-  { id: 'neighborhood', label: 'Neighborhood', emoji: '🏘️' },
-  { id: 'city',         label: 'City',         emoji: '🌆' },
-  { id: 'region',       label: 'Region',       emoji: '🗺️' },
-  { id: 'country',      label: 'Country',      emoji: '🇮🇳' },
+  { id: 'neighborhood', label: 'Neighborhood', Icon: MapPin },
+  { id: 'city',         label: 'City',         Icon: Building2 },
+  { id: 'region',       label: 'Region',       Icon: MapIcon },
+  { id: 'country',      label: 'Country',      Icon: Globe },
 ];
 
+const MEDAL_TINT = { 1: '#FFD08A', 2: '#D6DCE6', 3: '#E0A878' };
+
 function RankBadge({ rank }) {
-  const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : null;
+  if (rank <= 3) {
+    return (
+      <span className="inline-flex items-center justify-center w-7" title={`Rank ${rank}`}>
+        <Medal size={18} style={{ color: MEDAL_TINT[rank] }} strokeWidth={2.2} />
+      </span>
+    );
+  }
   return (
-    <span className="inline-flex items-center justify-center w-7 text-sm font-bold tabular-nums"
-      style={{ color: rank <= 3 ? 'var(--accent-1)' : 'var(--text-muted)' }}>
-      {medal || `#${rank}`}
+    <span className="inline-flex items-center justify-center w-7 text-sm font-bold tabular-nums text-text-muted">
+      {rank}
     </span>
   );
 }
@@ -70,12 +77,13 @@ export default function Leaderboard() {
         <div className="flex flex-wrap gap-1.5 mt-4 mb-3">
           {SCOPES.map((s) => {
             const active = scope === s.id;
+            const Icon = s.Icon;
             return (
               <button key={s.id} onClick={() => setScope(s.id)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                   active ? 'text-accent bg-accent/10 border border-accent/30'
                          : 'text-text-secondary hover:text-text-primary bg-surface border border-border-subtle'}`}>
-                <span>{s.emoji}</span>{s.label}
+                <Icon size={13} />{s.label}
               </button>
             );
           })}
@@ -179,6 +187,26 @@ export default function Leaderboard() {
               );
             })}
           </ul>
+        )}
+
+        {/* Pinned "your position" row when the viewer is outside the top 50 (v2 §5.1) */}
+        {!isLoading && !isError && data?.you?.rank && data.you.inTop === false && (
+          <div className="mt-2 pt-2" style={{ borderTop: '1px dashed var(--border-subtle)' }}>
+            <button onClick={() => navigate(`/profile/${data.you.userId}`)}
+              className="w-full flex items-center gap-3 p-2.5 rounded-2xl text-left"
+              style={{ background: 'var(--surface)', border: '1px solid var(--accent-1)' }}>
+              <RankBadge rank={data.you.rank} />
+              <Avatar name={data.you.name} url={data.you.avatar} size="sm" userId={data.you.userId} />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-semibold text-text-primary truncate flex items-center gap-1.5">
+                  {data.you.name}<span className="text-[10px] text-accent font-bold">YOU</span>
+                </div>
+                <div className="text-xs text-text-muted truncate">{getTier(data.you.tierId).displayName}</div>
+              </div>
+              <CosmicBadge tierId={data.you.tierId} size="mini" />
+              <span className="text-sm font-bold tabular-nums text-text-secondary w-12 text-right">{data.you.score}</span>
+            </button>
+          </div>
         )}
 
         {/* Footer note */}
