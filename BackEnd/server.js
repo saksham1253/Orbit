@@ -33,6 +33,7 @@ const { moderationQueue } = require("./services/queueService");
 const eventEmitter = require("./utils/events");
 const { startArchiveWorker } = require("./workers/archiveWorker");
 const { startSentimentWorker } = require("./workers/sentimentWorker");
+const { startSeasonWorker } = require("./workers/seasonWorker");
 
 const app = express();
 app.set("trust proxy", 1); // Trust first proxy (needed for express-rate-limit on Render)
@@ -480,6 +481,7 @@ mongoose.connect(process.env.MONGO_URI, {
         console.log("MongoDB Connected");
         startArchiveWorker(); // Phase 3: Start the nightly archive worker
         startSentimentWorker(); // Cosmic: precompute review sentiment off the request path
+        startSeasonWorker(); // Cosmic: monthly season lifecycle + rollover (idempotent)
     })
     .catch(err => console.log("DB Error:", err));
 

@@ -17,6 +17,7 @@ const Rating     = require("../models/rating");
 const Connection = require("../models/Connection");
 const { computeCosmicScore } = require("./cosmicScore");
 const { assignTier } = require("./cosmicTier");
+const { detectReviewRings } = require("./seasonService");
 
 // ── Adaptive radius config (spec §11.2) ────────────────────────────────────
 const MIN_POOL = 15;
@@ -170,6 +171,18 @@ async function scorePool(mentorIds) {
         .select("toUser fromUser score sentiment.score tiedToCompletedSwap createdAt")
         .lean();
 
+    // Anti-gaming: detect reciprocal/cyclic review rings among the reviewers in
+    // play and discount those edges (spec §15.2). Cheap edge scan over the pool's
+    // ratings + their reviewers' outgoing ratings.
+    let ringEdges = new Set();
+    try {
+        const reviewerIds = [...new Set(ratings.map((r) => String(r.fromUser)))];
+        const related = await Rating.find({ fromUser: { $in: reviewerIds } })
+            .select("fromUser toUser").lean();
+        const edges = related.map((r) => ({ from: String(r.fromUser), to: String(r.toUser) }));
+        ringEdges = detectReviewRings(edges);
+    } catch (_) { /* ring detection is best-effort; never block scoring */ }
+
     // Group ratings per mentor; track per-reviewer counts for the reviewer cap.
     const byMentor = new Map();
     for (const id of mentorIds) byMentor.set(String(id), { rows: [], reviewerCounts: new Map() });
@@ -197,13 +210,18 @@ async function scorePool(mentorIds) {
 
     const out = new Map();
     for (const [key, bucket] of byMentor) {
-        const reviews = bucket.rows.map((r) => ({
-            rating: r.score,
-            sentiment: r.sentiment && r.sentiment.score != null ? r.sentiment.score : null,
-            ageDays: (now - new Date(r.createdAt).getTime()) / 86400000,
-            reviewsFromThisReviewer: bucket.reviewerCounts.get(String(r.fromUser)) || 1,
-            tiedToCompletedSwap: !!r.tiedToCompletedSwap,
-        }));
+        const reviews = bucket.rows.map((r) => {
+            // Discount ring edges: a flagged reciprocal/cyclic review doesn't count
+            // (modeled as not-tied-to-a-completed-swap → zero weight in the engine).
+            const ringed = ringEdges.has(`${String(r.fromUser)}->${key}`);
+            return {
+                rating: r.score,
+                sentiment: r.sentiment && r.sentiment.score != null ? r.sentiment.score : null,
+                ageDays: (now - new Date(r.createdAt).getTime()) / 86400000,
+                reviewsFromThisReviewer: bucket.reviewerCounts.get(String(r.fromUser)) || 1,
+                tiedToCompletedSwap: !ringed && !!r.tiedToCompletedSwap,
+            };
+        });
 
         const result = computeCosmicScore({
             reviews,
