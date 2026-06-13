@@ -8,6 +8,7 @@ import api from '../services/api';
 import Avatar from '../components/common/Avatar';
 import { ProfileHeaderSkeleton, SkillGridSkeleton } from '../components/skeletons';
 import ErrorState from '../components/common/ErrorState';
+import CosmicProfileCard from '../cosmic/CosmicProfileCard';
 
 const PublicProfile = () => {
   const { userId } = useParams();
@@ -129,6 +130,9 @@ const PublicProfile = () => {
           )}
         </div>
       </motion.div>
+
+      {/* Cosmic standing — additive, sits below the trust header card */}
+      <CosmicProfileCard userId={user._id} />
 
       {/* Skills Section */}
       <div className="space-y-4">

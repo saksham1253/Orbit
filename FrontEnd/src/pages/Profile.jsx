@@ -9,6 +9,7 @@ import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
 import Avatar from '../components/common/Avatar';
 import { ProfileHeaderSkeleton } from '../components/skeletons';
+import CosmicProfileCard from '../cosmic/CosmicProfileCard';
 
 const LANGUAGES = ['English','Spanish','French','Hindi','German','Mandarin','Japanese','Arabic','Portuguese','Korean'];
 
@@ -208,6 +209,11 @@ const Profile = () => {
           </div>
         </div>
       </motion.div>
+
+      {/* Cosmic standing — additive, sits beside the Trust score above */}
+      {(profile?._id || user?._id) && (
+        <CosmicProfileCard userId={profile?._id || user?._id} self />
+      )}
 
       {/* Form */}
       <form onSubmit={handleSubmit(d => updateMutation.mutate(d))} className="space-y-5">
