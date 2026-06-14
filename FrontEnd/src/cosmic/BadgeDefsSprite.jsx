@@ -101,6 +101,16 @@ const BadgeDefsSprite = memo(function BadgeDefsSprite() {
         </radialGradient>
 
         {/* ── Cosmic Sigil frames (rim material escalates by category, v2 §3.1) ── */}
+        {/* The Descent: cold, dim, broken rims (v4) */}
+        <linearGradient id="cb-rim-stardust" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#4A4750" /><stop offset="50%" stopColor="#33313A" /><stop offset="100%" stopColor="#1E1C24" />
+        </linearGradient>
+        <linearGradient id="cb-rim-meteor" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#6E5A4A" /><stop offset="50%" stopColor="#4A3E36" /><stop offset="100%" stopColor="#2A2420" />
+        </linearGradient>
+        <linearGradient id="cb-rim-asteroid" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#7A7068" /><stop offset="50%" stopColor="#544C46" /><stop offset="100%" stopColor="#332E2A" />
+        </linearGradient>
         <linearGradient id="cb-rim-moon" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stopColor="#6E665B" /><stop offset="50%" stopColor="#4A453E" /><stop offset="100%" stopColor="#2A2622" />
         </linearGradient>

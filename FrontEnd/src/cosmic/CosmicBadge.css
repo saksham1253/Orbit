@@ -68,6 +68,15 @@
 @keyframes cb-drift  { from { transform: translateX(-1px); } to { transform: translateX(1px); } }
 @keyframes cb-nova-shock { 0% { transform: scale(0.35); opacity: 0.9; } 70% { opacity: 0.25; } 100% { transform: scale(1.15); opacity: 0; } }
 @keyframes cb-nova-flicker { from { filter: brightness(1); transform: scale(0.98); } to { filter: brightness(1.4); transform: scale(1.05); } }
+/* v4 §2.3 — The Descent motion */
+.cb-rock-tumble  { animation: cb-rock-tumble calc(30s / var(--cb-speed)) linear infinite; }
+.cb-meteor-trail { animation: cb-meteor-flare calc(4s / var(--cb-speed)) ease-in-out infinite; }
+.cb-mote         { animation: cb-dust-twinkle calc(3.4s / var(--cb-speed)) ease-in-out infinite alternate; }
+.cb-ember        { animation: cb-ember-pulse calc(2.2s / var(--cb-speed)) ease-in-out infinite alternate; }
+@keyframes cb-rock-tumble { 0% { transform: rotate(0) translateY(0); } 50% { transform: rotate(180deg) translateY(0.6px); } 100% { transform: rotate(360deg) translateY(0); } }
+@keyframes cb-meteor-flare { 0%, 70% { opacity: 0.2; } 82% { opacity: 0.85; } 100% { opacity: 0.2; } }
+@keyframes cb-dust-twinkle { from { opacity: 0.35; } to { opacity: 0.85; } }
+@keyframes cb-ember-pulse { from { filter: brightness(0.9); } to { filter: brightness(1.6); } }
 
 /* ── Animation Speed = Off → freeze everything (set on <html> by App) ── */
 [data-anim-off="true"] .cb-badge * {

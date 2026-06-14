@@ -12,7 +12,7 @@
  *             in light and dark themes, spec §7.1).
  */
 
-export const SOLID_CATEGORIES = ['moon', 'planet'];          // no medallion, no glow
+export const SOLID_CATEGORIES = ['asteroid', 'meteor', 'stardust', 'moon', 'planet']; // no medallion, no glow
 export const EMITTER_CATEGORIES = ['star', 'pulsar', 'supernova', 'galaxy', 'quasar'];
 
 export const isEmitter = (category) => EMITTER_CATEGORIES.includes(category);
@@ -28,6 +28,46 @@ export const SKY = { from: '#1A0B2E', mid: '#120726', to: '#0D0221' };
  *   glow (rgb triplet string for the medallion box-shadow / outline accent).
  */
 export const TIERS = {
+  // ── THE DESCENT (below Moon — recovery tiers, v4 §2) ─────────────────────
+  asteroid_1: { category: 'asteroid', division: 1, name: 'The Ceres',
+    displayName: 'Asteroid I — The Ceres',
+    blurb: 'The largest of the wanderers — almost a moon. One good orbit and you round into one.' },
+  asteroid_2: { category: 'asteroid', division: 2, name: 'The Vesta',
+    displayName: 'Asteroid II — The Vesta',
+    blurb: 'A bright, solid rock. You have real mass; gather a little more.' },
+  asteroid_3: { category: 'asteroid', division: 3, name: 'The Pallas',
+    displayName: 'Asteroid III — The Pallas',
+    blurb: 'Tumbling but intact. Find your rhythm and rise.' },
+  asteroid_4: { category: 'asteroid', division: 4, name: 'The Hygiea',
+    displayName: 'Asteroid IV — The Hygiea',
+    blurb: 'Dark and quiet, but whole. The climb starts here.' },
+
+  meteor_1: { category: 'meteor', division: 1, name: 'The Perseid',
+    displayName: 'Meteor I — The Perseid',
+    blurb: 'A bright streak across the sky — brief, but everyone looks up.' },
+  meteor_2: { category: 'meteor', division: 2, name: 'The Geminid',
+    displayName: 'Meteor II — The Geminid',
+    blurb: 'A steady fall with real fire. Turn the descent into momentum.' },
+  meteor_3: { category: 'meteor', division: 3, name: 'The Leonid',
+    displayName: 'Meteor III — The Leonid',
+    blurb: 'A flicker in the dark. Small, but still burning.' },
+  meteor_4: { category: 'meteor', division: 4, name: 'The Orionid',
+    displayName: 'Meteor IV — The Orionid',
+    blurb: 'A faint trail. Keep moving — even falling things can rise.' },
+
+  stardust_1: { category: 'stardust', division: 1, name: 'The Zodiac',
+    displayName: 'Stardust I — The Zodiac',
+    blurb: "Scattered light along the ecliptic. You're catching the sun again." },
+  stardust_2: { category: 'stardust', division: 2, name: 'The Oort',
+    displayName: 'Stardust II — The Oort',
+    blurb: 'Far out in the cold, drifting. The long way back begins.' },
+  stardust_3: { category: 'stardust', division: 3, name: 'The Scatter',
+    displayName: 'Stardust III — The Scatter',
+    blurb: 'Flung wide and thin. Gather yourself.' },
+  stardust_4: { category: 'stardust', division: 4, name: 'The Spark',
+    displayName: 'Stardust IV — The Spark',
+    blurb: 'A single faint ember in the dark. Every moon, planet, and star was once dust like this. Begin again.' },
+
   // ── 🌑 MOON — "Every journey starts small." ──────────────────────────────
   moon_4: { category: 'moon', division: 4, emoji: '🌑', name: 'The Deimos',
     displayName: 'Moon IV — The Deimos',
@@ -141,6 +181,9 @@ export const TIERS = {
 
 // Ordered list (low → high) for galleries / progress UIs.
 export const TIER_ORDER = [
+  'stardust_4', 'stardust_3', 'stardust_2', 'stardust_1',
+  'meteor_4', 'meteor_3', 'meteor_2', 'meteor_1',
+  'asteroid_4', 'asteroid_3', 'asteroid_2', 'asteroid_1',
   'moon_4', 'moon_3', 'moon_2', 'moon_1',
   'planet_4', 'planet_3', 'planet_2', 'planet_1',
   'star_4', 'star_3', 'star_2', 'star_1',
@@ -155,6 +198,20 @@ export const TIER_ORDER = [
 // four Stars, four Supernovas, etc. are instantly distinguishable side-by-side.
 // `core` drives the celestial body; `accent` is a secondary feature tint.
 export const DIVISION_COLORS = {
+  // ── The Descent (v4 §2.3) ──
+  asteroid_1: { core: '#8A8178', accent: '#B5ACA0' }, // Ceres light stony grey
+  asteroid_2: { core: '#9B8463', accent: '#C7A877' }, // Vesta tan-brown, basaltic patch
+  asteroid_3: { core: '#5A5048', accent: '#3E3833' }, // Pallas dark carbon, pitted
+  asteroid_4: { core: '#6E6A66', accent: '#8E8A85' }, // Hygiea iron metallic
+  meteor_1: { core: '#7A6E64', accent: '#FF9E5A' },   // Perseid + orange rim
+  meteor_2: { core: '#564E47', accent: '#E08A3C' },   // Geminid + amber
+  meteor_3: { core: '#4A5560', accent: '#6FB0C8' },   // Leonid + faint cyan
+  meteor_4: { core: '#3E3A38', accent: '#8A5A3C' },   // Orionid + dim ember
+  stardust_1: { core: '#9FB3C8', accent: '#CFE0EE' }, // Zodiac pale blue-grey motes
+  stardust_2: { core: '#8B7FA8', accent: '#B6A8D0' }, // Oort muted violet
+  stardust_3: { core: '#6B6B72', accent: '#9A9AA2' }, // Scatter dim grey
+  stardust_4: { core: '#3A363B', accent: '#FFB36B' }, // Spark near-black + one ember
+
   moon_4: { core: '#5C5650', accent: '#3E3A35' },   // basalt grey, heavy craters
   moon_3: { core: '#7A6F60', accent: '#564E42' },   // red-dust grey, regolith streaks
   moon_2: { core: '#CFE8F0', accent: '#7FB0C8' },   // icy blue-white, ice cracks
@@ -193,6 +250,9 @@ export const getTier = (tierId) => TIERS[tierId] || TIERS.moon_4;
 
 // Entry score (core) per tier — mirrors backend TIER_FLOORS (v2 §2.2.1).
 export const TIER_FLOORS = {
+  stardust_4: 0.0, stardust_3: 6.0, stardust_2: 12.0, stardust_1: 18.0,
+  meteor_4: 24.0, meteor_3: 30.0, meteor_2: 35.0, meteor_1: 39.0,
+  asteroid_4: 42.0, asteroid_3: 45.0, asteroid_2: 47.0, asteroid_1: 48.5,
   moon_4: 50.0, moon_3: 53.0, moon_2: 56.0, moon_1: 59.0,
   planet_4: 62.0, planet_3: 65.0, planet_2: 68.0, planet_1: 71.0,
   star_4: 74.0, star_3: 77.0, star_2: 80.0, star_1: 82.5,
@@ -225,6 +285,9 @@ export const tierRequirement = (tierId) => CATEGORY_REQ[(TIERS[tierId] || {}).ca
 
 // Perks unlocked, by category (v2 §6).
 const CATEGORY_PERKS = {
+  stardust: ['Every mentor starts as dust — the climb begins here', 'Fully ranked on the local board'],
+  meteor: ['Still on the board, still climbing', 'A warmer badge as you rise'],
+  asteroid: ['Almost a Moon — one good orbit away', 'Ranked alongside everyone'],
   moon: ['Cosmic badge on your profile', 'A place on the local leaderboard'],
   planet: ['Larger, detailed planet badge', 'Climb the local board'],
   star: ['Light-emitter badge with glow', 'Earned titles begin'],

@@ -276,9 +276,75 @@ function QuasarArt({ anim }) {
   );
 }
 
+/* ── THE DESCENT badges (v4 §2.3) — solid bodies, cooler/lesser than Moon ── */
+
+function AsteroidArt({ div, anim, dc }) {
+  // Irregular lumpy rock (NOT a circle) that slowly tumbles.
+  const s = DIV_SCALE[div] * 0.92;
+  // irregular polygon (asteroid silhouette)
+  const path = 'M50 22 L66 28 L74 44 L70 62 L56 74 L40 72 L28 60 L24 42 L32 28 Z';
+  const craters = [
+    { x: 46, y: 42, r: 4 }, { x: 60, y: 52, r: 3 }, { x: 42, y: 58, r: 2.6 }, { x: 56, y: 38, r: 2 },
+  ].slice(0, 2 + (4 - div));
+  return (
+    <g filter="url(#cb-drop)">
+      <g className={anim ? 'cb-rock-tumble' : ''} style={{ transformBox: 'fill-box', transformOrigin: 'center' }}>
+        <path d={path} fill={dc.core} stroke="#2A2622" strokeWidth="1.3"
+          transform={`translate(50 50) scale(${s}) translate(-50 -50)`} />
+        <g fill={dc.accent} opacity="0.7"
+          transform={`translate(50 50) scale(${s}) translate(-50 -50)`}>
+          {craters.map((c, i) => <circle key={i} cx={c.x} cy={c.y} r={c.r} />)}
+        </g>
+      </g>
+    </g>
+  );
+}
+
+function MeteorArt({ div, anim, dc }) {
+  // Small jagged shard with a faint glowing entry-trail that periodically flares.
+  const s = DIV_SCALE[div] * 0.9;
+  return (
+    <g filter="url(#cb-drop)">
+      {/* trail */}
+      <path className={anim ? 'cb-meteor-trail' : ''}
+        d="M30 74 L40 64 L46 58 L52 52" fill="none" stroke={dc.accent}
+        strokeWidth="6" strokeLinecap="round" opacity="0.3"
+        transform={`translate(50 50) scale(${s}) translate(-50 -50)`} />
+      {/* shard */}
+      <path d="M52 46 L62 40 L58 54 L66 58 L50 64 L44 54 Z" fill={dc.core} stroke="#2A2622" strokeWidth="1.2"
+        transform={`translate(50 50) scale(${s}) translate(-50 -50)`} />
+      <circle cx="56" cy="50" r={3 * s} fill={dc.accent} className={anim ? 'cb-flicker' : ''} />
+    </g>
+  );
+}
+
+function StardustArt({ tier, div, anim, dc }) {
+  // Loose cluster of drifting motes. The Spark (stardust_4) = near-dark + one ember.
+  const isSpark = tier.tierId === 'stardust_4';
+  const motes = isSpark
+    ? [{ x: 50, y: 50, r: 3.4, ember: true }]
+    : Array.from({ length: 7 + (4 - div) * 2 }, (_, i) => {
+        const a = (i / 9) * Math.PI * 2 + i;
+        const rr = 12 + (i % 3) * 8;
+        return { x: 50 + Math.cos(a) * rr, y: 50 + Math.sin(a) * rr, r: 1.4 + (i % 2) * 0.8 };
+      });
+  return (
+    <g>
+      {motes.map((m, i) => (
+        <circle key={i} cx={m.x} cy={m.y} r={m.r}
+          fill={m.ember ? dc.accent : dc.core}
+          className={anim ? (m.ember ? 'cb-ember' : 'cb-mote') : ''}
+          style={{ animationDelay: `${(i % 4) * 0.3}s` }} />
+      ))}
+      {isSpark && <circle cx="50" cy="50" r="7" fill="none" stroke={dc.accent} strokeOpacity="0.3" strokeWidth="1" className={anim ? 'cb-ember' : ''} />}
+    </g>
+  );
+}
+
 const ART = {
   moon: MoonArt, planet: PlanetArt, star: StarArt,
   pulsar: PulsarArt, supernova: SupernovaArt, galaxy: GalaxyArt,
+  asteroid: AsteroidArt, meteor: MeteorArt, stardust: StardustArt,
 };
 
 const CosmicBadge = memo(function CosmicBadge({ tierId, size = 'full', className = '', title }) {
@@ -310,7 +376,7 @@ const CosmicBadge = memo(function CosmicBadge({ tierId, size = 'full', className
         {emitter && <Stars show={anim} />}
         {tier.category === 'quasar'
           ? <QuasarArt anim={anim} />
-          : <Art tier={tier} div={div} anim={anim} dc={dc} />}
+          : <Art tier={{ ...tier, tierId }} div={div} anim={anim} dc={dc} />}
         {emitter && <MedallionRim glow={glow} />}
         {/* Cosmic Sigil frame + division pips — full size only (§3) */}
         {!mini && <SigilFrame category={tier.category} division={div} litColor={`rgb(${glow})`} />}

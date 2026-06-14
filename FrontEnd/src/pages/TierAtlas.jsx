@@ -15,6 +15,9 @@ import CosmicBadge from '../cosmic/CosmicBadge';
 import { TIER_ORDER, getTier, scoreRange, tierRequirement, tierPerks } from '../cosmic/tiers';
 
 const CATEGORIES = [
+  { key: 'stardust',  title: 'Stardust',  tagline: 'The Descent — recovery tiers; everyone can climb back.' },
+  { key: 'meteor',    title: 'Meteor',    tagline: 'Still burning. Turn the fall into momentum.' },
+  { key: 'asteroid',  title: 'Asteroid',  tagline: 'Almost a moon. Gather a little more mass.' },
   { key: 'moon',      title: 'Moon',      tagline: 'Every journey starts small.' },
   { key: 'planet',    title: 'Planet',    tagline: "You've arrived." },
   { key: 'star',      title: 'Star',      tagline: 'You generate your own light.' },
