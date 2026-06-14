@@ -32,8 +32,10 @@ const pick = (arr) => arr[(Math.random() * arr.length) | 0];
 
 export class LiftoffEngine {
   constructor(canvas, { category, promotion = true, speed = 1, onReveal, onDone }) {
+    if (!canvas) throw new Error('LiftoffEngine: canvas not ready');
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
+    if (!this.ctx) throw new Error('LiftoffEngine: 2d context unavailable');
     this.category = PALETTE[category] ? category : 'star';
     this.colors = PALETTE[this.category];
     this.promotion = promotion;
@@ -106,6 +108,19 @@ export class LiftoffEngine {
   }
 
   _frame(now) {
+    try {
+      this._drawFrame(now);
+    } catch (err) {
+      // A mid-animation error must never leave a blank canvas: reveal the badge
+      // (static fallback) and stop the loop cleanly (v3 §1).
+      console.warn('Liftoff frame error, falling back to static reveal:', err);
+      try { this.onReveal(); } catch { /* noop */ }
+      this.stop();
+      this.onDone();
+    }
+  }
+
+  _drawFrame(now) {
     const ctx = this.ctx;
     const dt = 1 / 60;
     const t = ((now - this._start) / 1000) * this.speed; // scaled timeline seconds

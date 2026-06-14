@@ -76,29 +76,46 @@ export default function LiftoffOverlay() {
     // Chime obeys UI Sounds (handled inside playLiftoffChime).
     playLiftoffChime(promotion);
 
-    let autoTimer;
+    const sp = Math.max(speed || 1, 0.2);
+    let autoTimer, safetyTimer;
+
+    // Still mode (reduced-motion / anim-speed 0): static reveal card, no canvas.
     if (stillMode) {
       setRevealed(true);
-      autoTimer = setTimeout(() => clear(), 6500);
+      autoTimer = setTimeout(() => clear(), 6500 / sp);
       return () => clearTimeout(autoTimer);
     }
 
-    const engine = new LiftoffEngine(canvasRef.current, {
-      category: getTier(event.toTierId).category,
-      promotion,
-      speed: speed || 1,
-      onReveal: () => setRevealed(true),
-      onDone: () => {},
-    });
-    engineRef.current = engine;
-    engine.start();
+    // v3 §1 — SAFETY REVEAL: the badge + headline must ALWAYS appear, even if
+    // the canvas engine fails to init or never calls onReveal. This guarantees
+    // we never show a blank/black overlay. The engine's onReveal can fire
+    // earlier; this is the backstop.
+    safetyTimer = setTimeout(() => setRevealed(true), 1200 / sp);
+
+    let engine = null;
+    try {
+      engine = new LiftoffEngine(canvasRef.current, {
+        category: getTier(event.toTierId).category,
+        promotion,
+        speed: speed || 1,
+        onReveal: () => setRevealed(true),
+        onDone: () => {},
+      });
+      engineRef.current = engine;
+      engine.start();
+    } catch (err) {
+      // Engine failed → fall back to the static reveal card immediately.
+      console.warn('Liftoff engine failed, showing static reveal:', err);
+      setRevealed(true);
+    }
 
     // Auto-dismiss a few seconds after the badge has settled.
-    autoTimer = setTimeout(() => clear(), promotion ? 9000 : 6000);
+    autoTimer = setTimeout(() => clear(), (promotion ? 9000 : 6000) / sp);
 
     return () => {
       clearTimeout(autoTimer);
-      engine.stop();
+      clearTimeout(safetyTimer);
+      if (engine) engine.stop();
       engineRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
