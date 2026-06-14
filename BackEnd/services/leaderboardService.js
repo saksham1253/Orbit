@@ -241,14 +241,17 @@ async function scorePool(mentorIds) {
     return out;
 }
 
-// Tie-break (spec §18): score → weighted reviews → completed swaps → name.
+// Tie-break (v3 §2): score → weighted reviews → completed swaps → name →
+// userId. The trailing userId makes ranks fully DETERMINISTIC and distinct
+// even when many users are tied at the warm-start 50 (no flicker).
 function rankEntries(entries) {
     return entries
         .sort((a, b) =>
             b.score - a.score ||
             b.weightedReviews - a.weightedReviews ||
             b.reviewsCount - a.reviewsCount ||
-            String(a.name).localeCompare(String(b.name))
+            String(a.name).localeCompare(String(b.name)) ||
+            String(a.userId).localeCompare(String(b.userId))
         )
         .map((e, i) => ({ ...e, rank: i + 1 }));
 }
@@ -265,12 +268,18 @@ async function buildLeaderboard({ me, lat, lng, scope = "city", season = "" }) {
 
     const { pool, label, usedFallback } = await resolvePool({ lat, lng, scope, me });
 
-    const mentorIds = pool.map((u) => u._id);
-    // Ensure the viewer is scored too (so "you" is accurate even if outside pool).
-    const idsForScoring = [...mentorIds, me._id];
-    const scores = await scorePool(idsForScoring);
+    // v3 §2 — the VIEWER must be ranked among everyone (resolvePool excludes
+    // them). Append the viewer to the pool if missing so they always get a
+    // numeric rank — never "Not yet ranked here".
+    const rankPool = pool.slice();
+    if (!rankPool.some((u) => String(u._id) === String(me._id))) {
+        rankPool.push(me);
+    }
 
-    const entries = rankEntries(pool.map((u) => {
+    const mentorIds = rankPool.map((u) => u._id);
+    const scores = await scorePool(mentorIds);
+
+    const entries = rankEntries(rankPool.map((u) => {
         const s = scores.get(String(u._id)) || { score: 50, tier: assignTier(50, {}), weightedReviews: 0, reviewsCount: 0 };
         return {
             userId: String(u._id),
@@ -288,13 +297,16 @@ async function buildLeaderboard({ me, lat, lng, scope = "city", season = "" }) {
         };
     }));
 
-    // "you" block — find the viewer's own rank within this scope (v2 §5.1:
-    // always surfaced, even when outside the top 50, so the row can be pinned).
+    const TOP_N = 50;
+
+    // "you" block — the viewer is now always in `entries`, so they always have a
+    // real numeric rank (v3 §2: never "Not yet ranked here").
     const meScore = scores.get(String(me._id)) || { score: 50, tier: assignTier(50, {}) };
     const youRankIdx = entries.findIndex((e) => e.userId === String(me._id));
     const youEntry = youRankIdx >= 0 ? entries[youRankIdx] : null;
     const you = {
-        rank: youEntry ? youEntry.rank : null,
+        rank: youEntry ? youEntry.rank : entries.length, // always numeric
+        of: entries.length,                              // "#N of M"
         userId: String(me._id),
         name: me.name,
         avatar: me.avatar || "",
@@ -303,16 +315,16 @@ async function buildLeaderboard({ me, lat, lng, scope = "city", season = "" }) {
         nameGlowTier: nameGlowFor(meScore.tier.tierId),
         progress: meScore.tier.progress,              // { mode, pct, label }
         progressToNext: meScore.tier.progressToNext,
-        inTop: youRankIdx >= 0 && youRankIdx < 50,
+        inTop50: youRankIdx >= 0 && youRankIdx < TOP_N,
     };
 
-    const TOP_N = 50;
     const payload = {
         scope,
         label,
         seasonId: season || null,
         you,
         total: entries.length,
+        totalInScope: entries.length,
         entries: entries.slice(0, TOP_N).map(({ weightedReviews, reviewsCount, ...rest }) => rest),
         usedFallback,
     };

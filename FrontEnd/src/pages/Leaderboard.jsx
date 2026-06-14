@@ -129,7 +129,7 @@ export default function Leaderboard() {
                 You — {getTier(data.you.tierId).displayName}
               </div>
               <div className="text-xs text-text-muted">
-                Score {data.you.score} · {data.you.rank ? `Rank #${data.you.rank} in scope` : 'Not yet ranked here'}
+                Score {data.you.score} · Rank #{data.you.rank} of {data.you.of}
               </div>
               {/* progress to next tier (locked / progress / max) */}
               <div className="mt-2 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border-subtle)' }}>
@@ -210,32 +210,37 @@ export default function Leaderboard() {
           </ul>
         )}
 
-        {/* Pinned "your position" row when the viewer is outside the top 50 (v2 §5.1) */}
-        {!isLoading && !isError && data?.you?.rank && data.you.inTop === false && (
-          <div className="mt-2 pt-2" style={{ borderTop: '1px dashed var(--border-subtle)' }}>
-            <button onClick={() => navigate(`/profile/${data.you.userId}`)}
-              className="w-full flex items-center gap-3 p-2.5 rounded-2xl text-left"
-              style={{ background: 'var(--surface)', border: '1px solid var(--accent-1)' }}>
-              <RankBadge rank={data.you.rank} />
-              <Avatar name={data.you.name} url={data.you.avatar} size="sm" userId={data.you.userId} />
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold text-text-primary truncate flex items-center gap-1.5">
-                  <CosmicName glow={data.you.nameGlowTier}>{data.you.name}</CosmicName><span className="text-[10px] text-accent font-bold">YOU</span>
-                </div>
-                <div className="text-xs text-text-muted truncate">{getTier(data.you.tierId).displayName}</div>
-              </div>
-              <CosmicBadge tierId={data.you.tierId} size="mini" />
-              <span className="text-sm font-bold tabular-nums text-text-secondary w-12 text-right">{data.you.score}</span>
-            </button>
-          </div>
-        )}
-
         {/* Footer note */}
-        <div className="flex items-start gap-1.5 text-[11px] text-text-muted mt-6">
+        <div className="flex items-start gap-1.5 text-[11px] text-text-muted mt-6 mb-24">
           <Info size={12} className="mt-0.5 flex-none" />
           <span>Tiers are earned from genuine reviews and completed swaps. Rank is local, so it's always winnable.</span>
         </div>
       </div>
+
+      {/* Sticky game-style "Your Position" bar — always visible (v3 §2) */}
+      {!isLoading && !isError && data?.you?.rank && (
+        <div className="fixed bottom-0 left-0 right-0 z-30 px-4 pb-3 pointer-events-none">
+          <button onClick={() => navigate(`/profile/${data.you.userId}`)}
+            className="pointer-events-auto max-w-3xl mx-auto w-full flex items-center gap-3 p-2.5 rounded-2xl text-left shadow-2xl backdrop-blur"
+            style={{ background: 'var(--surface)', border: '1px solid var(--accent-1)', boxShadow: '0 8px 30px rgba(0,0,0,0.35)' }}>
+            <div className="flex flex-col items-center justify-center w-12 flex-none">
+              <span className="text-sm font-bold tabular-nums" style={{ color: 'var(--accent-1)' }}>#{data.you.rank}</span>
+              <span className="text-[9px] text-text-muted">of {data.you.of}</span>
+            </div>
+            <Avatar name={data.you.name} url={data.you.avatar} size="sm" userId={data.you.userId} />
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-semibold text-text-primary truncate flex items-center gap-1.5">
+                <CosmicName glow={data.you.nameGlowTier}>{data.you.name}</CosmicName>
+                <span className="text-[10px] text-accent font-bold">YOU</span>
+                {!data.you.inTop50 && <span className="text-[9px] text-text-muted">· outside top 50</span>}
+              </div>
+              <div className="text-xs text-text-muted truncate">{getTier(data.you.tierId).displayName}</div>
+            </div>
+            <CosmicBadge tierId={data.you.tierId} size="mini" />
+            <span className="text-sm font-bold tabular-nums text-text-secondary w-12 text-right">{data.you.score}</span>
+          </button>
+        </div>
+      )}
     </>
   );
 }
