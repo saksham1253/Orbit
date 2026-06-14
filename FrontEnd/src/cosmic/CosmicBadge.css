@@ -46,6 +46,7 @@
 
 /* ── Animations (full badges only) ──────────────────────────── */
 .cb-spin       { animation: cb-spin       calc(6s   / var(--cb-speed)) linear infinite; }
+.cb-spin-fast  { animation: cb-spin       calc(3.2s / var(--cb-speed)) linear infinite; }
 .cb-spin-slow  { animation: cb-spin       calc(16s  / var(--cb-speed)) linear infinite; }
 .cb-pulse      { animation: cb-pulse      calc(1.8s / var(--cb-speed)) ease-in-out infinite alternate; }
 .cb-flicker    { animation: cb-flicker    calc(2.4s / var(--cb-speed)) ease-in-out infinite; }
@@ -53,6 +54,11 @@
 .cb-shock      { animation: cb-shock      calc(3s   / var(--cb-speed)) ease-out infinite; }
 .cb-jet        { animation: cb-flicker    calc(1.4s / var(--cb-speed)) ease-in-out infinite; }
 .cb-planet-bands { animation: cb-drift    calc(8s   / var(--cb-speed)) ease-in-out infinite alternate; }
+/* v3 §4.1 — motion for the previously-static categories */
+.cb-moon-rotate { animation: cb-spin      calc(48s  / var(--cb-speed)) linear infinite; }
+.cb-planet-spin { animation: cb-drift     calc(30s  / var(--cb-speed)) ease-in-out infinite alternate; }
+.cb-nova-shock  { animation: cb-nova-shock calc(3.2s / var(--cb-speed)) ease-out infinite; }
+.cb-nova-core   { animation: cb-nova-flicker calc(1.1s / var(--cb-speed)) ease-in-out infinite alternate; }
 
 @keyframes cb-spin   { to { transform: rotate(360deg); } }
 @keyframes cb-pulse  { from { transform: scale(1); opacity: 0.92; } to { transform: scale(1.16); opacity: 1; } }
@@ -60,6 +66,8 @@
 @keyframes cb-swell  { from { transform: scale(0.96); } to { transform: scale(1.08); } }
 @keyframes cb-shock  { 0% { transform: scale(0.7); opacity: 0.8; } 100% { transform: scale(1.15); opacity: 0; } }
 @keyframes cb-drift  { from { transform: translateX(-1px); } to { transform: translateX(1px); } }
+@keyframes cb-nova-shock { 0% { transform: scale(0.35); opacity: 0.9; } 70% { opacity: 0.25; } 100% { transform: scale(1.15); opacity: 0; } }
+@keyframes cb-nova-flicker { from { filter: brightness(1); transform: scale(0.98); } to { filter: brightness(1.4); transform: scale(1.05); } }
 
 /* ── Animation Speed = Off → freeze everything (set on <html> by App) ── */
 [data-anim-off="true"] .cb-badge * {

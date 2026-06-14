@@ -150,6 +150,45 @@ export const TIER_ORDER = [
   'quasar',
 ];
 
+// ── Per-division core palettes (v3 §4.2) ───────────────────────────────────
+// Every one of the 24 divisions gets a DISTINCT core color so the four Moons,
+// four Stars, four Supernovas, etc. are instantly distinguishable side-by-side.
+// `core` drives the celestial body; `accent` is a secondary feature tint.
+export const DIVISION_COLORS = {
+  moon_4: { core: '#5C5650', accent: '#3E3A35' },   // basalt grey, heavy craters
+  moon_3: { core: '#7A6F60', accent: '#564E42' },   // red-dust grey, regolith streaks
+  moon_2: { core: '#CFE8F0', accent: '#7FB0C8' },   // icy blue-white, ice cracks
+  moon_1: { core: '#C9A24B', accent: '#E0B85F' },   // golden haze, orange atmosphere
+
+  planet_4: { core: '#9C9A97', accent: '#6F6D6A' }, // Mercury grey
+  planet_3: { core: '#C1440E', accent: '#FFFFFF' }, // Mars rust + polar cap
+  planet_2: { core: '#2B6CB0', accent: '#A9D6FF' }, // Neptune blue + cloud bands
+  planet_1: { core: '#D8A47F', accent: '#9E4A33' }, // Jupiter tan + red spot
+
+  star_4: { core: '#BCD8FF', accent: '#E8F2FF' },   // Sirius blue-white
+  star_3: { core: '#F4F4FF', accent: '#FFFFFF' },   // Vega pure white
+  star_2: { core: '#FFB36B', accent: '#FFD9A8' },   // Arcturus amber giant
+  star_1: { core: '#9DB8FF', accent: '#CFE0FF' },   // Rigel bright blue
+
+  pulsar_4: { core: '#7FE1FF', accent: '#BFF2FF' }, // pale cyan, slow single sweep
+  pulsar_3: { core: '#4CC9F0', accent: '#7FE1FF' }, // cyan twin beams
+  pulsar_2: { core: '#43E0C0', accent: '#9BF0DF' }, // teal-green, fast beams
+  pulsar_1: { core: '#B36BFF', accent: '#D6B0FF' }, // violet-magenta, field arcs
+
+  supernova_4: { core: '#FF6B35', accent: '#8B0000' }, // red→orange, single shock
+  supernova_3: { core: '#FFB000', accent: '#C2410C' }, // orange→gold, double shock
+  supernova_2: { core: '#43E0C0', accent: '#0E7C66' }, // teal-green shock + filaments
+  supernova_1: { core: '#FF7043', accent: '#B11226' }, // crimson→coral, big swell
+
+  galaxy_4: { core: '#F6C667', accent: '#C99A3F' },  // Sombrero gold edge-on
+  galaxy_3: { core: '#8FB8FF', accent: '#FFFFFF' },  // Whirlpool blue-white
+  galaxy_2: { core: '#E8D9B5', accent: '#9E7B4F' },  // Milky Way cream
+  galaxy_1: { core: '#C77DFF', accent: '#FF8FCF' },  // Andromeda violet-pink
+
+  quasar: { core: '#FFFFFF', accent: '#8EC5FF' },
+};
+export const divisionColor = (tierId) => DIVISION_COLORS[tierId] || DIVISION_COLORS.moon_4;
+
 export const getTier = (tierId) => TIERS[tierId] || TIERS.moon_4;
 
 // Entry score (core) per tier — mirrors backend TIER_FLOORS (v2 §2.2.1).
