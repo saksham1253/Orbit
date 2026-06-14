@@ -15,6 +15,7 @@
 const User       = require("../models/user");
 const Rating     = require("../models/rating");
 const Connection = require("../models/Connection");
+const Skill      = require("../models/skill");
 const { computeCosmicScore } = require("./cosmicScore");
 const { assignTier, nameGlowFor } = require("./cosmicTier");
 const { detectReviewRings } = require("./seasonService");
@@ -102,6 +103,103 @@ async function mentorsWithin(lat, lng, maxKm, excludeId) {
         .filter((u) => u && u.distanceKm <= maxKm)
         .sort((a, b) => a.distanceKm - b.distanceKm)
         .slice(0, MAX_POOL);
+}
+
+// ── Unified candidate set (§8.5) ────────────────────────────────────────────
+// The board + Observatory candidate set must equal the set Browse uses, then
+// be scope-filtered and ranked. Browse = users who offer a skill and aren't
+// banned (no location filter). We mirror that EXACTLY, then scope-filter in JS.
+// Visibility is NEVER gated by review count or score (warm-started on read).
+const MENTOR_CAP = 1000;
+const norm = (s) => String(s || "").trim().toLowerCase();
+
+async function mentorCandidates(excludeId) {
+    const ids = await Skill.distinct("userId");          // distinct mentors (offer a skill)
+    const now = new Date();
+    return User.find({
+        _id: { $in: ids, $ne: excludeId },
+        $or: [{ bannedUntil: null }, { bannedUntil: { $lte: now } }],
+    })
+        .select("name avatar location city region country coordinates geo cosmic trustScore averageRating sentimentScore")
+        .limit(MENTOR_CAP)
+        .lean();
+}
+
+// A mentor is "placeable" if they have ANY locatable signal.
+function hasLocation(u) {
+    return !!(norm(u.city) || userLatLng(u) || norm(u.location));
+}
+
+/**
+ * Filter the unified candidate set into ONE scope, in-JS (no extra DB).
+ * @returns {{ pool:Array, label:string, appliedRadiusKm:number|null, widened:boolean, unplacedCount:number }}
+ *
+ * Missing-location mentors stay visible at Region/Country; for City they are
+ * reported via `unplacedCount` rather than silently dropped (§8.5, preferred).
+ */
+function scopeFilter(candidates, { scope, me, lat, lng }) {
+    const myCity = norm(me.city), myRegion = norm(me.region), myCountry = norm(me.country), myLoc = norm(me.location);
+
+    if (scope === "country") {
+        // Inclusive at the broadest scope: same country, or unknown country.
+        const pool = candidates.filter((u) => !norm(u.country) || !myCountry || norm(u.country) === myCountry);
+        return { pool, label: me.country || "your country", appliedRadiusKm: null, widened: false, unplacedCount: 0 };
+    }
+
+    if (scope === "region") {
+        const pool = candidates.filter((u) => {
+            const r = norm(u.region), c = norm(u.country);
+            if (myRegion && r === myRegion) return true;
+            if (!r && c && c === myCountry) return true;   // unknown region but same country
+            return false;
+        });
+        return { pool, label: me.region || "your region", appliedRadiusKm: null, widened: false, unplacedCount: 0 };
+    }
+
+    if (scope === "neighborhood") {
+        const havePos = lat != null && !Number.isNaN(lat) && lng != null;
+        const pool = havePos ? candidates.filter((u) => {
+            const ll = userLatLng(u);
+            return ll && haversineKm(lat, lng, ll.lat, ll.lng) <= NEIGHBORHOOD_KM;
+        }) : [];
+        const unplacedCount = candidates.filter((u) => !hasLocation(u)).length;
+        return { pool, label: `within ${NEIGHBORHOOD_KM} km`, appliedRadiusKm: NEIGHBORHOOD_KM, widened: false, unplacedCount };
+    }
+
+    // CITY: (a) city-string match  ∪  (b) coords within an auto-widening radius
+    //       ∪  (c) normalized location-text match.
+    const byId = new Map();
+    const add = (u) => byId.set(String(u._id), u);
+    if (myCity) candidates.filter((u) => norm(u.city) === myCity).forEach(add);
+    if (myLoc)  candidates.filter((u) => norm(u.location) === myLoc).forEach(add);
+
+    let appliedRadiusKm = null, widened = false;
+    if (lat != null && !Number.isNaN(lat) && lng != null) {
+        for (const r of [25, 50, 100]) {
+            appliedRadiusKm = r;
+            candidates.forEach((u) => {
+                const ll = userLatLng(u);
+                if (ll && haversineKm(lat, lng, ll.lat, ll.lng) <= r) add(u);
+            });
+            if (byId.size >= MIN_POOL) break;
+        }
+        widened = appliedRadiusKm > 25;   // had to grow beyond the first ring
+    }
+
+    const pool = [...byId.values()];
+    const label = me.city || (appliedRadiusKm ? `within ${appliedRadiusKm} km` : "your city");
+    const unplacedCount = candidates.filter((u) => !hasLocation(u)).length;
+    return { pool, label, appliedRadiusKm, widened, unplacedCount };
+}
+
+// Per-scope mentor counts from the SAME candidate array (in-JS, no extra DB),
+// so the UI can show real counts + one-tap scope switching (§8.5).
+function scopeCounts(candidates, me, lat, lng) {
+    return {
+        city:    scopeFilter(candidates, { scope: "city", me, lat, lng }).pool.length,
+        region:  scopeFilter(candidates, { scope: "region", me, lat, lng }).pool.length,
+        country: scopeFilter(candidates, { scope: "country", me, lat, lng }).pool.length,
+    };
 }
 
 /**
@@ -266,10 +364,17 @@ async function buildLeaderboard({ me, lat, lng, scope = "city", season = "" }) {
     const cached = cacheGet(cacheKey);
     if (cached) return cached;
 
-    const { pool, label, usedFallback } = await resolvePool({ lat, lng, scope, me });
+    // §8.5 — single source of truth: the SAME mentors Browse uses, scope-filtered
+    // in-JS, then ranked. Mentors without coordinates are no longer dropped from
+    // City (they surface via unplacedCount + stay visible at Region/Country).
+    const candidates = await mentorCandidates(me._id);
+    const { pool, label, appliedRadiusKm, widened, unplacedCount } =
+        scopeFilter(candidates, { scope, me, lat, lng });
+    const counts = scopeCounts(candidates, me, lat, lng);
+    const usedFallback = widened;
 
-    // v3 §2 — the VIEWER must be ranked among everyone (resolvePool excludes
-    // them). Append the viewer to the pool if missing so they always get a
+    // v3 §2 — the VIEWER must be ranked among everyone (scopeFilter may exclude
+    // them, e.g. unplaced). Append the viewer if missing so they always get a
     // numeric rank — never "Not yet ranked here".
     const rankPool = pool.slice();
     if (!rankPool.some((u) => String(u._id) === String(me._id))) {
@@ -327,6 +432,11 @@ async function buildLeaderboard({ me, lat, lng, scope = "city", season = "" }) {
         totalInScope: entries.length,
         entries: entries.slice(0, TOP_N).map(({ weightedReviews, reviewsCount, ...rest }) => rest),
         usedFallback,
+        // §8.5 coverage metadata so the UI can explain who is shown and why.
+        scopeCounts: counts,
+        appliedRadiusKm,
+        widened,
+        unplacedCount,
     };
     cacheSet(cacheKey, payload);
     return payload;
@@ -336,5 +446,6 @@ module.exports = {
     buildLeaderboard,
     // exported for tests / reuse
     resolvePool, scorePool, rankEntries, mentorsWithin, haversineKm,
+    mentorCandidates, scopeFilter, scopeCounts, norm,
     MIN_POOL, RADIUS_STEPS_KM,
 };

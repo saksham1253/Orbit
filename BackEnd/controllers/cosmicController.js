@@ -2,7 +2,7 @@ const User = require("../models/user");
 const Rating = require("../models/rating");
 const Connection = require("../models/Connection");
 const Legend = require("../models/Legend");
-const { buildLeaderboard, scorePool, mentorsWithin } = require("../services/leaderboardService");
+const { buildLeaderboard, scorePool, mentorCandidates, scopeFilter, norm } = require("../services/leaderboardService");
 const { computeCosmicScore } = require("../services/cosmicScore");
 const { assignTier, resolveDisplayTier, nameGlowFor, higherTier, TIER_ORDER } = require("../services/cosmicTier");
 
@@ -22,7 +22,7 @@ exports.getLeaderboard = async (req, res) => {
         const season = req.query.season || "";
 
         const me = await User.findById(req.user.id)
-            .select("name avatar city region country coordinates geo cosmic")
+            .select("name avatar location city region country coordinates geo cosmic")
             .lean();
         if (!me) return res.status(404).json({ message: "User not found" });
 
@@ -32,17 +32,20 @@ exports.getLeaderboard = async (req, res) => {
         if ((lat == null || Number.isNaN(lat)) && me.coordinates && me.coordinates.lat != null) {
             lat = me.coordinates.lat; lng = me.coordinates.lng;
         }
-        // Region/country scopes can work off admin fields without coordinates.
+        // §8.5 — if the viewer has no location and asked for a coordinate scope,
+        // DON'T 400. Default the board to Country (works off admin fields / is
+        // inclusive) and tell the UI to nudge them to set a city.
         const needsCoords = scope === "neighborhood" || scope === "city";
-        if (needsCoords && (lat == null || Number.isNaN(lat))) {
-            return res.status(400).json({
-                message: "Set your location first (Nearby) or pass lat/lng to use a distance-based board.",
-                needsLocation: true,
-            });
+        const noPos = lat == null || Number.isNaN(lat);
+        let effectiveScope = scope;
+        let viewerNeedsLocation = false;
+        if (needsCoords && noPos && !me.city && !me.location) {
+            effectiveScope = "country";
+            viewerNeedsLocation = true;
         }
 
-        const payload = await buildLeaderboard({ me, lat, lng, scope, season });
-        return res.status(200).json(payload);
+        const payload = await buildLeaderboard({ me, lat, lng, scope: effectiveScope, season });
+        return res.status(200).json({ ...payload, requestedScope: scope, viewerNeedsLocation });
     } catch (err) {
         console.error("getLeaderboard error:", err);
         res.status(500).json({ message: "Server error" });
@@ -145,21 +148,27 @@ const escapeRegex = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 exports.getObservatory = async (req, res) => {
     try {
         const cityParam = (req.params.city || "").trim();
-        const me = await User.findById(req.user.id).select("city coordinates").lean();
+        const me = await User.findById(req.user.id)
+            .select("name location city region country coordinates geo cosmic").lean();
+        if (!me) return res.status(404).json({ message: "User not found" });
 
-        const SELECT = "name avatar city cosmic";
+        // §8.5 — unify the Observatory candidate set with the leaderboard/Browse
+        // set (mentors who offer a skill), then scope-filter. When a :city param
+        // is given, narrow the same candidates to that city/location text; else
+        // use the viewer's City scope (which auto-widens by radius).
+        const candidates = await mentorCandidates(me._id);
+        const lat = me.coordinates && me.coordinates.lat != null ? me.coordinates.lat : null;
+        const lng = me.coordinates && me.coordinates.lng != null ? me.coordinates.lng : null;
 
-        // Primary pool: users whose city field matches. Fall back to a distance
-        // pool around the viewer when the city field isn't populated yet.
-        let pool = [];
-        let label = cityParam || (me && me.city) || "your city";
+        let pool, label;
         if (cityParam) {
-            pool = await User.find({ city: new RegExp(`^${escapeRegex(cityParam)}$`, "i") })
-                .select(SELECT).limit(200).lean();
-        }
-        if (pool.length < 3 && me && me.coordinates && me.coordinates.lat != null) {
-            pool = await mentorsWithin(me.coordinates.lat, me.coordinates.lng, 50, me._id);
-            label = cityParam || (me && me.city) || "within 50 km";
+            const cp = norm(cityParam);
+            pool = candidates.filter((u) => norm(u.city) === cp || norm(u.location) === cp);
+            label = cityParam;
+        } else {
+            const filtered = scopeFilter(candidates, { scope: "city", me, lat, lng });
+            pool = filtered.pool;
+            label = filtered.label;
         }
 
         const ids = pool.map((u) => u._id);
