@@ -19,9 +19,20 @@ import { useObservatory } from '../cosmic/useCosmic';
 import CosmicBadge from '../cosmic/CosmicBadge';
 import CosmicName from '../cosmic/CosmicName';
 import { getTier, nameGlowFor } from '../cosmic/tiers';
-import Avatar from '../components/common/Avatar';
+import { InfoDot, Disclosure, ScoreExplainerBody } from '../cosmic/scoreInfo';
+import { SCORE_DISTINCTION, COSMIC_SCORE_INFO, TRUST_SCORE_INFO } from '../cosmic/scoreCopy';
+import Modal from '../components/common/Modal';
 import EmptyState from '../components/common/EmptyState';
 import ErrorState from '../components/common/ErrorState';
+
+const COACH_KEY = 'cosmic-observatory-coachmark-v1';
+const COACH_STEPS = [
+  { title: 'The North Star', body: 'The mentor at the center is the current #1 in this scope.' },
+  { title: 'The Orbit', body: 'The next top mentors orbit around it — closer and numbered by rank.' },
+  { title: 'You are here', body: 'Your own node is highlighted, or shown as a “Your standing” chip so you always know where you stand.' },
+];
+
+const PROVISIONAL_TIP = 'Provisional: scores are tied early this season. The North Star locks in as mentors earn more reviews.';
 
 // Distribute orbiting mentors on concentric rings around the North Star.
 function orbitPositions(count, size) {
@@ -56,6 +67,18 @@ export default function Observatory() {
   const { data, isLoading, isError, refetch } = useObservatory(city);
   const meId = user?._id ? String(user._id) : null;
 
+  const [showInfo, setShowInfo] = useState(false);
+  // One-time 3-step coachmark (§2.6): -1 once seen, else 0 (rendered only after
+  // the sky has loaded — see the render guard below). Lazy init reads the flag once.
+  const [coachStep, setCoachStep] = useState(() => {
+    try { return localStorage.getItem(COACH_KEY) === '1' ? -1 : 0; } catch { return 0; }
+  });
+
+  const dismissCoach = () => {
+    try { localStorage.setItem(COACH_KEY, '1'); } catch { /* ignore */ }
+    setCoachStep(-1);
+  };
+
   const SIZE = 560;
   const positions = useMemo(
     () => orbitPositions((data?.orbiting?.length) || 0, SIZE),
@@ -84,6 +107,10 @@ export default function Observatory() {
               View
             </button>
           </form>
+          <button type="button" onClick={() => setShowInfo(true)} aria-label="What is the Observatory?"
+            className="w-8 h-8 rounded-xl flex items-center justify-center text-accent bg-accent/10 border border-accent/30 hover:bg-accent/20 transition-colors">
+            <Info size={16} />
+          </button>
         </div>
 
         {/* Explainer (v2 §9.1) */}
@@ -174,9 +201,15 @@ export default function Observatory() {
                       <CosmicName glow={nameGlowFor(ns.tierId)} exploring>{ns.name}</CosmicName>
                       {isYouNorth && <span className="ml-1 font-bold" style={{ color: 'var(--accent-1, #00c6ff)' }}>· You</span>}
                     </span>
-                    <span className="text-[10px] text-text-muted">
+                    <span className="text-[10px] text-text-muted inline-flex items-center gap-0.5">
                       {getTier(ns.tierId).displayName}
-                      {data.provisional && <span className="ml-1 opacity-70">· provisional</span>}
+                      {data.provisional && (
+                        <span className="ml-1 opacity-80 inline-flex items-center gap-0.5"
+                          onClick={(e) => e.stopPropagation()}>
+                          · provisional
+                          <InfoDot label="Why provisional?" side="left" size={11}>{PROVISIONAL_TIP}</InfoDot>
+                        </span>
+                      )}
                     </span>
                   </button>
                 );
@@ -269,6 +302,66 @@ export default function Observatory() {
           </>
         )}
       </div>
+
+      {/* Persistent explainer (§2.6) — plain-language definition + score link-outs (§4.5) */}
+      <Modal isOpen={showInfo} onClose={() => setShowInfo(false)} title="The Observatory">
+        <div className="max-h-[70vh] overflow-y-auto space-y-4 text-sm text-text-secondary leading-relaxed pr-1">
+          <p>
+            <strong className="text-text-primary">The Observatory</strong> is your city’s night sky of top mentors.
+            The <strong>North Star</strong> is the current #1. The brightest mentors orbit closest to it. Each season,
+            the biggest climber becomes a <strong>Supernova</strong>, and retired champions are enshrined forever as
+            <strong> Quasar legends</strong>. Your own standing is always marked so you can see how close you are to shining.
+          </p>
+          <p className="text-xs text-text-muted">
+            The <strong className="text-text-secondary">Leaderboard</strong> is the precise ranked list (where you are,
+            #1…#50). The <strong className="text-text-secondary">Observatory</strong> is the celebration view of that same
+            data, as a living star map — same ranking, two views.
+          </p>
+
+          <p className="text-xs p-2.5 rounded-xl" style={{ background: 'var(--surface)', border: '1px solid var(--border-subtle)' }}>
+            {SCORE_DISTINCTION}
+          </p>
+
+          <Disclosure title={COSMIC_SCORE_INFO.title}>
+            <ScoreExplainerBody info={COSMIC_SCORE_INFO} />
+          </Disclosure>
+          <Disclosure title={TRUST_SCORE_INFO.title}>
+            <ScoreExplainerBody info={TRUST_SCORE_INFO} />
+          </Disclosure>
+        </div>
+      </Modal>
+
+      {/* One-time 3-step coachmark (§2.6) — dismissible, shown once */}
+      {coachStep >= 0 && data?.northStar && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+          role="dialog" aria-modal="true" aria-label="Observatory tour">
+          <div className="fixed inset-0" style={{ background: 'rgba(0,0,0,0.6)' }} onClick={dismissCoach} aria-hidden="true" />
+          <div className="relative w-full max-w-xs rounded-2xl p-5 z-10"
+            style={{ background: 'rgba(8,10,22,0.96)', border: '1px solid rgba(0,198,255,0.25)', boxShadow: '0 20px 60px rgba(0,0,0,0.6)' }}>
+            <div className="flex items-center gap-2 mb-2 text-accent">
+              {coachStep === 0 ? <Crown size={16} /> : coachStep === 1 ? <Sparkles size={16} /> : <Star size={16} />}
+              <h3 className="font-display font-bold text-text-primary text-base">{COACH_STEPS[coachStep].title}</h3>
+            </div>
+            <p className="text-sm text-text-secondary leading-relaxed">{COACH_STEPS[coachStep].body}</p>
+            <div className="flex items-center justify-between mt-4">
+              <div className="flex gap-1.5">
+                {COACH_STEPS.map((_, i) => (
+                  <span key={i} className="w-1.5 h-1.5 rounded-full"
+                    style={{ background: i === coachStep ? 'var(--accent-1, #00c6ff)' : 'var(--border-subtle)' }} />
+                ))}
+              </div>
+              <div className="flex items-center gap-2">
+                <button type="button" onClick={dismissCoach} className="text-xs text-text-muted hover:text-text-secondary">Skip</button>
+                <button type="button"
+                  onClick={() => (coachStep < COACH_STEPS.length - 1 ? setCoachStep(coachStep + 1) : dismissCoach())}
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold text-accent bg-accent/10 border border-accent/30 hover:bg-accent/20 transition-colors">
+                  {coachStep < COACH_STEPS.length - 1 ? 'Next' : 'Got it'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
