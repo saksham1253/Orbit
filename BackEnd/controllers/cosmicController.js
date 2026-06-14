@@ -197,8 +197,25 @@ exports.getObservatory = async (req, res) => {
             .map((e, i) => ({ ...e, rank: i + 1 }));
 
         const northStar = ranked[0] || null;
-        const provisional = northStar && ranked.every((r) => r.climb <= 0); // season just started
+        // Provisional (§2.1): no real climbs yet (season young) OR the top two are
+        // tied on score (so #1 is decided only by a tiebreaker).
+        const tiedTop = ranked.length >= 2 && Math.abs(ranked[0].score - ranked[1].score) < 0.05;
+        const provisional = !!northStar && (ranked.every((r) => r.climb <= 0) || tiedTop);
         const orbiting = ranked.slice(1, 20);
+
+        // "You are here" (§2.3): the viewer's own standing within this scope, so the
+        // UI can always mark where they are (highlighted node or docked chip).
+        const meId = String(req.user.id);
+        const meEntry = ranked.find((r) => r.userId === meId) || null;
+        const you = meEntry ? {
+            userId: meEntry.userId,
+            rank: meEntry.rank,
+            of: ranked.length,
+            tierId: meEntry.tierId,
+            score: meEntry.score,
+            isNorthStar: meEntry.rank === 1,
+            inOrbit: meEntry.rank >= 2 && meEntry.rank <= 20, // within the rendered nodes
+        } : null;
 
         // Supernova of the Month = the BIGGEST REAL CLIMBER this season (v3 §3).
         // Only crown someone with a strictly positive climb; otherwise empty state.
@@ -246,7 +263,8 @@ exports.getObservatory = async (req, res) => {
         res.status(200).json({
             city: label,
             northStar,
-            provisional,        // true when no real climbs yet (season just started)
+            provisional,        // true when no real climbs yet, or top two tied on score
+            you,                // viewer's own standing in this scope (§2.3), or null
             orbiting,
             spotlight,          // null unless a real positive climber exists
             legends: legends.map((l) => ({

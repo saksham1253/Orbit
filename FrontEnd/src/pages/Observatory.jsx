@@ -54,6 +54,7 @@ export default function Observatory() {
   const [city, setCity] = useState('');
 
   const { data, isLoading, isError, refetch } = useObservatory(city);
+  const meId = user?._id ? String(user._id) : null;
 
   const SIZE = 560;
   const positions = useMemo(
@@ -122,41 +123,78 @@ export default function Observatory() {
                 }} />
               ))}
 
-              {/* orbiting mentors */}
+              {/* orbiting mentors — explicit rank numbers (§2.2), "you" highlight (§2.3) */}
               {data.orbiting.map((m, i) => {
                 const p = positions[i];
                 if (!p) return null;
+                const isYou = meId && m.userId === meId;
                 return (
                   <button key={m.userId} onClick={() => navigate(`/profile/${m.userId}`)}
-                    title={`#${m.rank} ${m.name} — ${getTier(m.tierId).displayName}`}
-                    className="absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 group"
+                    title={`#${m.rank} · ${m.name} · ${getTier(m.tierId).displayName} · Score ${m.score}`}
+                    aria-label={`Rank ${m.rank}, ${m.name}, ${getTier(m.tierId).displayName}, score ${m.score}${isYou ? ', you' : ''}`}
+                    className="absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 group focus:outline-none"
                     style={{ left: p.x, top: p.y }}>
-                    <CosmicBadge tierId={m.tierId} size={m.rank <= 6 ? 'full' : 'mini'} />
-                    <span className="text-[9px] text-text-muted mt-0.5 max-w-[60px] truncate opacity-0 group-hover:opacity-100 transition-opacity">
-                      {m.name}
-                    </span>
+                    <div className="relative rounded-full"
+                      style={isYou ? { boxShadow: '0 0 0 2px var(--accent-1, #00c6ff), 0 0 12px rgba(0,198,255,0.6)' } : undefined}>
+                      <CosmicBadge tierId={m.tierId} size={m.rank <= 6 ? 'full' : 'mini'} />
+                      <span className="absolute -top-1.5 -left-1.5 min-w-[14px] text-center text-[8px] font-bold px-1 rounded-full leading-[14px]"
+                        style={{ background: 'rgba(8,4,20,0.78)', color: '#fff', border: '1px solid rgba(255,255,255,0.22)' }}>
+                        {m.rank}
+                      </span>
+                    </div>
+                    {isYou ? (
+                      <span className="text-[9px] font-bold mt-0.5" style={{ color: 'var(--accent-1, #00c6ff)' }}>You</span>
+                    ) : (
+                      <span className="text-[9px] text-text-muted mt-0.5 max-w-[64px] truncate opacity-0 group-hover:opacity-100 transition-opacity">
+                        {m.name}
+                      </span>
+                    )}
                   </button>
                 );
               })}
 
               {/* North Star (center) */}
-              <button onClick={() => navigate(`/profile/${data.northStar.userId}`)}
-                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
-                <div className="flex items-center gap-1 mb-1 text-[10px] font-bold" style={{ color: '#FFD08A' }}>
-                  <Crown size={12} /> NORTH STAR
-                </div>
-                <div style={{ transform: 'scale(1.5)' }}>
-                  <CosmicBadge tierId={data.northStar.tierId} size="full" />
-                </div>
-                <span className="text-xs font-bold text-text-primary mt-2">
-                  <CosmicName glow={nameGlowFor(data.northStar.tierId)} exploring>{data.northStar.name}</CosmicName>
-                </span>
-                <span className="text-[10px] text-text-muted">
-                  {getTier(data.northStar.tierId).displayName}
-                  {data.provisional && <span className="ml-1 opacity-70">· provisional</span>}
-                </span>
-              </button>
+              {(() => {
+                const ns = data.northStar;
+                const isYouNorth = meId && ns.userId === meId;
+                return (
+                  <button onClick={() => navigate(`/profile/${ns.userId}`)}
+                    aria-label={`Rank 1, North Star, ${ns.name}, ${getTier(ns.tierId).displayName}, score ${ns.score}${isYouNorth ? ', you' : ''}`}
+                    className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center focus:outline-none">
+                    <div className="flex items-center gap-1 mb-1 text-[10px] font-bold" style={{ color: '#FFD08A' }}>
+                      <Crown size={12} /> NORTH STAR
+                    </div>
+                    <div style={{ transform: 'scale(1.5)' }}>
+                      <div className="rounded-full"
+                        style={isYouNorth ? { boxShadow: '0 0 0 2px var(--accent-1, #00c6ff), 0 0 14px rgba(0,198,255,0.6)' } : undefined}>
+                        <CosmicBadge tierId={ns.tierId} size="full" />
+                      </div>
+                    </div>
+                    <span className="text-xs font-bold text-text-primary mt-2">
+                      <CosmicName glow={nameGlowFor(ns.tierId)} exploring>{ns.name}</CosmicName>
+                      {isYouNorth && <span className="ml-1 font-bold" style={{ color: 'var(--accent-1, #00c6ff)' }}>· You</span>}
+                    </span>
+                    <span className="text-[10px] text-text-muted">
+                      {getTier(ns.tierId).displayName}
+                      {data.provisional && <span className="ml-1 opacity-70">· provisional</span>}
+                    </span>
+                  </button>
+                );
+              })()}
             </div>
+
+            {/* ── "Your standing" chip (§2.3): when the viewer isn't a rendered node ── */}
+            {data.you && !data.you.inOrbit && !data.you.isNorthStar && (
+              <button onClick={() => navigate('/leaderboard')}
+                className="mt-3 mx-auto flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 px-3.5 py-2 rounded-xl text-xs"
+                style={{ background: 'var(--surface)', border: '1px solid var(--accent-1, #00c6ff)' }}>
+                <span className="font-bold" style={{ color: 'var(--accent-1, #00c6ff)' }}>Your standing</span>
+                <span className="text-text-secondary">
+                  #{data.you.rank} of {data.you.of} · {getTier(data.you.tierId).displayName} · Score {data.you.score}
+                </span>
+                <span className="text-accent underline">View on leaderboard</span>
+              </button>
+            )}
 
             {/* ── Supernova of the Month = biggest real climber (v3 §3) ── */}
             {data.spotlight ? (
