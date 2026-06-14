@@ -100,6 +100,10 @@ export default function LiftoffOverlay() {
   const head = event ? headlineFor(event.toTierId, event.city, event.direction, event.pointsToRecover, event.fromTierId) : null;
 
   // Run the cinematics when an event arrives.
+  // The reveal-state transitions below are intentional, imperative cinematic
+  // sequencing (reset on new event, then the v3 "never blank" safety reveal),
+  // not derived state — so the set-state-in-effect rule is scoped-off here.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!event) return;
     setRevealed(false);
@@ -151,6 +155,7 @@ export default function LiftoffOverlay() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event?.id]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Esc to dismiss.
   useEffect(() => {

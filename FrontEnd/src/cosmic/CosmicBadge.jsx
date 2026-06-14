@@ -88,7 +88,7 @@ function SigilFrame({ category, division, litColor }) {
    `anim` gates animated layers off for mini badges.
 ───────────────────────────────────────────────────────────── */
 
-function MoonArt({ tier, div, anim, dc }) {
+function MoonArt({ div, anim, dc }) {
   const s = DIV_SCALE[div];
   const r = 30 * s;
   const craters = [
@@ -148,7 +148,7 @@ function PlanetArt({ tier, div, anim, dc }) {
   );
 }
 
-function StarArt({ tier, div, anim, dc }) {
+function StarArt({ div, anim, dc }) {
   const s = DIV_SCALE[div];
   const points = 4 + (4 - div) * 2; // more points IV→I
   const spikes = [];
@@ -171,7 +171,7 @@ function StarArt({ tier, div, anim, dc }) {
   );
 }
 
-function PulsarArt({ tier, div, anim, dc }) {
+function PulsarArt({ div, anim, dc }) {
   const s = DIV_SCALE[div];
   const beamPairs = 1 + (4 - div); // 1..4 beam pairs
   const spinClass = anim ? (div <= 2 ? 'cb-spin-fast' : 'cb-spin') : '';
@@ -199,7 +199,7 @@ function PulsarArt({ tier, div, anim, dc }) {
   );
 }
 
-function SupernovaArt({ tier, div, anim, dc }) {
+function SupernovaArt({ div, anim, dc }) {
   const s = DIV_SCALE[div];
   const rays = 8;
   const spikes = [];
@@ -234,7 +234,7 @@ function SupernovaArt({ tier, div, anim, dc }) {
   );
 }
 
-function GalaxyArt({ tier, div, anim, dc }) {
+function GalaxyArt({ div, anim, dc }) {
   const s = DIV_SCALE[div];
   const arms = 2 + (4 - div); // 2..5 arms
   const armPaths = [];

@@ -62,6 +62,9 @@ const Profile = () => {
       setValue('socialLinks.github', profile.socialLinks?.github || '');
       setValue('socialLinks.linkedin', profile.socialLinks?.linkedin || '');
       setValue('socialLinks.website', profile.socialLinks?.website || '');
+      // Sync the language chips from the loaded profile (intentional one-time
+      // hydration when the profile query resolves, not derived render state).
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLangs(profile.languages?.length ? profile.languages : ['English']);
     }
   }, [profile, setValue]);
