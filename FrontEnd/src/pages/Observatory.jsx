@@ -13,7 +13,7 @@ import { useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Telescope, Crown, Star, Sparkles, Quote, Info } from 'lucide-react';
+import { Telescope, Crown, Star, Sparkles, Quote, Info, TrendingUp } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useObservatory } from '../cosmic/useCosmic';
 import CosmicBadge from '../cosmic/CosmicBadge';
@@ -151,24 +151,35 @@ export default function Observatory() {
                 <span className="text-xs font-bold text-text-primary mt-2">
                   <CosmicName glow={nameGlowFor(data.northStar.tierId)} exploring>{data.northStar.name}</CosmicName>
                 </span>
-                <span className="text-[10px] text-text-muted">{getTier(data.northStar.tierId).displayName}</span>
+                <span className="text-[10px] text-text-muted">
+                  {getTier(data.northStar.tierId).displayName}
+                  {data.provisional && <span className="ml-1 opacity-70">· provisional</span>}
+                </span>
               </button>
             </div>
 
-            {/* ── Supernova of the Month ── */}
-            {data.spotlight && (
+            {/* ── Supernova of the Month = biggest real climber (v3 §3) ── */}
+            {data.spotlight ? (
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                 className="mt-6 p-5 rounded-2xl"
                 style={{ background: 'linear-gradient(135deg, rgba(255,107,53,0.08), rgba(255,143,207,0.06))',
                   border: '1px solid rgba(255,107,53,0.2)' }}>
                 <div className="flex items-center gap-2 mb-3 text-xs font-bold" style={{ color: '#FF8C42' }}>
                   <Sparkles size={14} /> SUPERNOVA OF THE MONTH
+                  <span className="font-normal text-text-muted">· biggest climber this season</span>
                 </div>
                 <div className="flex items-center gap-4">
+                  {/* Their REAL tier badge — never relabeled as Supernova */}
                   <CosmicBadge tierId={data.spotlight.tierId} size="full" />
                   <div className="min-w-0">
                     <div className="text-sm font-bold text-text-primary">{data.spotlight.name}</div>
                     <div className="text-xs text-text-muted">{getTier(data.spotlight.tierId).displayName} · Score {data.spotlight.score}</div>
+                    {data.spotlight.climb > 0 && (
+                      <span className="inline-flex items-center gap-1 mt-1 text-[11px] font-bold px-2 py-0.5 rounded-full"
+                        style={{ background: 'rgba(255,107,53,0.15)', color: '#FF8C42' }}>
+                        <TrendingUp size={11} /> +{data.spotlight.climb} this season
+                      </span>
+                    )}
                   </div>
                 </div>
                 {data.spotlight.quote && (
@@ -178,6 +189,16 @@ export default function Observatory() {
                   </div>
                 )}
               </motion.div>
+            ) : (
+              <div className="mt-6 p-5 rounded-2xl text-center"
+                style={{ background: 'var(--surface)', border: '1px dashed var(--border-subtle)' }}>
+                <div className="flex items-center justify-center gap-2 mb-1.5 text-xs font-bold text-text-secondary">
+                  <Sparkles size={14} /> SUPERNOVA OF THE MONTH
+                </div>
+                <p className="text-xs text-text-muted">
+                  The first Supernova of the Month will be crowned as mentors climb this season.
+                </p>
+              </div>
             )}
 
             {/* ── Legends Archive (Quasars) ── */}

@@ -148,15 +148,22 @@ exports.getObservatory = async (req, res) => {
         const ids = pool.map((u) => u._id);
         const scores = await scorePool(ids);
 
+        const SEASON_BASELINE = 50; // warm-start floor = each user's season start
+
         const ranked = pool
             .map((u) => {
-                const s = scores.get(String(u._id)) || { score: 0, tier: assignTier(0, {}), weightedReviews: 0, reviewsCount: 0 };
+                const s = scores.get(String(u._id)) || { score: SEASON_BASELINE, tier: assignTier(SEASON_BASELINE, {}), weightedReviews: 0, reviewsCount: 0 };
+                // Climb this season = live score − the season-start baseline. Prefer a
+                // persisted baseline if present; otherwise the warm-start floor.
+                const baseline = (u.cosmic && typeof u.cosmic.seasonStartScore === "number")
+                    ? u.cosmic.seasonStartScore : SEASON_BASELINE;
                 return {
                     userId: String(u._id),
                     name: u.name,
                     avatar: u.avatar || "",
                     score: Math.round(s.score * 10) / 10,
                     tierId: s.tier.tierId,
+                    climb: Math.round((s.score - baseline) * 10) / 10,
                     weightedReviews: s.weightedReviews,
                     reviewsCount: s.reviewsCount,
                 };
@@ -164,33 +171,41 @@ exports.getObservatory = async (req, res) => {
             .sort((a, b) =>
                 b.score - a.score ||
                 b.weightedReviews - a.weightedReviews ||
-                String(a.name).localeCompare(String(b.name)))
+                String(a.name).localeCompare(String(b.name)) ||
+                String(a.userId).localeCompare(String(b.userId)))
             .map((e, i) => ({ ...e, rank: i + 1 }));
 
         const northStar = ranked[0] || null;
+        const provisional = northStar && ranked.every((r) => r.climb <= 0); // season just started
         const orbiting = ranked.slice(1, 20);
 
-        // Supernova of the Month spotlight: top mentor + their best review quote,
-        // BERT-picked (highest sentiment among completed-swap reviews, length guard).
+        // Supernova of the Month = the BIGGEST REAL CLIMBER this season (v3 §3).
+        // Only crown someone with a strictly positive climb; otherwise empty state.
+        // NEVER relabel their tier — the award is separate from the tier.
         let spotlight = null;
-        if (northStar) {
+        const topClimber = ranked.reduce((best, r) => (r.climb > (best ? best.climb : 0) ? r : best), null);
+        if (topClimber && topClimber.climb > 0) {
             let best = await Rating.findOne({
-                toUser: northStar.userId,
+                toUser: topClimber.userId,
                 tiedToCompletedSwap: true,
                 "sentiment.score": { $ne: null },
                 review: { $regex: /.{40,}/ },
             }).sort({ "sentiment.score": -1 }).select("review sentiment.score fromUser").populate("fromUser", "name").lean();
 
-            // Fallback: most recent substantive review if no sentiment computed yet.
             if (!best) {
                 best = await Rating.findOne({
-                    toUser: northStar.userId,
+                    toUser: topClimber.userId,
                     review: { $regex: /.{30,}/ },
                 }).sort({ createdAt: -1 }).select("review fromUser").populate("fromUser", "name").lean();
             }
 
             spotlight = {
-                ...northStar,
+                userId: topClimber.userId,
+                name: topClimber.name,
+                avatar: topClimber.avatar,
+                tierId: topClimber.tierId,       // their REAL tier (not "Supernova")
+                score: topClimber.score,
+                climb: topClimber.climb,         // award metric: "+X this season"
                 quote: best ? best.review : "",
                 quoteBy: best && best.fromUser ? best.fromUser.name : "",
             };
@@ -204,8 +219,9 @@ exports.getObservatory = async (req, res) => {
         res.status(200).json({
             city: label,
             northStar,
+            provisional,        // true when no real climbs yet (season just started)
             orbiting,
-            spotlight,
+            spotlight,          // null unless a real positive climber exists
             legends: legends.map((l) => ({
                 userId: l.userId ? String(l.userId._id) : null,
                 name: l.userId ? l.userId.name : "A legend",
