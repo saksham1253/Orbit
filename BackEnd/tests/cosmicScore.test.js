@@ -152,34 +152,38 @@ describe('cosmicScore — compositeScore (v2 §2.1, returns 0..1)', () => {
     });
 });
 
-describe('cosmicScore — rebaseScore (v2 §2.1 warm start + confidence)', () => {
-    it('returns exactly the floor below the ranking threshold', () => {
+describe('cosmicScore — rebaseScore (v4 §1 symmetric, floor 0)', () => {
+    it('returns exactly the warm start below the ranking threshold', () => {
         expect(rebaseScore(1, 0)).toBe(FLOOR);   // brand-new → 50
         expect(rebaseScore(0.5, 0.5)).toBe(FLOOR);
     });
-    it('few reviews stay near the floor (confidence ramp)', () => {
-        // composite 0.567, 2 weighted reviews → 50 + 50*0.567*0.2 ≈ 55.67
-        expect(rebaseScore(0.567, 2)).toBeCloseTo(55.67, 1);
+    it('few reviews stay near 50 (confidence damps both ways)', () => {
+        // composite 0.567 → raw 56.7; confidence 0.2 → 50 + 6.7*0.2 ≈ 51.3
+        expect(rebaseScore(0.567, 2)).toBeCloseTo(51.34, 1);
     });
-    it('full confidence at 10+ reviews maps composite across 50..100', () => {
-        expect(rebaseScore(1, 10)).toBeCloseTo(100, 5);
-        expect(rebaseScore(0, 10)).toBe(FLOOR);
-        expect(rebaseScore(0.5, 20)).toBeCloseTo(75, 5);
+    it('full confidence at 10+ reviews maps composite hinged at 50', () => {
+        expect(rebaseScore(1, 10)).toBeCloseTo(100, 5);   // climb
+        expect(rebaseScore(0, 10)).toBe(0);               // DESCEND to floor 0
+        expect(rebaseScore(0.5, 20)).toBeCloseTo(50, 5);  // neutral → 50
     });
-    it('never returns below the floor or above 100', () => {
-        expect(rebaseScore(-1, 50)).toBe(FLOOR);
+    it('a poor composite descends below 50 (The Descent)', () => {
+        // composite 0.366, 12 reviews → raw 36.6, confidence 1 → 36.6
+        expect(rebaseScore(0.366, 12)).toBeCloseTo(36.6, 1);
+    });
+    it('never returns below 0 or above 100', () => {
+        expect(rebaseScore(-1, 50)).toBe(0);
         expect(rebaseScore(5, 50)).toBe(100);
     });
 });
 
-describe('cosmicScore — computeCosmicScore (end-to-end, v2)', () => {
-    it('a brand-new user with no reviews scores exactly the floor (50)', () => {
+describe('cosmicScore — computeCosmicScore (end-to-end, v4)', () => {
+    it('a brand-new user with no reviews scores exactly the warm start (50)', () => {
         const out = computeCosmicScore({ reviews: [], completedSwaps: 0, activeDaysThisSeason: 0 });
         expect(out.score).toBe(FLOOR);
         expect(out.weightedReviews).toBe(0);
     });
 
-    it('the worked example: 2 strong reviews → ~55 (a Moon score, NOT Planet)', () => {
+    it('the worked example: 2 strong reviews → low Moon (NOT Planet, NOT Descent)', () => {
         const out = computeCosmicScore({
             reviews: [
                 { rating: 5, ageDays: 0, reviewsFromThisReviewer: 1, tiedToCompletedSwap: true },
@@ -187,10 +191,18 @@ describe('cosmicScore — computeCosmicScore (end-to-end, v2)', () => {
             ],
             completedSwaps: 0, activeDaysThisSeason: 0,
         });
-        // sentiment unavailable → rating weight 0.78; bayes(5,5)=4.14 → normRating 0.785
-        // composite ≈ 0.78*0.785 = 0.612; confidence 0.2 → 50 + 50*0.612*0.2 ≈ 56.1
-        expect(out.score).toBeGreaterThan(53);
-        expect(out.score).toBeLessThan(62);    // hard rule: < 62 is always Moon
+        // confidence 0.2 damps a strong composite → stays just above 50 (Moon IV/III)
+        expect(out.score).toBeGreaterThanOrEqual(50);
+        expect(out.score).toBeLessThan(62);    // hard rule: < 62 is always Moon (or below)
+    });
+
+    it('a genuinely struggling mentor (many low reviews) descends below 50', () => {
+        const out = computeCosmicScore({
+            reviews: Array.from({ length: 12 }, () => ({ rating: 2, ageDays: 0, reviewsFromThisReviewer: 1, tiedToCompletedSwap: true })),
+            completedSwaps: 1, activeDaysThisSeason: 3,
+        });
+        expect(out.score).toBeLessThan(50);    // The Descent
+        expect(out.score).toBeGreaterThanOrEqual(0);
     });
 
     it('excludes non-completed-swap reviews from the weighted count', () => {
@@ -217,7 +229,7 @@ describe('cosmicScore — computeCosmicScore (end-to-end, v2)', () => {
         expect(strong.score).not.toBeCloseTo(weak.score, 1);
     });
 
-    it('never errors and stays within [50,100] under fallback weighting', () => {
+    it('never errors and stays within [0,100] under fallback weighting', () => {
         const out = computeCosmicScore({
             reviews: [{ rating: 4, ageDays: 10, reviewsFromThisReviewer: 1, tiedToCompletedSwap: true }],
             completedSwaps: 5, activeDaysThisSeason: 10,

@@ -21,11 +21,16 @@ const PRIOR_STRENGTH        = 5;    // C — prior strength (~5 virtual average 
 const SWAP_SATURATION       = 50;   // normSwaps saturates ~50 completed swaps
 const ACTIVITY_DAYS_FULL    = 30;   // normActivity hits 1.0 at 30 active days
 
-// v2 §2 — warm start + confidence ramp. No user ever sees 0/empty:
-//   new users start at exactly FLOOR (50 = Moon IV); the climbable range is
-//   50..100; and a handful of reviews can't rocket someone up the ladder.
-const FLOOR                   = 50;  // warm-start score
-const MIN_REVIEWS_FOR_RANKING = 1;   // below this → pure floor
+// v2 §2 / v4 §1 — warm start + symmetric confidence ramp.
+//   - brand-new users start at exactly WARM_START (50 = Moon IV)
+//   - the score can now fall to SCORE_FLOOR (0) when real poor reviews
+//     accumulate (The Descent), and rise to 100
+//   - confidence damps deviation from 50 in BOTH directions, so newcomers
+//     and noise don't swing wildly
+const WARM_START              = 50;  // brand-new mentor score (Moon IV)
+const SCORE_FLOOR             = 0;   // v4: scores can descend below Moon to 0
+const NEUTRAL                 = 0.50;// a composite of 0.50 is "average" → 50
+const MIN_REVIEWS_FOR_RANKING = 1;   // below this → pure warm start
 const FULL_CONFIDENCE_REVIEWS = 10;  // confidence = min(1, n / 10)
 
 // Composite weights (sum = 1.0) — spec §6.5
@@ -138,20 +143,26 @@ function compositeScore({
 }
 
 /**
- * Map a 0..1 composite into the warm-start 50..100 range, scaled by a
- * confidence ramp so few reviews can't climb far (v2 §2.1).
+ * Map a 0..1 composite into a 0..100 score, hinged at NEUTRAL→50 and damped by
+ * a confidence ramp so few reviews stay near 50 (v4 §1, symmetric).
  *
- *   score = FLOOR + (100 - FLOOR) · composite01 · confidence
- *   confidence = min(1, weightedReviews / 10)
+ *   c >= 0.5 → raw = 50 + 50·(c−0.5)/0.5      (climb, 50..100)
+ *   c <  0.5 → raw = 50·(c/0.5)               (descend, 0..50)
+ *   score = 50 + (raw − 50)·confidence,  confidence = min(1, n/10)
  *
  * Brand-new users (below MIN_REVIEWS_FOR_RANKING weighted reviews) get exactly
- * FLOOR (50 = Moon IV). Result is always clamped to [FLOOR, 100].
+ * WARM_START (50 = Moon IV) — they can never be a Descent tier on day one.
+ * Result is clamped to [SCORE_FLOOR, 100].
  */
 function rebaseScore(composite01, weightedReviews) {
-    if (weightedReviews < MIN_REVIEWS_FOR_RANKING) return FLOOR;
+    if (weightedReviews < MIN_REVIEWS_FOR_RANKING) return WARM_START;
+    const c = clamp01(composite01);
+    const raw = c >= NEUTRAL
+        ? 50 + 50 * (c - NEUTRAL) / (1 - NEUTRAL)
+        : 50 * (c / NEUTRAL);
     const confidence = Math.min(1, weightedReviews / FULL_CONFIDENCE_REVIEWS);
-    const score = FLOOR + (100 - FLOOR) * clamp01(composite01) * confidence;
-    return Math.min(100, Math.max(FLOOR, score));
+    const score = 50 + (raw - 50) * confidence;
+    return Math.min(100, Math.max(SCORE_FLOOR, score));
 }
 
 /**
@@ -215,7 +226,7 @@ module.exports = {
     // constants (exported for tests / tier engine reuse)
     RECENCY_HALFLIFE_DAYS, REVIEWER_CAP_N, PRIOR_MEAN, PRIOR_STRENGTH,
     SWAP_SATURATION, ACTIVITY_DAYS_FULL, WEIGHTS: W,
-    FLOOR, MIN_REVIEWS_FOR_RANKING, FULL_CONFIDENCE_REVIEWS,
+    WARM_START, SCORE_FLOOR, NEUTRAL, FLOOR: WARM_START, MIN_REVIEWS_FOR_RANKING, FULL_CONFIDENCE_REVIEWS,
     // pure pieces
     clamp01, reviewWeight, bayesianRating, sentimentScore, normSwaps, normActivity,
     compositeScore, rebaseScore, computeCosmicScore,

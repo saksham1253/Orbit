@@ -11,8 +11,8 @@ const {
 const HIGH_CTX = { weightedReviews: 1000, seasonsPlayed: 5 }; // clears every gate
 
 describe('cosmicTier — ladder integrity', () => {
-    it('has exactly 24 public divisions', () => {
-        expect(LADDER).toHaveLength(24);
+    it('has 36 public divisions (24 ascent + 12 Descent)', () => {
+        expect(LADDER).toHaveLength(36);
     });
 
     it('thresholds are strictly increasing', () => {
@@ -57,10 +57,10 @@ describe('cosmicTier — rawTierFromScore (v2 floors, 50..100)', () => {
         expect(rawTierFromScore(100).tierId).toBe('galaxy_1');
     });
 
-    it('clamps out-of-range and non-finite scores to a Moon floor', () => {
-        expect(rawTierFromScore(0).tierId).toBe('moon_4');
+    it('clamps out-of-range scores; 0 is now the lowest Descent tier (v4)', () => {
+        expect(rawTierFromScore(0).tierId).toBe('stardust_4');
         expect(rawTierFromScore(150).tierId).toBe('galaxy_1');
-        expect(rawTierFromScore(NaN).tierId).toBe('moon_4');
+        expect(rawTierFromScore(NaN).tierId).toBe('stardust_4');
     });
 });
 
@@ -167,4 +167,37 @@ describe('cosmicTier — comparisons & promotions', () => {
         expect(isCategoryPromotion('star_4', 'planet_1')).toBe(false); // demotion
         expect(isCategoryPromotion('moon_1', 'planet_4')).toBe(true);  // moon→planet
     });
+});
+
+const { resolveTier, bufferFor, tierObjectFor } = require('../services/cosmicTier');
+
+describe('cosmicTier — The Descent (v4 §2)', () => {
+  it('maps sub-50 scores to Descent tiers', () => {
+    expect(rawTierFromScore(0).tierId).toBe('stardust_4');
+    expect(rawTierFromScore(36.6).tierId).toBe('meteor_2'); // 35..39
+    expect(rawTierFromScore(48.3).tierId).toBe('asteroid_2'); // 47..48.5
+    expect(rawTierFromScore(49).tierId).toBe('asteroid_1');   // 48.5..50
+    expect(rawTierFromScore(50).tierId).toBe('moon_4');
+  });
+});
+
+describe('cosmicTier — hysteresis (v4 §3 worked example)', () => {
+  it('Moon IV demote line is 48.5 (buffer 1.5)', () => {
+    expect(bufferFor('moon_4')).toBeCloseTo(1.5, 5);
+  });
+  it('stays Moon IV in the grace zone, demotes to Asteroid II below it', () => {
+    expect(resolveTier('moon_4', 49.6)).toBe('moon_4'); // grace
+    expect(resolveTier('moon_4', 48.9)).toBe('moon_4'); // grace
+    expect(resolveTier('moon_4', 48.3)).toBe('asteroid_2'); // demote (lands Asteroid II)
+  });
+  it('promotes immediately on the way up', () => {
+    expect(resolveTier('asteroid_2', 49.9)).toBe('asteroid_1');
+    expect(resolveTier('asteroid_2', 50.0)).toBe('moon_4');
+  });
+  it('narrow top bands get a proportionally smaller buffer', () => {
+    expect(bufferFor('galaxy_3')).toBeLessThan(1.5); // band 0.6 → buffer 0.3
+  });
+  it('quasar is permanent', () => {
+    expect(resolveTier('quasar', 10)).toBe('quasar');
+  });
 });

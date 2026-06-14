@@ -4,7 +4,7 @@ const Connection = require("../models/Connection");
 const Legend = require("../models/Legend");
 const { buildLeaderboard, scorePool, mentorsWithin } = require("../services/leaderboardService");
 const { computeCosmicScore } = require("../services/cosmicScore");
-const { assignTier, nameGlowFor, higherTier } = require("../services/cosmicTier");
+const { assignTier, resolveDisplayTier, nameGlowFor, higherTier } = require("../services/cosmicTier");
 
 // ─────────────────────────────────────────────────────────────
 //  GET /api/cosmic/leaderboard
@@ -81,16 +81,25 @@ exports.getMentorCosmic = async (req, res) => {
             activeDaysThisSeason: (mentor.cosmic && mentor.cosmic.activeDaysThisSeason) || 0,
             sentimentEnabled: process.env.COSMIC_SENTIMENT_ENABLED !== "false",
         });
-        const tier = assignTier(result.score, { weightedReviews: result.weightedReviews, seasonsPlayed: 0 });
+        // Hysteresis: anchor on the user's stored tier so boundaries are sticky (v4 §3).
+        const anchorTier = (mentor.cosmic && mentor.cosmic.tierId) || "moon_4";
+        const tier = resolveDisplayTier(result.score, anchorTier, { weightedReviews: result.weightedReviews, seasonsPlayed: 0 });
 
-        // v2 §1.2 — peakTierId is monotonic: max(stored, current). Persist the
-        // raise fire-and-forget so it sticks without blocking the response.
+        // v2 §1.2 — peakTierId is monotonic: max(stored, current). v4 — persist the
+        // resolved tier + a pending rank-moment when the tier actually changed.
         const storedPeak = (mentor.cosmic && mentor.cosmic.peakTierId) || "moon_4";
         const peakId = higherTier(storedPeak, tier.tierId);
         const glow = nameGlowFor(tier.tierId);
-        if (peakId !== storedPeak || (mentor.cosmic && mentor.cosmic.nameGlowTier) !== glow) {
-            User.updateOne({ _id: mentor._id },
-                { $set: { "cosmic.peakTierId": peakId, "cosmic.nameGlowTier": glow } }).catch(() => {});
+        const tierChanged = tier.tierId !== anchorTier;
+        if (tierChanged || peakId !== storedPeak || (mentor.cosmic && mentor.cosmic.nameGlowTier) !== glow) {
+            const set = { "cosmic.peakTierId": peakId, "cosmic.nameGlowTier": glow, "cosmic.tierId": tier.tierId };
+            if (tierChanged) {
+                set["cosmic.lastTierChangeAt"] = new Date();
+                set["cosmic.lastTierDirection"] = tier.direction;
+                set["cosmic.pendingMomentTierId"] = tier.tierId;
+                set["cosmic.pendingMomentDirection"] = tier.direction;
+            }
+            User.updateOne({ _id: mentor._id }, { $set: set }).catch(() => {});
         }
 
         res.status(200).json({
@@ -105,6 +114,10 @@ exports.getMentorCosmic = async (req, res) => {
             gated: tier.gated,
             gateReason: tier.gateReason,
             nameGlowTier: glow,                   // v2 §8
+            direction: tier.direction,            // v4: 'up' | 'down' | null
+            pendingMomentTierId: tierChanged ? tier.tierId : (mentor.cosmic && mentor.cosmic.pendingMomentTierId) || null,
+            pendingMomentDirection: tierChanged ? tier.direction : (mentor.cosmic && mentor.cosmic.pendingMomentDirection) || null,
+            anchorTierId: anchorTier,
             unlockedTitles: (mentor.cosmic && mentor.cosmic.unlockedTitles) || [],
             currentTitle: (mentor.cosmic && mentor.cosmic.currentTitle) || "",
             flair: (mentor.cosmic && mentor.cosmic.flair) || [],

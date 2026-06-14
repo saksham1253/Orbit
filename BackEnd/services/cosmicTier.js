@@ -17,6 +17,23 @@
 // HARD RULE (v2): any score < 62.0 MUST resolve to a Moon tier.
 // Quasar is OFF-ladder (retired #1 champions only) and is not in this array.
 const LADDER = [
+    // ── THE DESCENT (below Moon, scores 0..50) — v4 §2 ──
+    { tierId: 'stardust_4', category: 'stardust', division: 4, min: 0.0,  displayName: 'Stardust IV — The Spark' },
+    { tierId: 'stardust_3', category: 'stardust', division: 3, min: 6.0,  displayName: 'Stardust III — The Scatter' },
+    { tierId: 'stardust_2', category: 'stardust', division: 2, min: 12.0, displayName: 'Stardust II — The Oort' },
+    { tierId: 'stardust_1', category: 'stardust', division: 1, min: 18.0, displayName: 'Stardust I — The Zodiac' },
+
+    { tierId: 'meteor_4',   category: 'meteor',   division: 4, min: 24.0, displayName: 'Meteor IV — The Orionid' },
+    { tierId: 'meteor_3',   category: 'meteor',   division: 3, min: 30.0, displayName: 'Meteor III — The Leonid' },
+    { tierId: 'meteor_2',   category: 'meteor',   division: 2, min: 35.0, displayName: 'Meteor II — The Geminid' },
+    { tierId: 'meteor_1',   category: 'meteor',   division: 1, min: 39.0, displayName: 'Meteor I — The Perseid' },
+
+    { tierId: 'asteroid_4', category: 'asteroid', division: 4, min: 42.0, displayName: 'Asteroid IV — The Hygiea' },
+    { tierId: 'asteroid_3', category: 'asteroid', division: 3, min: 45.0, displayName: 'Asteroid III — The Pallas' },
+    { tierId: 'asteroid_2', category: 'asteroid', division: 2, min: 47.0, displayName: 'Asteroid II — The Vesta' },
+    { tierId: 'asteroid_1', category: 'asteroid', division: 1, min: 48.5, displayName: 'Asteroid I — The Ceres' },
+
+    // ── THE ASCENT (Moon → Galaxy, v2/v3 floors) ──
     { tierId: 'moon_4',      category: 'moon',      division: 4, min: 50.0, displayName: 'Moon IV — The Deimos' },
     { tierId: 'moon_3',      category: 'moon',      division: 3, min: 53.0, displayName: 'Moon III — The Phobos' },
     { tierId: 'moon_2',      category: 'moon',      division: 2, min: 56.0, displayName: 'Moon II — The Europa' },
@@ -217,6 +234,69 @@ function assignTier(score, ctx = {}) {
     };
 }
 
+/** Build a full tier object forced to a specific tierId at the given score. */
+function tierObjectFor(tierId, score, ctx = {}) {
+    const t = BY_ID[tierId] || LADDER[0];
+    const progress = tierProgress(score, t, ctx);
+    return {
+        tierId: t.tierId, category: t.category, division: t.division,
+        displayName: t.displayName, rawTierId: rawTierFromScore(score).tierId,
+        gated: false, gateReason: '',
+        progress, progressToNext: progress.pct,
+    };
+}
+
+// ── Hysteresis demotion buffer (v4 §3) ─────────────────────────────────────
+const DEMOTE_BUFFER = 1.5;
+
+/** Width of a tier's score band (top tier → up to 100). */
+function bandWidth(tierId) {
+    const i = INDEX_BY_ID[tierId];
+    if (i == null) return 100;
+    const floor = LADDER[i].min;
+    const ceil = i + 1 < LADDER.length ? LADDER[i + 1].min : 100;
+    return ceil - floor;
+}
+/** Demotion buffer: capped at half the band so narrow top bands still work. */
+function bufferFor(tierId) { return Math.min(DEMOTE_BUFFER, 0.5 * bandWidth(tierId)); }
+
+/**
+ * Apply hysteresis (v4 §3): you don't lose a tier the instant you dip below its
+ * floor — only when you fall a buffer below it. Promotion is immediate.
+ * Pure tierId → tierId given the user's CURRENT (anchor) tier and live score.
+ */
+function resolveTier(currentTierId, score) {
+    if (currentTierId === 'quasar') return 'quasar';        // legends are permanent
+    const banded = rawTierFromScore(score).tierId;
+    if (!currentTierId || INDEX_BY_ID[currentTierId] == null) return banded;
+    if (banded === currentTierId) return currentTierId;
+    if (INDEX_BY_ID[banded] > INDEX_BY_ID[currentTierId]) return banded; // promote now
+    // potential demotion — only past the buffer
+    const floor = BY_ID[currentTierId].min;
+    if (score < floor - bufferFor(currentTierId)) return banded;
+    return currentTierId;                                   // grace zone: stay
+}
+
+/**
+ * Display tier with hysteresis + gates + direction. The single entry point the
+ * on-read API uses: it anchors on the user's stored cosmic.tierId so sticky
+ * boundaries work without a separate persistence pass.
+ *
+ * @returns assignTier-shaped object + { direction: 'up'|'down'|null }
+ */
+function resolveDisplayTier(score, currentTierId, ctx = {}) {
+    const bandId = resolveTier(currentTierId, score);
+    // Gate-cap the resolved band for Star+ eligibility (no gates below Moon).
+    const capped = applyGates(BY_ID[bandId], ctx).tier;
+    const obj = tierObjectFor(capped.tierId, score, ctx);
+    let direction = null;
+    if (currentTierId && INDEX_BY_ID[currentTierId] != null && INDEX_BY_ID[capped.tierId] != null) {
+        const d = INDEX_BY_ID[capped.tierId] - INDEX_BY_ID[currentTierId];
+        direction = d > 0 ? 'up' : d < 0 ? 'down' : null;
+    }
+    return { ...obj, direction };
+}
+
 /** Compare two tierIds by ladder height. >0 means `a` is higher than `b`. */
 function compareTiers(a, b) {
     const ia = a === 'quasar' ? Infinity : (INDEX_BY_ID[a] ?? -1);
@@ -250,5 +330,6 @@ function higherTier(aTierId, bTierId) {
 module.exports = {
     LADDER, QUASAR, GATES, BY_ID, TIER_ORDER: LADDER.map((t) => t.tierId).concat('quasar'),
     clampScore, rawTierFromScore, applyGates, progressToNext, tierProgress,
-    assignTier, compareTiers, isCategoryPromotion, nameGlowFor, higherTier,
+    assignTier, tierObjectFor, resolveTier, resolveDisplayTier, bufferFor, bandWidth,
+    compareTiers, isCategoryPromotion, nameGlowFor, higherTier,
 };

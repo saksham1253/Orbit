@@ -166,7 +166,12 @@ const userSchema = new mongoose.Schema({
         activeDaysThisSeason: { type: Number, default: 0 },
         weightedReviews:  { type: Number, default: 0 },        // for eligibility gates
         hasSeenIntroForTier: { type: String, default: null },  // last tierId we auto-played the intro for (v2 §7)
-        nameGlowTier:        { type: String, default: null }   // "supernova" | "galaxy" | "quasar" | null (v2 §8)
+        nameGlowTier:        { type: String, default: null },  // "supernova" | "galaxy" | "quasar" | null (v2 §8)
+        // v4 — rank-up/down moments + Descent analytics (additive)
+        lastTierDirection:      { type: String, enum: ["up", "down", null], default: null },
+        pendingMomentTierId:    { type: String, default: null },
+        pendingMomentDirection: { type: String, enum: ["up", "down", null], default: null },
+        lowestTierId:           { type: String, default: "moon_4" }  // internal analytics only; never shown in UI
     }
 
 }, {
