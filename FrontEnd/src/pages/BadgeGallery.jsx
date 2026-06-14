@@ -14,6 +14,7 @@ import useLiftoffStore from '../cosmic/liftoffStore';
 
 // Representative rank-ups so every Liftoff choreography can be previewed.
 const LIFTOFFS = [
+  { label: '↑ Back to Moon', to: 'moon_4',  from: 'asteroid_1', dir: 'up' },
   { label: '→ Planet',    to: 'planet_4',    from: 'moon_1' },
   { label: '→ Star',      to: 'star_4',      from: 'planet_1' },
   { label: '→ Pulsar',    to: 'pulsar_4',    from: 'star_1' },
@@ -21,6 +22,13 @@ const LIFTOFFS = [
   { label: '→ Galaxy',    to: 'galaxy_4',    from: 'supernova_1' },
   { label: '→ Quasar',    to: 'quasar',      from: 'galaxy_1' },
   { label: 'Within-tier', to: 'moon_3',      from: 'moon_4' },
+];
+
+// Rank-DOWN moments (calm/cooling) across tiers (v4 §5).
+const DOWNS = [
+  { label: '↓ Moon → Asteroid', to: 'asteroid_2', from: 'moon_4' },
+  { label: '↓ Star → Planet',   to: 'planet_1',   from: 'star_4' },
+  { label: '↓ to Stardust',     to: 'stardust_2', from: 'meteor_1' },
 ];
 
 function LiftoffPreview() {
@@ -31,9 +39,19 @@ function LiftoffPreview() {
       <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Preview rank-up “Liftoff” moments</div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
         {LIFTOFFS.map((l) => (
-          <button key={l.to} onClick={() => play(l.to, { fromTierId: l.from, score: 88.8, city: 'Jaipur' })}
+          <button key={l.to + l.from} onClick={() => play(l.to, { fromTierId: l.from, score: 88.8, city: 'Jaipur', direction: 'up' })}
             style={{ padding: '8px 14px', borderRadius: 999, fontSize: 12, fontWeight: 600, cursor: 'pointer',
               color: '#0D0221', background: 'linear-gradient(135deg,#cfe6ff,#8ec5ff)', border: 'none' }}>
+            {l.label}
+          </button>
+        ))}
+      </div>
+      <div style={{ fontSize: 13, fontWeight: 700, margin: '14px 0 10px' }}>Preview rank-down (cooling) moments</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        {DOWNS.map((l) => (
+          <button key={l.to + l.from} onClick={() => play(l.to, { fromTierId: l.from, score: 47.2, city: 'Jaipur', direction: 'down', pointsToRecover: 2.8 })}
+            style={{ padding: '8px 14px', borderRadius: 999, fontSize: 12, fontWeight: 600, cursor: 'pointer',
+              color: '#cfe0ee', background: 'rgba(30,41,59,0.6)', border: '1px solid rgba(120,150,190,0.4)' }}>
             {l.label}
           </button>
         ))}

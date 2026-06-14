@@ -33,17 +33,46 @@ const isPromotion = (fromId, toId) => {
   return getTier(fromId).category !== getTier(toId).category && idx(toId) > idx(fromId);
 };
 
-function headlineFor(tierId, city) {
+function headlineFor(tierId, city, direction, pointsToRecover, fromTierId) {
   const t = getTier(tierId);
   const where = city ? ` over ${city}'s sky` : '';
+
+  // v4 §5 — rank-DOWN: dignified, encouraging, never shaming. Always forward-
+  // looking with the exact points to recover.
+  if (direction === 'down') {
+    const recover = pointsToRecover != null
+      ? ` You need +${pointsToRecover} to return to ${getTier(fromTierId).displayName}.`
+      : '';
+    const calm = {
+      asteroid: "Your light dimmed a little — you're now",
+      meteor:   "You've cooled into",
+      stardust: "You've drifted out to",
+      moon:     "You've cooled to",
+      planet:   "You've cooled to",
+      star:     "You've cooled from a brighter sky to",
+      pulsar:   "You've eased down to",
+      supernova:"You've settled to",
+      galaxy:   "You've eased down to",
+    };
+    return {
+      kicker: 'STILL BURNING',
+      line: `${calm[t.category] || 'You moved to'} ${t.displayName}. Stars flicker; climb back.${recover}`,
+    };
+  }
+
+  // Rank-UP / intro (warm, hopeful — including the Descent's "rising" theme).
   switch (t.category) {
+    case 'stardust':  return { kicker: 'A SPARK CATCHES', line: `You're gathering light again — ${t.displayName}.` };
+    case 'meteor':    return { kicker: 'STILL ON FIRE', line: `You're rising — ${t.displayName}.` };
+    case 'asteroid':  return { kicker: 'GATHERING MASS', line: `Almost a world again — ${t.displayName}.` };
+    case 'moon':      return { kicker: 'BACK IN ORBIT', line: `You've gathered enough mass to hold an orbit again — ${t.displayName}.` };
     case 'planet':    return { kicker: 'A WORLD IS BORN', line: `You've ascended to ${t.displayName}.` };
     case 'star':      return { kicker: 'IGNITION', line: `You now generate your own light — ${t.displayName}.` };
     case 'pulsar':    return { kicker: 'A LIGHTHOUSE RISES', line: `You're a pulsar${where} — ${t.displayName}.` };
     case 'supernova': return { kicker: 'SUPERNOVA', line: `The whole community is watching — ${t.displayName}.` };
     case 'galaxy':    return { kicker: 'ANDROMEDA CLASS', line: `A universe unto yourself — ${t.displayName}.` };
     case 'quasar':    return { kicker: 'BEYOND THE LADDER', line: `You are ${t.displayName} — shining forever.` };
-    default:          return { kicker: 'YOU\'VE GROWN', line: `Welcome to ${t.displayName}.` };
+    default:          return { kicker: "YOU'VE GROWN", line: `Welcome to ${t.displayName}.` };
   }
 }
 
@@ -58,23 +87,25 @@ export default function LiftoffOverlay() {
   const [sharing, setSharing] = useState(false);
 
   const promotion = event ? isPromotion(event.fromTierId, event.toTierId) : false;
+  const isDown = event?.direction === 'down';
   const reduced = useMemo(
     () => (typeof window !== 'undefined' &&
       window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches),
     []
   );
   const speed = getSpeed ? getSpeed() : 1;
-  const stillMode = reduced || speed === 0; // crossfade instead of canvas storm
+  // Rank-DOWN is always a calm crossfade (no explosive canvas), per v4 §5.
+  const stillMode = reduced || speed === 0 || isDown; // crossfade instead of canvas storm
 
-  const head = event ? headlineFor(event.toTierId, event.city) : null;
+  const head = event ? headlineFor(event.toTierId, event.city, event.direction, event.pointsToRecover, event.fromTierId) : null;
 
   // Run the cinematics when an event arrives.
   useEffect(() => {
     if (!event) return;
     setRevealed(false);
 
-    // Chime obeys UI Sounds (handled inside playLiftoffChime).
-    playLiftoffChime(promotion);
+    // Chime obeys UI Sounds. Downgrades get a soft, low, neutral tone (v4 §5).
+    playLiftoffChime(promotion && !isDown);
 
     const sp = Math.max(speed || 1, 0.2);
     let autoTimer, safetyTimer;
@@ -150,7 +181,7 @@ export default function LiftoffOverlay() {
     <AnimatePresence>
       <motion.div
         key={event.id}
-        className="liftoff-overlay"
+        className={`liftoff-overlay ${isDown ? 'liftoff-down' : ''}`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -195,7 +226,7 @@ export default function LiftoffOverlay() {
                 className="liftoff-text"
               >
                 <div className="liftoff-kicker">
-                  {promotion ? 'LIFTOFF' : 'RANK UP'} · {head.kicker}
+                  {isDown ? 'A QUIET DESCENT' : (promotion ? 'LIFTOFF' : 'RANK UP')} · {head.kicker}
                 </div>
                 <h2 className="liftoff-headline">{head.line}</h2>
                 {event.score != null && (

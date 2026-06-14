@@ -17,9 +17,9 @@ const useLiftoffStore = create(
       lastSeen: {},                // userId → tierId (persisted)
       introsSeen: {},              // `${userId}:${tierId}` → true (persisted; v2 §7.1)
 
-      /** Queue a Liftoff. fromTierId may be null for a first-time reveal. */
-      play: (toTierId, { fromTierId = null, city = '', score = null } = {}) =>
-        set({ event: { id: ++_seq, fromTierId, toTierId, city, score } }),
+      /** Queue a rank moment. direction: 'up' (default) | 'down' | 'intro'. */
+      play: (toTierId, { fromTierId = null, city = '', score = null, direction = 'up', pointsToRecover = null } = {}) =>
+        set({ event: { id: ++_seq, fromTierId, toTierId, city, score, direction, pointsToRecover } }),
 
       clear: () => set({ event: null }),
 

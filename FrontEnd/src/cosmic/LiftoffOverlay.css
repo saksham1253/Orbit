@@ -16,6 +16,12 @@
   overflow: hidden;
   cursor: pointer;
 }
+/* v4 §5 — rank-DOWN: a calm, cool, dignified backdrop (never harsh/red) */
+.liftoff-overlay.liftoff-down {
+  background: radial-gradient(circle at 50% 42%, rgba(30,41,59,0.94), rgba(8,12,22,0.97) 70%);
+}
+.liftoff-down .liftoff-kicker { color: rgba(160,190,220,0.85); }
+.liftoff-down .liftoff-headline { text-shadow: 0 2px 20px rgba(120,150,190,0.4); }
 
 .liftoff-canvas {
   position: absolute;
