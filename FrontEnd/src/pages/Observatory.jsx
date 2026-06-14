@@ -104,7 +104,7 @@ export default function Observatory() {
 
         {!isLoading && !isError && !data?.northStar && (
           <EmptyState icon={<Telescope size={28} />} title="This sky is still dark"
-            description="As mentors earn reviews here, the brightest will light up the Observatory." />
+            description="No North Star yet — be the first to shine here. As mentors earn reviews, the brightest will light up the Observatory." />
         )}
 
         {!isLoading && !isError && data?.northStar && (
@@ -177,7 +177,8 @@ export default function Observatory() {
                     {data.spotlight.climb > 0 && (
                       <span className="inline-flex items-center gap-1 mt-1 text-[11px] font-bold px-2 py-0.5 rounded-full"
                         style={{ background: 'rgba(255,107,53,0.15)', color: '#FF8C42' }}>
-                        <TrendingUp size={11} /> +{data.spotlight.climb} this season
+                        <TrendingUp size={11} /> Biggest climber this month: +{data.spotlight.climb.toFixed(1)} points
+                        {data.spotlight.deltaDivisions > 0 && ` · ${data.spotlight.deltaDivisions} division${data.spotlight.deltaDivisions > 1 ? 's' : ''} climbed`}
                       </span>
                     )}
                   </div>
@@ -223,7 +224,7 @@ export default function Observatory() {
               ) : (
                 <p className="text-xs text-text-muted p-4 rounded-2xl text-center"
                   style={{ background: 'var(--surface)', border: '1px solid var(--border-subtle)' }}>
-                  No legends yet. The first retired #1 champion becomes a permanent Quasar here.
+                  No legends yet — the first city champion is enshrined when the season ends.
                 </p>
               )}
             </div>

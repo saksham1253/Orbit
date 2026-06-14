@@ -4,7 +4,11 @@ const Connection = require("../models/Connection");
 const Legend = require("../models/Legend");
 const { buildLeaderboard, scorePool, mentorsWithin } = require("../services/leaderboardService");
 const { computeCosmicScore } = require("../services/cosmicScore");
-const { assignTier, resolveDisplayTier, nameGlowFor, higherTier } = require("../services/cosmicTier");
+const { assignTier, resolveDisplayTier, nameGlowFor, higherTier, TIER_ORDER } = require("../services/cosmicTier");
+
+// Below-Moon "Descent" categories — never eligible for North Star / Supernova awards (v4 §7).
+const DESCENT_CATEGORIES = new Set(["stardust", "meteor", "asteroid"]);
+const isDescentTier = (tierId) => DESCENT_CATEGORIES.has(String(tierId || "").split("_")[0]);
 
 // ─────────────────────────────────────────────────────────────
 //  GET /api/cosmic/leaderboard
@@ -170,6 +174,9 @@ exports.getObservatory = async (req, res) => {
                 // persisted baseline if present; otherwise the warm-start floor.
                 const baseline = (u.cosmic && typeof u.cosmic.seasonStartScore === "number")
                     ? u.cosmic.seasonStartScore : SEASON_BASELINE;
+                // Net tier-divisions climbed this season (Supernova tiebreak, §2.4).
+                const startTierId = assignTier(baseline, {}).tierId;
+                const deltaDivisions = (TIER_ORDER.indexOf(s.tier.tierId) - TIER_ORDER.indexOf(startTierId)) || 0;
                 return {
                     userId: String(u._id),
                     name: u.name,
@@ -177,6 +184,7 @@ exports.getObservatory = async (req, res) => {
                     score: Math.round(s.score * 10) / 10,
                     tierId: s.tier.tierId,
                     climb: Math.round((s.score - baseline) * 10) / 10,
+                    deltaDivisions,
                     weightedReviews: s.weightedReviews,
                     reviewsCount: s.reviewsCount,
                 };
@@ -196,8 +204,12 @@ exports.getObservatory = async (req, res) => {
         // Only crown someone with a strictly positive climb; otherwise empty state.
         // NEVER relabel their tier — the award is separate from the tier.
         let spotlight = null;
-        const topClimber = ranked.reduce((best, r) => (r.climb > (best ? best.climb : 0) ? r : best), null);
-        if (topClimber && topClimber.climb > 0) {
+        // Eligible climbers: strictly positive climb AND not a Descent-tier mentor (v4 §7).
+        // Tiebreak equal climbs by net tier-divisions climbed (§2.4).
+        const topClimber = ranked
+            .filter((r) => r.climb > 0 && !isDescentTier(r.tierId))
+            .sort((a, b) => b.climb - a.climb || b.deltaDivisions - a.deltaDivisions)[0] || null;
+        if (topClimber) {
             let best = await Rating.findOne({
                 toUser: topClimber.userId,
                 tiedToCompletedSwap: true,
@@ -218,7 +230,9 @@ exports.getObservatory = async (req, res) => {
                 avatar: topClimber.avatar,
                 tierId: topClimber.tierId,       // their REAL tier (not "Supernova")
                 score: topClimber.score,
-                climb: topClimber.climb,         // award metric: "+X this season"
+                climb: topClimber.climb,         // award metric: "+X.X points this season"
+                deltaScore: topClimber.climb,    // §2.4 contract alias
+                deltaDivisions: topClimber.deltaDivisions, // §2.4 net divisions climbed
                 quote: best ? best.review : "",
                 quoteBy: best && best.fromUser ? best.fromUser.name : "",
             };
