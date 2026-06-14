@@ -8,8 +8,11 @@ import api from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
 import Avatar from '../components/common/Avatar';
+import Modal from '../components/common/Modal';
 import { ProfileHeaderSkeleton } from '../components/skeletons';
 import CosmicProfileCard from '../cosmic/CosmicProfileCard';
+import { InfoDot, ScoreExplainerBody } from '../cosmic/scoreInfo';
+import { TRUST_TOOLTIP, TRUST_SCORE_INFO } from '../cosmic/scoreCopy';
 
 const LANGUAGES = ['English','Spanish','French','Hindi','German','Mandarin','Japanese','Arabic','Portuguese','Korean'];
 
@@ -30,6 +33,7 @@ const Profile = () => {
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [reviewTab, setReviewTab] = useState('received');
+  const [showTrustInfo, setShowTrustInfo] = useState(false);
   const fileInputRef = useRef(null);
 
   const { data: profile, isLoading } = useQuery({
@@ -201,11 +205,16 @@ const Profile = () => {
         <div className="min-w-0">
           <p className="text-xl font-bold text-text-primary truncate">{profile?.name || user?.name}</p>
           <p className="text-sm text-text-muted truncate">{profile?.email || user?.email}</p>
-          <div className="flex items-center gap-2 mt-2">
+          <div className="flex items-center gap-1.5 mt-2">
             <Shield size={13} style={{ color: trustColor }} />
             <span className="text-xs font-semibold" style={{ color: trustColor }}>
               Trust Score: {trust}/100
             </span>
+            <InfoDot label="What is Trust Score?">{TRUST_TOOLTIP}</InfoDot>
+            <button type="button" onClick={() => setShowTrustInfo(true)}
+              className="text-[11px] text-text-muted underline hover:text-text-secondary">
+              How it works
+            </button>
           </div>
         </div>
       </motion.div>
@@ -214,6 +223,11 @@ const Profile = () => {
       {(profile?._id || user?._id) && (
         <CosmicProfileCard userId={profile?._id || user?._id} self />
       )}
+
+      {/* Trust Score explainer (§4.5) — display-only; Trust engine untouched */}
+      <Modal isOpen={showTrustInfo} onClose={() => setShowTrustInfo(false)} title={TRUST_SCORE_INFO.title}>
+        <ScoreExplainerBody info={TRUST_SCORE_INFO} />
+      </Modal>
 
       {/* Form */}
       <form onSubmit={handleSubmit(d => updateMutation.mutate(d))} className="space-y-5">

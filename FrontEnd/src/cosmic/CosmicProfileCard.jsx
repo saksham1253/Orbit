@@ -11,6 +11,8 @@ import { Sparkles, TrendingUp, Lock, Trophy, Flame, MoveUpRight, Sun, Radio, Orb
 import CosmicBadge from './CosmicBadge';
 import { getTier } from './tiers';
 import { useMentorCosmic } from './useCosmic';
+import { InfoDot, Disclosure, ScoreExplainerBody } from './scoreInfo';
+import { COSMIC_TOOLTIP, COSMIC_SCORE_INFO, SCORE_DISTINCTION } from './scoreCopy';
 
 // Live flair key → professional icon + label (v2 §4, no emoji).
 const FLAIR = {
@@ -64,9 +66,10 @@ const CosmicProfileCard = memo(function CosmicProfileCard({ userId, self = false
           {data.currentTitle && (
             <div className="text-xs text-accent font-semibold mt-0.5 truncate">{data.currentTitle}</div>
           )}
-          <div className="text-xs text-text-muted mt-0.5">
-            CosmicScore {data.score}
-            {data.reviewsCount > 0 && <> · {data.reviewsCount} {data.reviewsCount === 1 ? 'review' : 'reviews'}</>}
+          <div className="text-xs text-text-muted mt-0.5 flex items-center gap-1 flex-wrap">
+            <span><span className="font-semibold text-text-secondary">CosmicScore</span> {data.score}</span>
+            <InfoDot label="What is CosmicScore?">{COSMIC_TOOLTIP}</InfoDot>
+            {data.reviewsCount > 0 && <span>· {data.reviewsCount} {data.reviewsCount === 1 ? 'review' : 'reviews'}</span>}
           </div>
         </div>
       </div>
@@ -117,6 +120,12 @@ const CosmicProfileCard = memo(function CosmicProfileCard({ userId, self = false
           Lifetime best: {getTier(data.peakTierId).displayName}
         </p>
       )}
+
+      {/* Trust vs CosmicScore clarity + "how it works" explainer (§4, §4.5) */}
+      <p className="text-[11px] text-text-muted mt-4 mb-2">{SCORE_DISTINCTION}</p>
+      <Disclosure title={COSMIC_SCORE_INFO.title}>
+        <ScoreExplainerBody info={COSMIC_SCORE_INFO} />
+      </Disclosure>
     </div>
   );
 });
