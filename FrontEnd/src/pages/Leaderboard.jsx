@@ -17,7 +17,8 @@ import { useAuthStore } from '../store/authStore';
 import { useLeaderboard } from '../cosmic/useCosmic';
 import CosmicBadge from '../cosmic/CosmicBadge';
 import CosmicName from '../cosmic/CosmicName';
-import { getTier } from '../cosmic/tiers';
+import { getTier, TIER_FLOORS, TIER_ORDER } from '../cosmic/tiers';
+import { InfoDot } from '../cosmic/scoreInfo';
 import Avatar from '../components/common/Avatar';
 import EmptyState from '../components/common/EmptyState';
 import ErrorState from '../components/common/ErrorState';
@@ -30,6 +31,53 @@ const SCOPES = [
 ];
 
 const MEDAL_TINT = { 1: '#FFD08A', 2: '#D6DCE6', 3: '#E0A878' };
+
+const LADDER_IDS = TIER_ORDER.filter((id) => id !== 'quasar');
+const DESCENT_CATS = new Set(['stardust', 'meteor', 'asteroid']);
+const round1 = (n) => Math.round(n * 10) / 10;
+const PROVISIONAL_TIP =
+  'Provisional: scores are tied early this season. The #1 spot locks in as mentors earn more reviews.';
+
+/**
+ * §8.6 — the hero progress meter, SINGLE SOURCE for both the fill width and the
+ * label so they can never disagree. Honors the backend's locked/max modes;
+ * otherwise computes within-tier progress straight from the tier floors.
+ * Returns { mode, pct, currentName, nextName, label, aria }.
+ */
+function heroMeter(you) {
+  const { tierId, score } = you;
+  const mode = you.progress?.mode || 'progress';
+  const idx = LADDER_IDS.indexOf(tierId);
+  const currentName = getTier(tierId).displayName;
+  const nextTierId = idx >= 0 && idx < LADDER_IDS.length - 1 ? LADDER_IDS[idx + 1] : null;
+  const nextName = nextTierId ? getTier(nextTierId).displayName : null;
+  const descent = DESCENT_CATS.has(getTier(tierId).category);
+
+  if (mode === 'max' || !nextTierId) {
+    return { mode: 'max', pct: 1, currentName, nextName: null,
+      label: 'You’ve reached the highest tier in the cosmos.', aria: 'Max tier reached' };
+  }
+  // Eligibility-gated next tier: trust the backend's reviews-based progress.
+  if (mode === 'locked') {
+    const pct = Math.max(0, Math.min(1, you.progress?.pct ?? 0));
+    return { mode: 'locked', pct, currentName, nextName,
+      label: you.progress?.label || `Next tier locked`, aria: you.progress?.label || 'Next tier locked' };
+  }
+  // Normal within-tier climb — fill AND label derive from this one computation.
+  const curFloor = TIER_FLOORS[tierId];
+  const nextFloor = TIER_FLOORS[nextTierId];
+  const pct = nextFloor > curFloor ? Math.max(0, Math.min(1, (score - curFloor) / (nextFloor - curFloor))) : 0;
+  const points = round1(Math.max(0, nextFloor - score));
+  let label = pct <= 0
+    ? `You’re at the start of ${currentName} — earn ${points} points to rise to ${nextName}.`
+    : `${points} points to ${nextName}.`;
+  if (descent && nextTierId !== 'moon_4') {
+    const toMoon = round1(Math.max(0, TIER_FLOORS.moon_4 - score));
+    if (toMoon > 0) label += ` ${toMoon} to return to Moon IV.`;
+  }
+  return { mode: 'progress', pct, currentName, nextName, points, label,
+    aria: `${Math.round(pct * 100)} percent — ${points} points to ${nextName}` };
+}
 
 function RankBadge({ rank }) {
   if (rank <= 3) {
@@ -160,34 +208,67 @@ export default function Leaderboard() {
           </div>
         )}
 
-        {/* Your rank card */}
-        {data?.you && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-3 p-3 rounded-2xl mb-5"
-            style={{ background: 'var(--surface)', border: '1px solid var(--border-subtle)' }}>
-            <CosmicBadge tierId={data.you.tierId} size="full" />
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-semibold text-text-primary truncate">
-                You — {getTier(data.you.tierId).displayName}
+        {/* ── "YOUR STANDING" hero card (§8.6) — the canonical self-summary ── */}
+        {data?.you && (() => {
+          const you = data.you;
+          const m = heroMeter(you);
+          const pctInt = Math.round(m.pct * 100);
+          const scopeLabel = SCOPES.find((s) => s.id === scope)?.label || scope;
+          const provisional = you.rank === 1 && data.entries?.[1]
+            && Math.abs((data.entries[1].score ?? 0) - you.score) < 0.05;
+          const atFloor = m.pct <= 0; // friendly baseline fill, never a flat empty bar
+          return (
+            <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              aria-label="Your standing" className="rounded-2xl mb-5 p-4"
+              style={{ background: 'linear-gradient(135deg, rgba(0,198,255,0.08), rgba(155,107,255,0.06))',
+                       border: '1px solid var(--accent-1, #00c6ff)' }}>
+              {/* heading + scope-aware rank chip (provisional tooltip when tied/early) */}
+              <div className="flex items-center justify-between mb-3 gap-2">
+                <span className="text-[11px] font-bold tracking-[0.14em]" style={{ color: 'var(--accent-1, #00c6ff)' }}>
+                  YOUR STANDING
+                </span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums whitespace-nowrap"
+                  style={{ background: 'var(--surface)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)' }}>
+                  #{you.rank} of {you.of} · {scopeLabel}
+                  {provisional && <InfoDot label="Why am I #1?" side="left" size={11}>{PROVISIONAL_TIP}</InfoDot>}
+                </span>
               </div>
-              <div className="text-xs text-text-muted">
-                Score {data.you.score} · Rank #{data.you.rank} of {data.you.of}
+
+              {/* identity: animated tier badge + tier name + score + avatar */}
+              <div className="flex items-center gap-3">
+                <CosmicBadge tierId={you.tierId} size="full" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-bold text-text-primary truncate">{getTier(you.tierId).displayName}</div>
+                  <div className="text-xs text-text-muted mt-0.5">
+                    <span className="font-semibold text-text-secondary">CosmicScore</span> {you.score}
+                  </div>
+                </div>
+                <Avatar name={you.name} url={you.avatar} size="sm" userId={you.userId} />
               </div>
-              {/* progress to next tier (locked / progress / max) */}
-              <div className="mt-2 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border-subtle)' }}>
-                <div className="h-full rounded-full" style={{
-                  width: `${Math.round(((data.you.progress?.pct ?? data.you.progressToNext) || 0) * 100)}%`,
-                  background: data.you.progress?.mode === 'locked'
-                    ? 'linear-gradient(90deg, #6b7280, #9ca3af)'
-                    : 'linear-gradient(90deg, var(--accent-1), var(--accent-3))',
-                }} />
+
+              {/* tier-progress meter — endpoints labeled; fill width AND label share one source */}
+              <div className="mt-4">
+                <div className="flex items-center justify-between text-[10px] text-text-muted mb-1 gap-2">
+                  <span className="truncate">{m.currentName}</span>
+                  <span className="truncate text-right">{m.nextName || 'Max'}</span>
+                </div>
+                <div role="progressbar" aria-valuenow={pctInt} aria-valuemin={0} aria-valuemax={100} aria-valuetext={m.aria}
+                  className="h-2 rounded-full overflow-hidden relative" style={{ background: 'var(--border-subtle)' }}>
+                  {/* faint baseline glow so a 0% bar still reads as intentional, never broken */}
+                  <div className="absolute inset-0 rounded-full" style={{ background: 'rgba(0,198,255,0.10)' }} />
+                  <div className="h-full rounded-full relative transition-[width] duration-700 ease-out motion-reduce:transition-none"
+                    style={{ width: `${atFloor ? 6 : pctInt}%`,
+                      background: m.mode === 'locked'
+                        ? 'linear-gradient(90deg, #6b7280, #9ca3af)'
+                        : 'linear-gradient(90deg, var(--accent-1), var(--accent-3))',
+                      boxShadow: atFloor ? '0 0 8px rgba(0,198,255,0.5)' : 'none',
+                      opacity: atFloor ? 0.75 : 1 }} />
+                </div>
+                <p className="text-[11px] text-text-secondary mt-1.5">{m.label}</p>
               </div>
-              {data.you.progress?.label && (
-                <p className="text-[11px] text-text-muted mt-1">{data.you.progress.label}</p>
-              )}
-            </div>
-          </motion.div>
-        )}
+            </motion.section>
+          );
+        })()}
 
         {/* List states */}
         {isLoading && (
@@ -230,14 +311,17 @@ export default function Leaderboard() {
                     onClick={() => navigate(`/profile/${e.userId}`)}
                     className="w-full flex items-center gap-3 p-2.5 rounded-2xl transition-all text-left hover:bg-surface"
                     style={{
-                      background: isMe ? 'var(--accent-1, #00c6ff)10' : 'transparent',
+                      // §8.6 de-dup: the hero card is the canonical "you". The list
+                      // row keeps an honest rank but only a thin accent border —
+                      // no second prominent "You — Moon IV" block.
+                      background: 'transparent',
                       border: isMe ? '1px solid var(--accent-1)' : '1px solid var(--border-subtle)',
                     }}>
                     <RankBadge rank={e.rank} />
                     <Avatar name={e.name} url={e.avatar} size="sm" userId={e.userId} />
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-semibold text-text-primary truncate flex items-center gap-1.5">
-                        <CosmicName glow={e.nameGlowTier}>{e.name}</CosmicName>{isMe && <span className="text-[10px] text-accent font-bold">YOU</span>}
+                        <CosmicName glow={e.nameGlowTier}>{e.name}</CosmicName>{isMe && <span className="text-[9px] text-accent font-semibold opacity-70">you</span>}
                       </div>
                       <div className="text-xs text-text-muted truncate">
                         {getTier(e.tierId).displayName}{e.title ? ` · ${e.title}` : ''}
@@ -259,7 +343,8 @@ export default function Leaderboard() {
         </div>
       </div>
 
-      {/* Sticky game-style "Your Position" bar — always visible (v3 §2) */}
+      {/* Sticky "jump to your position" bar — always visible while scrolling (v3 §2).
+          Distinct role from the hero card: a navigation aid, not a second summary. */}
       {!isLoading && !isError && data?.you?.rank && (
         <div className="fixed bottom-0 left-0 right-0 z-30 px-4 pb-3 pointer-events-none">
           <button onClick={() => navigate(`/profile/${data.you.userId}`)}
@@ -273,7 +358,7 @@ export default function Leaderboard() {
             <div className="flex-1 min-w-0">
               <div className="text-sm font-semibold text-text-primary truncate flex items-center gap-1.5">
                 <CosmicName glow={data.you.nameGlowTier}>{data.you.name}</CosmicName>
-                <span className="text-[10px] text-accent font-bold">YOU</span>
+                <span className="text-[9px] text-accent font-semibold opacity-80">· jump to you</span>
                 {!data.you.inTop50 && <span className="text-[9px] text-text-muted">· outside top 50</span>}
               </div>
               <div className="text-xs text-text-muted truncate">{getTier(data.you.tierId).displayName}</div>
