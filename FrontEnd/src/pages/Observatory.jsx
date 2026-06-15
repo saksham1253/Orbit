@@ -188,9 +188,16 @@ export default function Observatory() {
                   <button onClick={() => navigate(`/profile/${ns.userId}`)}
                     aria-label={`Rank 1, North Star, ${ns.name}, ${getTier(ns.tierId).displayName}, score ${ns.score}${isYouNorth ? ', you' : ''}`}
                     className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center focus:outline-none">
-                    <div className="flex items-center gap-1 mb-1 text-[10px] font-bold" style={{ color: '#FFD08A' }}>
-                      <Crown size={12} /> NORTH STAR
-                    </div>
+                    {/* §3 — icon + text centered as ONE inline-flex unit, with enough
+                        clearance above the 1.5×-scaled badge so it never overlaps the glow. */}
+                    <span className="inline-flex items-center justify-center"
+                      style={{
+                        gap: 6, whiteSpace: 'nowrap', lineHeight: 1, marginBottom: 24,
+                        fontSize: 12, letterSpacing: '.14em', fontWeight: 700, color: '#FFD479',
+                      }}>
+                      <Crown size={14} style={{ display: 'block', flex: '0 0 auto' }} />
+                      <span style={{ display: 'inline-block', transform: 'translateY(.5px)' }}>NORTH STAR</span>
+                    </span>
                     <div style={{ transform: 'scale(1.5)' }}>
                       <div className="rounded-full"
                         style={isYouNorth ? { boxShadow: '0 0 0 2px var(--accent-1, #00c6ff), 0 0 14px rgba(0,198,255,0.6)' } : undefined}>
