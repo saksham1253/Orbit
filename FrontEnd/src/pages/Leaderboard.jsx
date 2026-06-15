@@ -94,27 +94,69 @@ export default function Leaderboard() {
           </div>
         </div>
 
-        {/* Scope toggle */}
+        {/* Scope toggle — with real per-scope mentor counts (§8.5) */}
         <div className="flex flex-wrap gap-1.5 mt-4 mb-3">
           {SCOPES.map((s) => {
             const active = scope === s.id;
             const Icon = s.Icon;
+            const count = data?.scopeCounts?.[s.id];
             return (
               <button key={s.id} onClick={() => setScope(s.id)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                   active ? 'text-accent bg-accent/10 border border-accent/30'
                          : 'text-text-secondary hover:text-text-primary bg-surface border border-border-subtle'}`}>
                 <Icon size={13} />{s.label}
+                {count != null && <span className="opacity-70 tabular-nums">· {count}</span>}
               </button>
             );
           })}
         </div>
 
-        {/* Honest scope label */}
+        {/* Honest scope label + coverage messaging (§8.5) */}
         {data?.label && (
-          <div className="flex items-center gap-1.5 text-xs text-text-muted mb-4">
+          <div className="flex items-center gap-1.5 text-xs text-text-muted mb-2">
             <MapPin size={12} />
-            <span>Showing mentors {data.label}{data.usedFallback ? ' (widened to fill the board)' : ''}.</span>
+            <span>
+              Showing mentors {data.label}
+              {data.widened && data.appliedRadiusKm ? ` (widened to ${data.appliedRadiusKm} km to fill the board)` : ''}.
+            </span>
+          </div>
+        )}
+
+        {/* Viewer has no location → board fell back to Country; nudge them. */}
+        {data?.viewerNeedsLocation && (
+          <button onClick={() => navigate('/nearby')}
+            className="flex items-start gap-2 w-full text-left p-3 rounded-2xl mb-3 text-xs"
+            style={{ background: 'var(--surface)', border: '1px solid var(--accent-1)' }}>
+            <Compass size={14} className="mt-0.5 flex-none text-accent" />
+            <span className="text-text-secondary">
+              <strong className="text-text-primary">Add your city</strong> to see who’s ranked near you.
+              We’re showing the country board for now. <span className="text-accent underline">Set location</span>
+            </span>
+          </button>
+        )}
+
+        {/* City sparse but mentors lack a location → offer wider scopes + explain. */}
+        {scope === 'city' && data?.unplacedCount > 0 && (
+          <div className="flex items-start gap-2 p-3 rounded-2xl mb-3 text-xs"
+            style={{ background: 'var(--surface)', border: '1px dashed var(--border-subtle)' }}>
+            <MapPin size={14} className="mt-0.5 flex-none text-text-muted" />
+            <div className="text-text-muted">
+              <span className="text-text-secondary">
+                {data.unplacedCount} {data.unplacedCount === 1 ? 'mentor hasn’t' : 'mentors haven’t'} set a city yet,
+                so they’re ranked in Region/Country instead.
+              </span>
+              <div className="flex gap-1.5 mt-2">
+                <button onClick={() => setScope('region')}
+                  className="px-2.5 py-1 rounded-lg font-semibold text-accent bg-accent/10 border border-accent/30">
+                  See Region{data.scopeCounts?.region != null ? ` · ${data.scopeCounts.region}` : ''}
+                </button>
+                <button onClick={() => setScope('country')}
+                  className="px-2.5 py-1 rounded-lg font-semibold text-accent bg-accent/10 border border-accent/30">
+                  See Country{data.scopeCounts?.country != null ? ` · ${data.scopeCounts.country}` : ''}
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
