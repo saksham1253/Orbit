@@ -6,11 +6,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
-import { Eye, EyeOff, ArrowRight, Sparkles, Check } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, Sparkles } from 'lucide-react';
 import api from '../services/api';
 import { useUIStore } from '../store/uiStore';
+import LanguageMultiSelect from '../components/common/LanguageMultiSelect';
 
-const LANGUAGES = ['English', 'Hindi', 'Spanish', 'French', 'German', 'Mandarin', 'Japanese', 'Arabic', 'Portuguese', 'Korean'];
+const MAX_LANGUAGES = 5;
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -53,12 +54,6 @@ const registerSchema = z.object({
   const strength = requirementsMet === 0 ? 0 : requirementsMet <= 2 ? 1 : requirementsMet <= 3 ? 2 : 3;
   const strengthLabel = ['', 'Weak', 'Moderate', 'Strong'][strength];
   const strengthColor = ['', '#ff4b4b', '#ffb800', '#00e5a0'][strength];
-
-  const toggleLang = (lang) => {
-    setSelectedLangs((prev) =>
-      prev.includes(lang) ? (prev.length > 1 ? prev.filter((l) => l !== lang) : prev) : [...prev, lang]
-    );
-  };
 
   const registerMutation = useMutation({
     mutationFn: (data) => api.post('/auth/register', { ...data, languages: selectedLangs }),
@@ -284,31 +279,16 @@ const registerSchema = z.object({
 
           {/* Languages */}
           <div>
-            <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">
+            <label htmlFor="register-languages" className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">
               Spoken Languages
-              <span className="ml-1 normal-case text-white/25 lowercase">(select all that apply)</span>
+              <span className="ml-1 normal-case text-white/25 lowercase">(search and pick up to {MAX_LANGUAGES})</span>
             </label>
-            <div className="flex flex-wrap gap-2">
-              {LANGUAGES.map((lang) => {
-                const active = selectedLangs.includes(lang);
-                return (
-                  <button
-                    key={lang}
-                    type="button"
-                    onClick={() => toggleLang(lang)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all"
-                    style={{
-                      background: active ? 'rgba(0,198,255,0.15)' : 'rgba(255,255,255,0.04)',
-                      border: `1px solid ${active ? 'rgba(0,198,255,0.4)' : 'rgba(255,255,255,0.08)'}`,
-                      color: active ? '#00c6ff' : 'rgba(255,255,255,0.5)',
-                    }}
-                  >
-                    {active && <Check size={10} strokeWidth={3} />}
-                    {lang}
-                  </button>
-                );
-              })}
-            </div>
+            <LanguageMultiSelect
+              id="register-languages"
+              value={selectedLangs}
+              onChange={setSelectedLangs}
+              maxSelections={MAX_LANGUAGES}
+            />
           </div>
 
           {/* Submit */}

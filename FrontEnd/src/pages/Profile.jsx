@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
-import { Check, UserCircle, Shield, Save, Camera, Upload, X, Link as LinkIcon, Globe } from 'lucide-react';
+import { UserCircle, Shield, Save, Camera, Upload, X, Link as LinkIcon, Globe } from 'lucide-react';
 import api from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
@@ -13,8 +13,9 @@ import { ProfileHeaderSkeleton } from '../components/skeletons';
 import CosmicProfileCard from '../cosmic/CosmicProfileCard';
 import { InfoDot, ScoreExplainerBody } from '../cosmic/scoreInfo';
 import { TRUST_TOOLTIP, TRUST_SCORE_INFO } from '../cosmic/scoreCopy';
+import LanguageMultiSelect from '../components/common/LanguageMultiSelect';
 
-const LANGUAGES = ['English','Spanish','French','Hindi','German','Mandarin','Japanese','Arabic','Portuguese','Korean'];
+const MAX_LANGUAGES = 5;
 
 const PRESET_AVATARS = [
   '/avatars/avatar-1.svg',
@@ -68,14 +69,6 @@ const Profile = () => {
       setLangs(profile.languages?.length ? profile.languages : ['English']);
     }
   }, [profile, setValue]);
-
-  const toggleLang = (lang) => {
-    setLangs(prev =>
-      prev.includes(lang)
-        ? prev.length > 1 ? prev.filter(l => l !== lang) : prev
-        : prev.length < 5 ? [...prev, lang] : prev
-    );
-  };
 
   const updateMutation = useMutation({
     mutationFn: (data) => api.put('/user/profile', { ...data, languages: langs }),
@@ -263,26 +256,15 @@ const Profile = () => {
 
           {/* Languages */}
           <div>
-            <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">
-              Spoken Languages <span className="normal-case text-white/25 lowercase">(up to 5)</span>
+            <label htmlFor="profile-languages" className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">
+              Spoken Languages <span className="normal-case text-white/25 lowercase">(search and pick up to {MAX_LANGUAGES})</span>
             </label>
-            <div className="flex flex-wrap gap-2">
-              {LANGUAGES.map(lang => {
-                const active = langs.includes(lang);
-                return (
-                  <button key={lang} type="button" onClick={() => toggleLang(lang)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all"
-                    style={{
-                      background: active ? 'rgba(0,198,255,0.15)' : 'rgba(255,255,255,0.04)',
-                      border: `1px solid ${active ? 'rgba(0,198,255,0.4)' : 'rgba(255,255,255,0.08)'}`,
-                      color: active ? '#00c6ff' : 'rgba(255,255,255,0.5)',
-                    }}>
-                    {active && <Check size={10} strokeWidth={3} />}
-                    {lang}
-                  </button>
-                );
-              })}
-            </div>
+            <LanguageMultiSelect
+              id="profile-languages"
+              value={langs}
+              onChange={setLangs}
+              maxSelections={MAX_LANGUAGES}
+            />
           </div>
         </div>
 
