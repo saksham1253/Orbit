@@ -1,19 +1,29 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
-import { Mail, ArrowLeft, CheckCircle, Sparkles } from 'lucide-react';
+import { Mail, ArrowLeft, CheckCircle, Sparkles, RotateCw } from 'lucide-react';
 import api from '../services/api';
+
+const RESEND_COOLDOWN = 30; // seconds
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
 
   const mutation = useMutation({
     mutationFn: (email) => api.post('/auth/forgot-password', { email }),
-    onSuccess: () => setSent(true),
+    onSuccess: () => { setSent(true); setCooldown(RESEND_COOLDOWN); },
   });
+
+  // Tick the Resend cooldown down to zero.
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setInterval(() => setCooldown((c) => (c > 0 ? c - 1 : 0)), 1000);
+    return () => clearInterval(t);
+  }, [cooldown]);
 
   return (
     <>
@@ -63,11 +73,30 @@ const ForgotPassword = () => {
               <p className="text-sm text-text-secondary leading-relaxed">
                 If an account exists for <span className="text-white/80 font-medium">{email}</span>, we've sent a password reset link. It expires in 1 hour.
               </p>
-              <Link to="/login"
-                className="inline-flex items-center gap-2 mt-4 text-sm text-accent hover:text-text-primary transition-colors"
+              <p className="text-xs text-text-muted">
+                Don't see it? Check your <span className="text-text-secondary font-medium">spam</span> or
+                <span className="text-text-secondary font-medium"> promotions</span> folder — it can take a minute to arrive.
+              </p>
+
+              {/* Resend with a short cooldown (re-posts the same email). */}
+              <button
+                type="button"
+                onClick={() => { if (cooldown === 0 && !mutation.isPending) mutation.mutate(email); }}
+                disabled={cooldown > 0 || mutation.isPending}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-accent bg-accent/10 border border-accent/30 hover:bg-accent/20 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                <ArrowLeft size={14} /> Back to Sign In
-              </Link>
+                {mutation.isPending
+                  ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Resending…</>
+                  : <><RotateCw size={14} /> {cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend email'}</>}
+              </button>
+
+              <div>
+                <Link to="/login"
+                  className="inline-flex items-center gap-2 mt-2 text-sm text-accent hover:text-text-primary transition-colors"
+                >
+                  <ArrowLeft size={14} /> Back to Sign In
+                </Link>
+              </div>
             </motion.div>
           ) : (
             <>

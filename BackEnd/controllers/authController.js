@@ -139,13 +139,29 @@ exports.forgotPassword = async (req, res) => {
 
         const resetUrl = `${process.env.FRONTEND_URL || 'https://react-skill-swap-fully-fledged.vercel.app'}/reset-password/${resetToken}`;
 
-        // Send email asynchronously (prevents 15s Axios timeout if SMTP is slow/blocked)
+        // ── Observability (server logs ONLY — never leaked to the client, so the
+        // neutral anti-enumeration response below is preserved). This is what
+        // reveals a misconfigured mailer in production, where the always-success
+        // screen otherwise hides real send failures.
+        const emailConfigured = !!(process.env.EMAIL_HOST && process.env.EMAIL_USER && process.env.EMAIL_PASS);
+        if (!emailConfigured) {
+            console.error('[forgot-password] EMAIL_* env vars are not fully configured — reset mail cannot be delivered. Set EMAIL_HOST / EMAIL_PORT / EMAIL_USER / EMAIL_PASS on the host and redeploy.');
+        }
+        // In non-prod, log the reset link so the flow can be verified without a live inbox.
+        if (process.env.NODE_ENV !== 'production') {
+            console.log(`[forgot-password] (dev) reset link for ${user.email}: ${resetUrl}`);
+        }
+
+        // Send asynchronously (prevents a 15s Axios timeout if SMTP is slow/blocked),
+        // but log the resolved messageId on success and the explicit error on failure.
         const { sendEmail } = require('../utils/sendEmail');
         sendEmail({
             to: user.email,
             subject: 'SkillSwap – Password Reset',
             html: `<p>Hello ${user.name},</p><p>You requested a password reset. Click the link below (valid for 1 hour):</p><a href="${resetUrl}">${resetUrl}</a><p>If you did not request this, ignore this email.</p>`
-        }).catch(mailErr => console.error('Forgot password email failed:', mailErr.message));
+        })
+            .then(info => console.log(`[forgot-password] reset email queued for ${user.email} — messageId=${info?.messageId || 'n/a'}`))
+            .catch(mailErr => console.error(`[forgot-password] reset email FAILED for ${user.email}:`, mailErr?.message || mailErr));
 
         res.status(200).json({ message: "If an account exists, a reset link has been sent." });
 
