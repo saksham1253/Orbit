@@ -1,15 +1,78 @@
 /**
- * liftoffSound.js — a bespoke cinematic chime for the rank-up moment, built
- * live with the WebAudio API (no audio assets, free-tier safe). Obeys the
- * app's UI Sounds toggle via soundManager.isEnabled() (spec §8).
+ * liftoffSound.js — bespoke cinematic cues for the rank moments, built live with
+ * the WebAudio API (no audio assets, free-tier safe). Obeys the app's UI Sounds
+ * toggle via soundManager.isEnabled() (spec §8; v5 §1).
  *
  * `grand` = full category-promotion fanfare; otherwise a shorter within-tier
- * sparkle. Everything is wrapped in try/catch so audio can never break the UI.
+ * sparkle. Pass `{ down: true }` for the rank-DOWN cue — a soft, dignified,
+ * *descending* cooling tone (never harsh; quieter and shorter than rank-up),
+ * per v5 §1. Everything is wrapped in try/catch so audio can never break the UI.
  */
 import soundManager from '../utils/soundManager';
 
-export function playLiftoffChime(grand = true) {
+/**
+ * Rank-DOWN cooling cue (v5 §1): a gentle descending arpeggio, low and quiet,
+ * ~0.9s. Encouraging, not punishing — matches the v4 "still burning" tone.
+ */
+export function playDescentChime() {
   if (!soundManager.isEnabled()) return;     // respect the UI Sounds toggle
+
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    const ac = new Ctx();
+    const now = ac.currentTime;
+
+    const master = ac.createGain();
+    master.gain.value = 0.0001;
+    master.connect(ac.destination);
+
+    const dur = 0.95;
+    master.gain.setValueAtTime(0.0001, now);
+    master.gain.exponentialRampToValueAtTime(0.12, now + 0.12);   // quieter than rank-up
+    master.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+    // Descending minor-ish arpeggio — feels like a soft cooling, not a fall.
+    const notes = [523.25, 392.0, 311.13];                        // C5 → G4 → Eb4
+    notes.forEach((f, i) => {
+      const o = ac.createOscillator();
+      const g = ac.createGain();
+      const lp = ac.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 1600;                                  // soft, rounded
+      o.type = 'sine';
+      const t = now + i * 0.13;
+      o.frequency.setValueAtTime(f, t);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.14, t + 0.04);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.55);
+      o.connect(lp); lp.connect(g); g.connect(master);
+      o.start(t); o.stop(t + 0.6);
+    });
+
+    // Gentle descending sub-bass glide for warmth (no hard impact).
+    const sub = ac.createOscillator();
+    const sg = ac.createGain();
+    sub.type = 'sine';
+    sub.frequency.setValueAtTime(120, now + 0.1);
+    sub.frequency.exponentialRampToValueAtTime(60, now + 0.8);
+    sg.gain.setValueAtTime(0.0001, now + 0.1);
+    sg.gain.exponentialRampToValueAtTime(0.12, now + 0.2);
+    sg.gain.exponentialRampToValueAtTime(0.0001, now + 0.9);
+    sub.connect(sg); sg.connect(master);
+    sub.start(now + 0.1); sub.stop(now + 0.95);
+
+    setTimeout(() => { try { ac.close(); } catch { /* noop */ } }, (dur + 0.4) * 1000);
+  } catch {
+    /* audio is best-effort; never throw into the UI */
+  }
+}
+
+export function playLiftoffChime(grand = true, opts = {}) {
+  if (!soundManager.isEnabled()) return;     // respect the UI Sounds toggle
+
+  // Rank-DOWN delegates to the dedicated descending cooling cue.
+  if (opts.down) return playDescentChime();
 
   try {
     const Ctx = window.AudioContext || window.webkitAudioContext;

@@ -108,8 +108,11 @@ export default function LiftoffOverlay() {
     if (!event) return;
     setRevealed(false);
 
-    // Chime obeys UI Sounds. Downgrades get a soft, low, neutral tone (v4 §5).
-    playLiftoffChime(promotion && !isDown);
+    // Chime obeys UI Sounds. Rank-UP → bright rising fanfare (grand for category
+    // promotions, sparkle for within-tier); rank-DOWN → a distinct soft
+    // descending cooling cue (v5 §1). One play per event (keyed on event.id).
+    if (isDown) playLiftoffChime(false, { down: true });
+    else playLiftoffChime(promotion);
 
     const sp = Math.max(speed || 1, 0.2);
     let autoTimer, safetyTimer;
