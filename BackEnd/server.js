@@ -293,11 +293,18 @@ io.on("connection", (socket) => {
         // Forward callerId so the callee can role-guard (never ring the caller's
         // own device) and dedupe duplicate/late events client-side (v5 §3).
         io.to(`user_${targetUserId}`).emit("incoming-call", { roomId, callerName, callerId });
-        
+
         try {
+            // The WebRTC call socket connects WITHOUT a token (by design — see the
+            // io.use note), so socket.userId is undefined here. Use the caller id
+            // carried in the payload as the fallback, otherwise CallHistory.create
+            // fails the required `caller` validation and no history is ever
+            // written (this was the "call history not updating" bug).
+            const caller = socket.userId || callerId;
+            if (!caller || !targetUserId || !roomId) return;
             const CallHistory = require("./models/callHistory");
             await CallHistory.create({
-                caller: socket.userId,
+                caller,
                 receiver: targetUserId,
                 roomName: roomId,
                 status: "ringing",
