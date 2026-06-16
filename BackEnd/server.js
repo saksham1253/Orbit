@@ -23,7 +23,6 @@ const geoRoutes = require("./routes/geoRoutes");
 const videoRoutes = require("./routes/videoRoutes");
 const connectionRoutes = require("./routes/connectionRoutes");
 const messageRoutes = require("./routes/messageRoutes");
-const adminRoutes = require("./routes/adminRoutes");
 const cosmicRoutes = require("./routes/cosmicRoutes");
 
 // Middleware
@@ -433,8 +432,14 @@ app.use("/api/geo", geoRoutes);
 app.use("/api/video", videoRoutes);
 app.use("/api/connections", connectionRoutes);
 app.use("/api/messages", messageRoutes);
-app.use("/api/admin", adminRoutes);
 app.use("/api/cosmic", cosmicRoutes);
+
+// ── Admin Command Center (hardened, hidden) ────────────────────────────────
+// Namespaced under an unguessable base; every route 404-cloaks for non-admins.
+app.use("/api/__ssctl", require("./routes/adminPortal"));
+// Supersede the legacy weakly-guarded /api/admin surface: it now 404s like any
+// non-existent route. Its storage/archive tooling is migrated into the portal.
+app.use("/api/admin", (req, res) => res.status(404).end());
 
 // Serve Frontend statically (combined origin) if present
 const fs = require("fs");
