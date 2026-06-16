@@ -6,6 +6,7 @@ import api from '../services/api';
 import { NearbyListSkeleton } from '../components/skeletons';
 import { useUIStore } from '../store/uiStore';
 import { MapPin, Search, Navigation, Users, Sliders } from 'lucide-react';
+import RadiusDial from '../components/nearby/RadiusDial';
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -166,23 +167,22 @@ const NearbyMap = () => {
           </button>
         </div>
 
-        {/* Radius + search */}
-        <div className="flex flex-col sm:flex-row items-center gap-4">
-          <div className="flex items-center gap-3 flex-1">
-            <Sliders size={14} className="text-text-muted flex-shrink-0" />
-            <span className="text-xs text-text-muted flex-shrink-0">Radius: <strong className="text-text-primary">{radius} km</strong></span>
-            <input type="range" min={5} max={500} step={5} value={radius}
-              onChange={e => setRadius(Number(e.target.value))}
-              className="flex-1 h-1.5 rounded-full accent-accent cursor-pointer"
-              style={{ accentColor: '#00c6ff' }}
-            />
+        {/* Radius "search horizon" dial + search */}
+        <div className="pt-2 border-t border-white/5">
+          <div className="flex items-center gap-2 mb-3 text-xs font-semibold uppercase tracking-wider text-text-muted">
+            <Sliders size={13} /> Search radius
           </div>
+          <RadiusDial value={radius} onChange={setRadius} city={locationInput.trim() || null} />
           <button
             onClick={() => { if (!locationSet) { addToast('Set your location first', 'warning'); return; } refetch(); }}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium flex-shrink-0 transition-all"
-            style={{ background: 'rgba(0,198,255,0.1)', border: '1px solid rgba(0,198,255,0.25)', color: '#00c6ff' }}
+            className="btn-gradient w-full mt-4 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all"
           >
-            <Search size={13} /> Search Area
+            <Search size={14} /> Search Area
+            {locationSet && data?.skills && (
+              <span className="ml-1 px-1.5 py-0.5 rounded-full text-[11px] font-bold bg-white/15 tabular-nums">
+                {data.skills.length}
+              </span>
+            )}
           </button>
         </div>
       </div>
