@@ -10,10 +10,11 @@ import {
 } from 'lucide-react';
 import adminApi from './adminApi';
 import Overview from './pages/Overview';
+import UsersPage from './pages/Users';
 
 const SECTIONS = [
   { id: 'overview', label: 'Overview', Icon: LayoutDashboard, Comp: Overview },
-  { id: 'users', label: 'Users', Icon: Users, Comp: null },
+  { id: 'users', label: 'Users', Icon: Users, Comp: UsersPage },
   { id: 'cosmic', label: 'Cosmic', Icon: Sparkles, Comp: null },
   { id: 'moderation', label: 'Moderation', Icon: ShieldAlert, Comp: null },
   { id: 'records', label: 'Records', Icon: Database, Comp: null },

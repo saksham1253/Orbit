@@ -14,6 +14,7 @@ const { adminAuthLimiter, adminApiLimiter } = require("../middleware/adminRateLi
 const { requireAdmin } = require("../middleware/adminAuth");
 const adminAuth = require("../controllers/adminAuthController");
 const admin = require("../controllers/adminController");
+const users = require("../controllers/adminUsersController");
 
 // Security headers for the whole admin surface: never index, never frame.
 router.use((req, res, next) => {
@@ -47,6 +48,14 @@ router.post("/auth/revoke-all", adminApiLimiter, requireAdmin, adminAuth.revokeA
 
 // ── Command Center data (all behind RBAC) ───────────────────────────────────
 router.get("/overview", adminApiLimiter, requireAdmin, admin.getOverview);
+
+// Users management
+router.get("/users", adminApiLimiter, requireAdmin, users.listUsers);
+router.get("/users/:id", adminApiLimiter, requireAdmin, users.getUser);
+router.patch("/users/:id", adminApiLimiter, requireAdmin, users.updateUser);
+router.post("/users/:id/role", adminApiLimiter, requireAdmin, users.setRole);
+router.post("/users/:id/status", adminApiLimiter, requireAdmin, users.setStatus);
+router.post("/users/:id/reset-password", adminApiLimiter, requireAdmin, users.triggerPasswordReset);
 
 // Anything else under the admin base → 404 (cloak).
 router.use((req, res) => res.status(404).end());
