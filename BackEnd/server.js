@@ -496,6 +496,16 @@ mongoose.connect(process.env.MONGO_URI, {
         startArchiveWorker(); // Phase 3: Start the nightly archive worker
         startSentimentWorker(); // Cosmic: precompute review sentiment off the request path
         startSeasonWorker(); // Cosmic: monthly season lifecycle + rollover (idempotent)
+
+        // One-time admin bootstrap for hosts without a shell (e.g. Render free
+        // tier): set RUN_ADMIN_SEED=true + ADMIN_EMAIL + ADMIN_INITIAL_PASSWORD,
+        // deploy once, confirm the log line, then REMOVE the flag. Idempotent and
+        // preserves any existing TOTP enrolment.
+        if (process.env.RUN_ADMIN_SEED === "true") {
+            require("./services/adminSeeder").seedAdminUser()
+                .then((r) => console.log(`[admin-seed] ✓ ${r.email} is admin.${r.totpEnabled ? " (TOTP preserved)" : " Enrol TOTP on first login."} You can now remove RUN_ADMIN_SEED.`))
+                .catch((e) => console.error("[admin-seed] failed:", e.message));
+        }
     })
     .catch(err => console.log("DB Error:", err));
 
