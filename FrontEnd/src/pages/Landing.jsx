@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion, useInView, AnimatePresence } from 'framer-motion';
+import { motion, useInView, AnimatePresence, MotionConfig } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import {
@@ -69,17 +69,30 @@ const StatDisplay = ({ value, suffix = '', prefix = '' }) => {
   );
 };
 
+// Respect the OS reduced-motion preference for the landing reveals. Read once at
+// module-eval; landing reveals don't need to react to live preference changes.
+const PREFERS_REDUCED_MOTION =
+  typeof window !== 'undefined' &&
+  window.matchMedia &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 /* ── Feature card ── */
 const FeatureCard = ({ icon, title, description, color, delay }) => {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-60px' });
 
+  // `once: true` latches inView to true permanently, so the reveal is already
+  // idempotent — scrolling down then up can never re-hide it. We always drive a
+  // full animate target (not `{}`), so the card can never get stuck mid-state.
+  // Reduced-motion users render visible immediately (v6 §2).
+  const reveal = PREFERS_REDUCED_MOTION || inView;
+
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 30 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ delay, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      initial={PREFERS_REDUCED_MOTION ? false : { opacity: 0, y: 30 }}
+      animate={reveal ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+      transition={PREFERS_REDUCED_MOTION ? { duration: 0 } : { delay, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       className="skill-card p-7 group cursor-default"
     >
       <div
@@ -133,6 +146,10 @@ const Landing = () => {
   }, []);
 
   return (
+    // reducedMotion="user" makes every whileInView reveal below honor the OS
+    // reduced-motion setting (snap to the final state, no transform), so no
+    // section can sit stuck at opacity:0 for those users (v6 §2).
+    <MotionConfig reducedMotion="user">
     <div className="relative overflow-hidden">
       <Helmet>
         <title>SkillSwap — Exchange Skills, Grow Together</title>
@@ -625,6 +642,7 @@ const Landing = () => {
       {/* ══════════════ FOOTER ══════════════ */}
       <Footer />
     </div>
+    </MotionConfig>
   );
 };
 

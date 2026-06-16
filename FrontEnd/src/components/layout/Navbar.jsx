@@ -27,7 +27,11 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  // Lazy init from the current scroll position (handles a restored scroll on
+  // mount) so the effect never needs a synchronous setState.
+  const [scrolled, setScrolled] = useState(
+    () => typeof window !== 'undefined' && window.scrollY > 64
+  );
   const [chatOpen, setChatOpen] = useState(false);
   const [chatInitialUser, setChatInitialUser] = useState(null);
   const drawerRef = useRef(null);
@@ -62,11 +66,26 @@ const Navbar = () => {
     return item;
   });
 
-  // Scroll detection
+  // Scroll detection — hysteresis dead-band (on >64px, off <24px) batched in a
+  // single rAF so tiny scroll jitter near one threshold can't flip the glass
+  // class every frame (v6 §2 nav flicker fix).
   useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 10);
-    window.addEventListener('scroll', fn, { passive: true });
-    return () => window.removeEventListener('scroll', fn);
+    let ticking = false;
+    const evaluate = () => {
+      ticking = false;
+      const y = window.scrollY;
+      setScrolled((prev) => (prev ? y > 24 : y > 64));
+    };
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(evaluate);
+    };
+    // Re-check once after mount in case the scroll position changed between the
+    // lazy state init and the listener attaching (rAF → no sync setState).
+    requestAnimationFrame(evaluate);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   // Close on Escape key
