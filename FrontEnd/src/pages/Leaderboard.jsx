@@ -16,6 +16,7 @@ import { Trophy, MapPin, Info, Telescope, Building2, Map as MapIcon, Globe, Meda
 import { useAuthStore } from '../store/authStore';
 import { useLeaderboard } from '../cosmic/useCosmic';
 import CosmicBadge from '../cosmic/CosmicBadge';
+import CosmicLoader from '../cosmic/CosmicLoader';
 import CosmicName from '../cosmic/CosmicName';
 import { getTier, TIER_FLOORS, TIER_ORDER } from '../cosmic/tiers';
 import { InfoDot } from '../cosmic/scoreInfo';
@@ -271,13 +272,7 @@ export default function Leaderboard() {
         })()}
 
         {/* List states */}
-        {isLoading && (
-          <div className="space-y-2">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-14 rounded-2xl animate-pulse" style={{ background: 'var(--surface)' }} />
-            ))}
-          </div>
-        )}
+        {isLoading && <CosmicLoader variant="leaderboard" onRetry={refetch} />}
 
         {isError && !needsLocation && (
           <ErrorState message={error?.response?.data?.message || 'Failed to load the leaderboard.'} onRetry={refetch} />

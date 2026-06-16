@@ -17,6 +17,7 @@ import { Telescope, Crown, Star, Sparkles, Quote, Info, TrendingUp } from 'lucid
 import { useAuthStore } from '../store/authStore';
 import { useObservatory } from '../cosmic/useCosmic';
 import CosmicBadge from '../cosmic/CosmicBadge';
+import CosmicLoader from '../cosmic/CosmicLoader';
 import CosmicName from '../cosmic/CosmicName';
 import { getTier, nameGlowFor } from '../cosmic/tiers';
 import { InfoDot, Disclosure, ScoreExplainerBody } from '../cosmic/scoreInfo';
@@ -125,9 +126,7 @@ export default function Observatory() {
           </p>
         </div>
 
-        {isLoading && (
-          <div className="h-[560px] rounded-2xl animate-pulse" style={{ background: 'var(--surface)' }} />
-        )}
+        {isLoading && <CosmicLoader variant="observatory" onRetry={refetch} />}
         {isError && <ErrorState message="Failed to load the Observatory." onRetry={refetch} />}
 
         {!isLoading && !isError && !data?.northStar && (
