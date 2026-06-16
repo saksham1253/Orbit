@@ -16,6 +16,7 @@ const adminAuth = require("../controllers/adminAuthController");
 const admin = require("../controllers/adminController");
 const users = require("../controllers/adminUsersController");
 const cosmic = require("../controllers/adminCosmicController");
+const records = require("../controllers/adminRecordsController");
 
 // Security headers for the whole admin surface: never index, never frame.
 router.use((req, res, next) => {
@@ -64,6 +65,16 @@ router.get("/cosmic/quasar", adminApiLimiter, requireAdmin, cosmic.quasarRegistr
 router.get("/cosmic/score/:userId", adminApiLimiter, requireAdmin, cosmic.scoreInspector);
 router.post("/cosmic/score/:userId/recompute", adminApiLimiter, requireAdmin, cosmic.recompute);
 router.post("/cosmic/score/:userId/override", adminApiLimiter, requireAdmin, cosmic.overrideTier);
+
+// Records browser + safe deletion
+router.get("/records/users/:id/delete-preview", adminApiLimiter, requireAdmin, records.deletePreview);
+router.post("/records/users/:id/soft-delete", adminApiLimiter, requireAdmin, records.softDelete);
+router.post("/records/users/:id/restore", adminApiLimiter, requireAdmin, records.restore);
+router.post("/records/users/:id/hard-delete", adminApiLimiter, requireAdmin, records.hardDelete);
+router.get("/records/:collection", adminApiLimiter, requireAdmin, records.listRecords);
+
+// Audit log viewer (append-only; no delete route exists by design)
+router.get("/audit", adminApiLimiter, requireAdmin, records.listAudit);
 
 // Anything else under the admin base → 404 (cloak).
 router.use((req, res) => res.status(404).end());
