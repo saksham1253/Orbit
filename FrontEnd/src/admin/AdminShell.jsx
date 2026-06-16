@@ -11,11 +11,12 @@ import {
 import adminApi from './adminApi';
 import Overview from './pages/Overview';
 import UsersPage from './pages/Users';
+import Cosmic from './pages/Cosmic';
 
 const SECTIONS = [
   { id: 'overview', label: 'Overview', Icon: LayoutDashboard, Comp: Overview },
   { id: 'users', label: 'Users', Icon: Users, Comp: UsersPage },
-  { id: 'cosmic', label: 'Cosmic', Icon: Sparkles, Comp: null },
+  { id: 'cosmic', label: 'Cosmic', Icon: Sparkles, Comp: Cosmic },
   { id: 'moderation', label: 'Moderation', Icon: ShieldAlert, Comp: null },
   { id: 'records', label: 'Records', Icon: Database, Comp: null },
   { id: 'audit', label: 'Audit Log', Icon: ScrollText, Comp: null },

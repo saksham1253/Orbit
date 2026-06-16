@@ -15,6 +15,7 @@ const { requireAdmin } = require("../middleware/adminAuth");
 const adminAuth = require("../controllers/adminAuthController");
 const admin = require("../controllers/adminController");
 const users = require("../controllers/adminUsersController");
+const cosmic = require("../controllers/adminCosmicController");
 
 // Security headers for the whole admin surface: never index, never frame.
 router.use((req, res, next) => {
@@ -56,6 +57,13 @@ router.patch("/users/:id", adminApiLimiter, requireAdmin, users.updateUser);
 router.post("/users/:id/role", adminApiLimiter, requireAdmin, users.setRole);
 router.post("/users/:id/status", adminApiLimiter, requireAdmin, users.setStatus);
 router.post("/users/:id/reset-password", adminApiLimiter, requireAdmin, users.triggerPasswordReset);
+
+// Cosmic observability
+router.get("/cosmic/rank-events", adminApiLimiter, requireAdmin, cosmic.listRankEvents);
+router.get("/cosmic/quasar", adminApiLimiter, requireAdmin, cosmic.quasarRegistry);
+router.get("/cosmic/score/:userId", adminApiLimiter, requireAdmin, cosmic.scoreInspector);
+router.post("/cosmic/score/:userId/recompute", adminApiLimiter, requireAdmin, cosmic.recompute);
+router.post("/cosmic/score/:userId/override", adminApiLimiter, requireAdmin, cosmic.overrideTier);
 
 // Anything else under the admin base → 404 (cloak).
 router.use((req, res) => res.status(404).end());
