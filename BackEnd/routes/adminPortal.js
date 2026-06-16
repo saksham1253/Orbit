@@ -17,6 +17,7 @@ const admin = require("../controllers/adminController");
 const users = require("../controllers/adminUsersController");
 const cosmic = require("../controllers/adminCosmicController");
 const records = require("../controllers/adminRecordsController");
+const system = require("../controllers/adminSystemController");
 
 // Security headers for the whole admin surface: never index, never frame.
 router.use((req, res, next) => {
@@ -75,6 +76,22 @@ router.get("/records/:collection", adminApiLimiter, requireAdmin, records.listRe
 
 // Audit log viewer (append-only; no delete route exists by design)
 router.get("/audit", adminApiLimiter, requireAdmin, records.listAudit);
+
+// Moderation
+router.get("/reports", adminApiLimiter, requireAdmin, system.listReports);
+router.post("/reports/:id/resolve", adminApiLimiter, requireAdmin, system.resolveReport);
+router.get("/flags", adminApiLimiter, requireAdmin, system.listFlags);
+
+// Season / system / storage
+router.get("/seasons", adminApiLimiter, requireAdmin, system.listSeasons);
+router.post("/system/recompute-dry-run", adminApiLimiter, requireAdmin, system.recomputeDryRun);
+router.get("/system/storage-stats", adminApiLimiter, requireAdmin, system.storageStats);
+router.get("/system/archive-status", adminApiLimiter, requireAdmin, system.archiveStatus);
+router.post("/system/run-archive", adminApiLimiter, requireAdmin, system.runArchive);
+
+// Exports
+router.get("/export/users.csv", adminApiLimiter, requireAdmin, system.exportUsers);
+router.get("/export/rank-events.csv", adminApiLimiter, requireAdmin, system.exportRankEvents);
 
 // Anything else under the admin base → 404 (cloak).
 router.use((req, res) => res.status(404).end());

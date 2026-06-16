@@ -14,15 +14,17 @@ import UsersPage from './pages/Users';
 import Cosmic from './pages/Cosmic';
 import Records from './pages/Records';
 import Audit from './pages/Audit';
+import Moderation from './pages/Moderation';
+import System from './pages/System';
 
 const SECTIONS = [
   { id: 'overview', label: 'Overview', Icon: LayoutDashboard, Comp: Overview },
   { id: 'users', label: 'Users', Icon: Users, Comp: UsersPage },
   { id: 'cosmic', label: 'Cosmic', Icon: Sparkles, Comp: Cosmic },
-  { id: 'moderation', label: 'Moderation', Icon: ShieldAlert, Comp: null },
+  { id: 'moderation', label: 'Moderation', Icon: ShieldAlert, Comp: Moderation },
   { id: 'records', label: 'Records', Icon: Database, Comp: Records },
   { id: 'audit', label: 'Audit Log', Icon: ScrollText, Comp: Audit },
-  { id: 'system', label: 'System', Icon: SlidersHorizontal, Comp: null },
+  { id: 'system', label: 'System', Icon: SlidersHorizontal, Comp: System },
 ];
 
 function Placeholder({ label }) {
