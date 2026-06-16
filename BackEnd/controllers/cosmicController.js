@@ -2,6 +2,7 @@ const User = require("../models/user");
 const Rating = require("../models/rating");
 const Connection = require("../models/Connection");
 const Legend = require("../models/Legend");
+const RankEvent = require("../models/RankEvent");
 const { buildLeaderboard, scorePool, mentorCandidates, scopeFilter, norm } = require("../services/leaderboardService");
 const { computeCosmicScore } = require("../services/cosmicScore");
 const { assignTier, resolveDisplayTier, nameGlowFor, higherTier, TIER_ORDER } = require("../services/cosmicTier");
@@ -57,7 +58,7 @@ exports.getLeaderboard = async (req, res) => {
 // ─────────────────────────────────────────────────────────────
 exports.getMentorCosmic = async (req, res) => {
     try {
-        const mentor = await User.findById(req.params.id).select("name cosmic").lean();
+        const mentor = await User.findById(req.params.id).select("name cosmic city region country").lean();
         if (!mentor) return res.status(404).json({ message: "User not found" });
 
         const now = Date.now();
@@ -105,7 +106,30 @@ exports.getMentorCosmic = async (req, res) => {
                 set["cosmic.lastTierDirection"] = tier.direction;
                 set["cosmic.pendingMomentTierId"] = tier.tierId;
                 set["cosmic.pendingMomentDirection"] = tier.direction;
+
+                // Admin observability: append one RankEvent per real tier change
+                // (best-effort, never blocks the response). Idempotent in practice
+                // because the new tier is persisted below, so a subsequent read
+                // sees anchorTier === tier.tierId → tierChanged false.
+                if (tier.direction === "up" || tier.direction === "down") {
+                    RankEvent.create({
+                        userId: mentor._id,
+                        scope: "global",
+                        fromTierId: anchorTier,
+                        toTierId: tier.tierId,
+                        direction: tier.direction,
+                        scoreBefore: (mentor.cosmic && mentor.cosmic.score) != null ? mentor.cosmic.score : null,
+                        scoreAfter: Math.round(result.score * 10) / 10,
+                        trigger: "score",
+                        seasonId: (mentor.cosmic && mentor.cosmic.seasonId) || "",
+                        city: mentor.city || "",
+                    }).catch(() => {});
+                }
             }
+            // Persist the freshly resolved score too, so the next RankEvent's
+            // scoreBefore reflects reality (additive; display already uses the
+            // live computed score).
+            set["cosmic.score"] = Math.round(result.score * 10) / 10;
             User.updateOne({ _id: mentor._id }, { $set: set }).catch(() => {});
         }
 
