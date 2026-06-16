@@ -135,8 +135,8 @@ const Settings = () => {
 
         {/* Dark Themes */}
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest mb-3 text-text-muted">
-            🌑 Dark Themes {!isDark && <span className="text-[10px] normal-case">(Enable Dark Mode to use)</span>}
+          <p className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest mb-3 text-text-muted">
+            <Moon size={13} className="text-text-muted" /> Dark Themes {!isDark && <span className="text-[10px] normal-case">(Enable Dark Mode to use)</span>}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {Object.entries(THEMES).filter(([, t]) => t.mode === 'dark').map(([key, themeData]) => {
@@ -175,8 +175,8 @@ const Settings = () => {
 
         {/* Pastel Themes */}
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest mb-3 text-text-muted">
-            ✨ Pastel Themes {isDark && <span className="text-[10px] normal-case">(Disable Dark Mode to use)</span>}
+          <p className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest mb-3 text-text-muted">
+            <Sun size={13} className="text-text-muted" /> Pastel Themes {isDark && <span className="text-[10px] normal-case">(Disable Dark Mode to use)</span>}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {Object.entries(THEMES).filter(([, t]) => t.mode === 'light').map(([key, themeData]) => {
