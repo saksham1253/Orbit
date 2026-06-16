@@ -125,6 +125,39 @@ const userSchema = new mongoose.Schema({
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
 
+    // ─────────────────────────────────────────────────────────────
+    //  ADMIN COMMAND CENTER (additive, non-destructive). All fields default
+    //  to the ordinary-user values, so existing users are unaffected. Only the
+    //  owner account populates the `admin` sub-document (via `npm run seed:admin`).
+    // ─────────────────────────────────────────────────────────────
+    role: {
+        type: String,
+        enum: ["user", "moderator", "admin"],
+        default: "user"
+    },
+    status: {
+        type: String,
+        enum: ["active", "suspended", "banned", "soft_deleted"],
+        default: "active"
+    },
+    // Soft-delete bookkeeping (recoverable within a retention window).
+    deletedAt:     { type: Date, default: null },
+    deletedBy:     { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    anonymizedAt:  { type: Date, default: null },
+
+    // Admin credentials & 2FA — only set on admin accounts. Never returned to
+    // the client (the admin APIs project these out).
+    admin: {
+        passwordHash:    { type: String, default: null },   // bcrypt, distinct from the user login password
+        totpSecretEnc:   { type: String, default: null },   // AES-encrypted TOTP secret
+        totpEnabled:     { type: Boolean, default: false },
+        backupCodeHashes:{ type: [String], default: [] },   // bcrypt-hashed one-time recovery codes
+        failedAttempts:  { type: Number, default: 0 },
+        lockoutUntil:    { type: Date, default: null },
+        lastAdminLoginAt:{ type: Date, default: null },
+        tokenVersion:    { type: Number, default: 0 }        // bump to revoke all admin sessions
+    },
+
     // Chat Enhancements
     lastSeen: {
         type: Date,
@@ -195,5 +228,9 @@ userSchema.index({ 'coordinates.lng': 1, 'coordinates.lat': 1 }); // Fallback co
 userSchema.index({ 'geo.point': '2dsphere' });
 // Season-scoped ranking: fetch a city's pool ordered by CosmicScore.
 userSchema.index({ 'cosmic.seasonId': 1, 'cosmic.score': -1 });
+
+// ── Admin Command Center indexes (additive) ────────────────────────────────
+userSchema.index({ role: 1 });
+userSchema.index({ status: 1 });
 
 module.exports = mongoose.models.User || mongoose.model("User", userSchema);
