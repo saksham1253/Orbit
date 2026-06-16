@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import api from '../services/api';
@@ -88,10 +88,10 @@ const Connections = () => {
   const connectionsList = establishedList;
 
   const tabs = [
-    { id: 'established', label: 'My Connections', count: connectionsList.length },
-    { id: 'incoming', label: 'Incoming Requests', count: incomingReqs.length },
-    { id: 'outgoing', label: 'Sent Requests', count: outgoingReqs.length },
-    { id: 'completed', label: 'Completed Swaps', count: completedList.length },
+    { id: 'established', label: 'My Connections', short: 'Connections', count: connectionsList.length },
+    { id: 'incoming', label: 'Incoming Requests', short: 'Incoming', count: incomingReqs.length },
+    { id: 'outgoing', label: 'Sent Requests', short: 'Sent', count: outgoingReqs.length },
+    { id: 'completed', label: 'Completed Swaps', short: 'Swaps', count: completedList.length },
   ];
 
   return (
@@ -113,18 +113,21 @@ const Connections = () => {
         <p className="text-text-muted mt-1 text-sm">Manage your network and connection requests.</p>
       </div>
 
-      <div className="flex gap-1.5 p-1 rounded-2xl bg-surface border border-border-subtle">
+      {/* Scrollable tab strip on mobile so the four tabs + badges never overlap
+          or clip; reverts to an even 4-up split on ≥sm (v5 §4). */}
+      <div className="flex gap-1.5 p-1 rounded-2xl bg-surface border border-border-subtle overflow-x-auto hide-scrollbar">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
-              activeTab === tab.id 
-                ? 'bg-accent/15 text-accent border border-accent/35' 
+            className={`flex-none sm:flex-1 min-h-[44px] py-2.5 px-3 rounded-xl text-sm font-semibold whitespace-nowrap transition-all flex items-center justify-center gap-2 ${
+              activeTab === tab.id
+                ? 'bg-accent/15 text-accent border border-accent/35'
                 : 'bg-transparent text-text-muted border border-transparent'
             }`}
           >
-            {tab.label}
+            <span className="sm:hidden">{tab.short}</span>
+            <span className="hidden sm:inline">{tab.label}</span>
             {tab.count > 0 && (
               <span className={`px-1.5 py-0.5 rounded-full text-xs font-bold ${
                 activeTab === tab.id

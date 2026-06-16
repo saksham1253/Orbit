@@ -121,37 +121,41 @@ export default function Leaderboard() {
     <>
       <Helmet><title>Cosmic Leaderboard · SkillSwap</title></Helmet>
       <div className="max-w-3xl mx-auto px-4 py-6">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-1">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, var(--accent-1), var(--accent-3))', boxShadow: '0 0 16px var(--border-glow)' }}>
-            <Trophy size={20} color="#fff" />
+        {/* Header — stacks on mobile so the title never collides with the
+            actions; the actions scroll horizontally rather than clipping (v5 §4). */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-1">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 flex-none rounded-xl flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, var(--accent-1), var(--accent-3))', boxShadow: '0 0 16px var(--border-glow)' }}>
+              <Trophy size={20} color="#fff" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-xl font-display font-bold text-text-primary">Cosmic Leaderboard</h1>
+              <p className="text-xs text-text-muted">Climb your local sky — rank is relative, tier is earned.</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-display font-bold text-text-primary">Cosmic Leaderboard</h1>
-            <p className="text-xs text-text-muted">Climb your local sky — rank is relative, tier is earned.</p>
-          </div>
-          <div className="ml-auto flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar -mx-1 px-1 sm:mx-0 sm:px-0 sm:ml-auto">
             <button onClick={() => navigate('/cosmic-atlas')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-text-secondary hover:text-text-primary bg-surface border border-border-subtle transition-all">
+              className="flex-none flex items-center gap-1.5 min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap text-text-secondary hover:text-text-primary bg-surface border border-border-subtle transition-all">
               <Compass size={13} /> Explore tiers
             </button>
             <button onClick={() => navigate('/observatory')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-text-secondary hover:text-text-primary bg-surface border border-border-subtle transition-all">
+              className="flex-none flex items-center gap-1.5 min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap text-text-secondary hover:text-text-primary bg-surface border border-border-subtle transition-all">
               <Telescope size={13} /> Observatory
             </button>
           </div>
         </div>
 
-        {/* Scope toggle — with real per-scope mentor counts (§8.5) */}
-        <div className="flex flex-wrap gap-1.5 mt-4 mb-3">
+        {/* Scope toggle — horizontally scrollable segmented strip so all four
+            scopes (with per-scope counts, §8.5) stay reachable on mobile (v5 §4). */}
+        <div className="flex gap-1.5 mt-4 mb-3 overflow-x-auto hide-scrollbar -mx-1 px-1">
           {SCOPES.map((s) => {
             const active = scope === s.id;
             const Icon = s.Icon;
             const count = data?.scopeCounts?.[s.id];
             return (
               <button key={s.id} onClick={() => setScope(s.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                className={`flex-none flex items-center gap-1.5 min-h-[44px] sm:min-h-0 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
                   active ? 'text-accent bg-accent/10 border border-accent/30'
                          : 'text-text-secondary hover:text-text-primary bg-surface border border-border-subtle'}`}>
                 <Icon size={13} />{s.label}
