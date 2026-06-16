@@ -290,8 +290,10 @@ io.on("connection", (socket) => {
         socket.to(roomId).emit("user-left");
     });
     
-    socket.on("call-user", async ({ roomId, targetUserId, callerName }) => {
-        io.to(`user_${targetUserId}`).emit("incoming-call", { roomId, callerName });
+    socket.on("call-user", async ({ roomId, targetUserId, callerName, callerId }) => {
+        // Forward callerId so the callee can role-guard (never ring the caller's
+        // own device) and dedupe duplicate/late events client-side (v5 §3).
+        io.to(`user_${targetUserId}`).emit("incoming-call", { roomId, callerName, callerId });
         
         try {
             const CallHistory = require("./models/callHistory");

@@ -159,7 +159,8 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller }) => {
           socketRef.current.emit('call-user', {
             roomId,
             targetUserId: otherUser._id,
-            callerName: user?.name
+            callerName: user?.name,
+            callerId: user?._id, // lets the callee role-guard the incoming-call (v5 §3)
           });
         }
 

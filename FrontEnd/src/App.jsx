@@ -154,9 +154,16 @@ function AppInner() {
       notifyUserOffline(data.userName);
     });
 
-    // Incoming video call — show full-screen overlay instead of a notification
+    // Incoming video call — show full-screen overlay instead of a notification.
+    // Role-guard (v5 §3): never ring the caller's own device for their outgoing
+    // call, and ignore a duplicate/late event for a call we're already showing.
     socket.on('incoming-call', (data) => {
-      setIncomingCall({ callerName: data.callerName, roomId: data.roomId });
+      if (data?.callerId && user?._id && String(data.callerId) === String(user._id)) return;
+      setIncomingCall((prev) =>
+        prev && prev.roomId === data.roomId
+          ? prev
+          : { callerName: data.callerName, roomId: data.roomId }
+      );
     });
 
     // Call ended - trigger rating modal
