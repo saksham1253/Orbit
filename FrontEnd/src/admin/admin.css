@@ -1,0 +1,109 @@
+/*
+ * admin.css — fully scoped Command Center theme. Every rule is namespaced under
+ * `.ssctl` so it can never leak into or restyle the user-facing app. This is the
+ * admin's own dark "control room" look (independent of the cosmic dark theme).
+ */
+.ssctl {
+  --ss-bg: #0a0e17;
+  --ss-panel: #121826;
+  --ss-panel-2: #1a2234;
+  --ss-border: #243049;
+  --ss-text: #e6ecf5;
+  --ss-text-dim: #8a97ad;
+  --ss-accent: #4f9dff;
+  --ss-accent-2: #7c5cff;
+  --ss-danger: #ff5470;
+  --ss-warn: #ffb020;
+  --ss-ok: #2dd4a7;
+  position: fixed;
+  inset: 0;
+  background: var(--ss-bg);
+  color: var(--ss-text);
+  font-family: 'Inter', system-ui, sans-serif;
+  overflow: auto;
+  z-index: 5000;
+}
+
+.ssctl *, .ssctl *::before, .ssctl *::after { box-sizing: border-box; }
+
+.ssctl-center { min-height: 100%; display: flex; align-items: center; justify-content: center; padding: 24px; }
+
+.ssctl-card {
+  background: var(--ss-panel);
+  border: 1px solid var(--ss-border);
+  border-radius: 16px;
+  padding: 28px;
+}
+
+.ssctl-input {
+  width: 100%;
+  background: var(--ss-panel-2);
+  border: 1px solid var(--ss-border);
+  border-radius: 10px;
+  color: var(--ss-text);
+  padding: 11px 13px;
+  font-size: 14px;
+  outline: none;
+}
+.ssctl-input:focus { border-color: var(--ss-accent); }
+.ssctl-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ss-text-dim); margin-bottom: 6px; display: block; }
+
+.ssctl-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  background: linear-gradient(135deg, var(--ss-accent), var(--ss-accent-2));
+  color: #fff; border: none; border-radius: 10px;
+  padding: 11px 18px; font-size: 14px; font-weight: 600; cursor: pointer;
+  min-height: 44px; transition: filter .15s, opacity .15s;
+}
+.ssctl-btn:hover { filter: brightness(1.08); }
+.ssctl-btn:disabled { opacity: .55; cursor: not-allowed; }
+.ssctl-btn-ghost { background: var(--ss-panel-2); border: 1px solid var(--ss-border); color: var(--ss-text); }
+.ssctl-btn-danger { background: linear-gradient(135deg, #ff5470, #e02e52); }
+
+.ssctl-err { color: var(--ss-danger); font-size: 13px; }
+.ssctl-muted { color: var(--ss-text-dim); }
+
+/* ── App shell ── */
+.ssctl-shell { display: grid; grid-template-columns: 232px 1fr; min-height: 100%; }
+.ssctl-rail { background: var(--ss-panel); border-right: 1px solid var(--ss-border); padding: 18px 12px; display: flex; flex-direction: column; gap: 4px; }
+.ssctl-brand { font-weight: 800; font-size: 15px; letter-spacing: .02em; padding: 8px 10px 16px; display: flex; align-items: center; gap: 8px; }
+.ssctl-navitem {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 10px 12px; border-radius: 9px; border: 1px solid transparent;
+  background: transparent; color: var(--ss-text-dim); font-size: 14px; font-weight: 500;
+  cursor: pointer; text-align: left; transition: background .12s, color .12s;
+}
+.ssctl-navitem:hover { color: var(--ss-text); background: var(--ss-panel-2); }
+.ssctl-navitem.active { color: var(--ss-text); background: var(--ss-panel-2); border-color: var(--ss-border); }
+.ssctl-main { display: flex; flex-direction: column; min-width: 0; }
+.ssctl-topbar { height: 56px; border-bottom: 1px solid var(--ss-border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; background: var(--ss-panel); }
+.ssctl-content { padding: 22px; }
+
+.ssctl-grid { display: grid; gap: 14px; }
+.ssctl-kpi { background: var(--ss-panel); border: 1px solid var(--ss-border); border-radius: 14px; padding: 16px 18px; }
+.ssctl-kpi .v { font-size: 26px; font-weight: 800; }
+.ssctl-kpi .l { font-size: 12px; color: var(--ss-text-dim); margin-top: 2px; }
+
+.ssctl-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ssctl-table th { text-align: left; color: var(--ss-text-dim); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; padding: 8px 10px; border-bottom: 1px solid var(--ss-border); }
+.ssctl-table td { padding: 9px 10px; border-bottom: 1px solid var(--ss-border); }
+.ssctl-table tr:hover td { background: var(--ss-panel-2); }
+
+.ssctl-badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+.ssctl-badge-up { background: rgba(45,212,167,.15); color: var(--ss-ok); }
+.ssctl-badge-down { background: rgba(255,84,112,.15); color: var(--ss-danger); }
+.ssctl-badge-role { background: rgba(124,92,255,.18); color: #b3a4ff; }
+.ssctl-badge-active { background: rgba(45,212,167,.15); color: var(--ss-ok); }
+.ssctl-badge-suspended { background: rgba(255,176,32,.15); color: var(--ss-warn); }
+.ssctl-badge-banned { background: rgba(255,84,112,.15); color: var(--ss-danger); }
+.ssctl-badge-soft_deleted { background: rgba(138,151,173,.18); color: var(--ss-text-dim); }
+
+.ssctl-section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--ss-text-dim); margin: 0 0 10px; }
+.ssctl-h1 { font-size: 20px; font-weight: 800; margin: 0 0 16px; }
+.ssctl-spin { width: 34px; height: 34px; border: 3px solid var(--ss-border); border-top-color: var(--ss-accent); border-radius: 50%; animation: ssctlspin .8s linear infinite; }
+@keyframes ssctlspin { to { transform: rotate(360deg); } }
+
+@media (max-width: 720px) {
+  .ssctl-shell { grid-template-columns: 1fr; }
+  .ssctl-rail { flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--ss-border); }
+}

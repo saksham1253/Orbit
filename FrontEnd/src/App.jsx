@@ -35,7 +35,6 @@ const TrustScore   = lazy(() => import('./pages/TrustScore'));
 const VideoCall    = lazy(() => import('./pages/VideoCall'));
 const Settings     = lazy(() => import('./pages/Settings'));
 const PublicProfile = lazy(() => import('./pages/PublicProfile'));
-const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const BadgeGallery   = lazy(() => import('./pages/BadgeGallery'));
 const Leaderboard    = lazy(() => import('./pages/Leaderboard'));
 const Observatory    = lazy(() => import('./pages/Observatory'));
@@ -43,6 +42,13 @@ const TierAtlas      = lazy(() => import('./pages/TierAtlas'));
 // Heavy cinematics (canvas engine + share card) — split out of the initial
 // bundle; only fetched when a rank-up actually fires.
 const LiftoffOverlay = lazy(() => import('./cosmic/LiftoffOverlay'));
+
+// Hidden Admin Command Center — resolved on the catch-all by AdminGate, which
+// compares a SHA-256 hash of the visited path to VITE_ADMIN_SLUG_HASH. The slug
+// itself never appears in the bundle; the admin code is lazy-split so it never
+// loads for ordinary visitors. The server is the real gate (every admin API
+// 404s without a valid admin session).
+const AdminGate = lazy(() => import('./admin/AdminGate'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center py-24">
@@ -282,13 +288,13 @@ function AppInner() {
         <Route path="/settings"    element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         <Route path="/video"       element={<ProtectedRoute><VideoCall /></ProtectedRoute>} />
         <Route path="/call/:roomId" element={<ProtectedRoute><VideoCall /></ProtectedRoute>} />
-        <Route path="/admin"       element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
 
         {/* Cosmic badge gallery — dev/QA route, reachable by URL, not in nav */}
         <Route path="/cosmic-gallery" element={<Layout><Suspense fallback={<PageLoader />}><BadgeGallery /></Suspense></Layout>} />
 
-        {/* 404 — catch-all */}
-        <Route path="*" element={<NotFound />} />
+        {/* 404 — catch-all. AdminGate renders the hidden portal only when the
+            path hashes to VITE_ADMIN_SLUG_HASH; otherwise it returns this 404. */}
+        <Route path="*" element={<Suspense fallback={null}><AdminGate fallback={<NotFound />} /></Suspense>} />
       </Routes>
     </>
   );

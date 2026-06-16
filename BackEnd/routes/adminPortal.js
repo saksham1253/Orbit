@@ -13,6 +13,7 @@ const router = express.Router();
 const { adminAuthLimiter, adminApiLimiter } = require("../middleware/adminRateLimit");
 const { requireAdmin } = require("../middleware/adminAuth");
 const adminAuth = require("../controllers/adminAuthController");
+const admin = require("../controllers/adminController");
 
 // Security headers for the whole admin surface: never index, never frame.
 router.use((req, res, next) => {
@@ -43,6 +44,9 @@ router.post("/auth/verify-totp", adminAuthLimiter, adminAuth.verifyTotp);
 router.get("/auth/me", adminApiLimiter, requireAdmin, adminAuth.me);
 router.post("/auth/logout", adminApiLimiter, requireAdmin, adminAuth.logout);
 router.post("/auth/revoke-all", adminApiLimiter, requireAdmin, adminAuth.revokeAll);
+
+// ── Command Center data (all behind RBAC) ───────────────────────────────────
+router.get("/overview", adminApiLimiter, requireAdmin, admin.getOverview);
 
 // Anything else under the admin base → 404 (cloak).
 router.use((req, res) => res.status(404).end());
