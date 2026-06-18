@@ -6,7 +6,8 @@ import { motion } from 'framer-motion';
 import { Trash2, Video, UserPlus, Send, Globe, Star } from 'lucide-react';
 import api from '../../services/api';
 import Avatar from '../common/Avatar';
-import Badge from '../common/Badge';
+import CosmicBadge from '../../cosmic/CosmicBadge';
+import TierProgress from '../../cosmic/TierProgress';
 import { useAuthStore } from '../../store/authStore';
 import { useUIStore } from '../../store/uiStore';
 
@@ -32,6 +33,7 @@ const SkillCard = memo(({ skill, variant = 'browse', onConnect, onViewRatings })
     onSuccess: useCallback(() => {
       addToast('Skill removed', 'success');
       queryClient.invalidateQueries({ queryKey: ['skills', 'my'] });
+      queryClient.invalidateQueries({ queryKey: ['cosmic'] }); // refresh standing (v7 §1)
     }, [addToast, queryClient]),
     onError: useCallback((err) => addToast(err.response?.data?.message || 'Delete failed', 'error'), [addToast]),
   });
@@ -109,6 +111,18 @@ const SkillCard = memo(({ skill, variant = 'browse', onConnect, onViewRatings })
           )}
         </div>
       </div>
+
+      {/* Cosmic standing (this card's user) — mini badge + tier + progress.
+          Single source of truth via the shared <TierProgress> (v7 §1). */}
+      {owner?.cosmicStanding && (
+        <div className="flex items-center gap-2 -mt-1">
+          <CosmicBadge tierId={owner.cosmicStanding.tierId} size="mini" />
+          <span className="text-xs font-medium text-text-secondary truncate flex-none max-w-[45%]">
+            {owner.cosmicStanding.displayName}
+          </span>
+          <TierProgress progress={owner.cosmicStanding.progress} size="mini" className="flex-1 min-w-[56px]" />
+        </div>
+      )}
 
       {/* Skill exchange */}
       <div className="flex items-center gap-2 flex-wrap">

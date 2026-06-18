@@ -76,6 +76,7 @@ const Profile = () => {
       addToast('Profile saved!', 'success');
       setUser({ ...user, name: data.user?.name || user?.name });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['cosmic'] }); // refresh standing card (v7 §1)
     },
     onError: (e) => addToast(e.response?.data?.message || 'Save failed', 'error'),
   });

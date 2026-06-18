@@ -36,6 +36,7 @@ const SkillForm = ({ isOpen, onClose }) => {
     onSuccess: () => {
       addToast('Skill added!', 'success');
       queryClient.invalidateQueries({ queryKey: ['skills'] });
+      queryClient.invalidateQueries({ queryKey: ['cosmic'] }); // refresh standing (v7 §1)
       reset();
       onClose();
     },

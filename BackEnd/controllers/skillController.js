@@ -2,6 +2,18 @@ const Skill = require("../models/skill");
 const User = require("../models/user");
 const mongoose = require("mongoose");
 const { validateSkillContent } = require("../utils/bannedKeywords");
+const { tierObjectFor } = require("../services/cosmicTier");
+
+// Lean cosmic standing for list cards (Browse/Matches). Computed in-memory from
+// the user's PERSISTED cosmic fields — no extra DB query, no N+1 (v7 §1). Same
+// tier service the leaderboard uses, so it's a single source of truth. Anchored
+// on the stored tierId so the badge matches the user's persisted tier.
+const standingFromUser = (u) => {
+    const score = (u && u.cosmic && typeof u.cosmic.score === "number") ? u.cosmic.score : 50;
+    const tierId = (u && u.cosmic && u.cosmic.tierId) || "moon_4";
+    const t = tierObjectFor(tierId, score);
+    return { tierId: t.tierId, score: Math.round(score * 10) / 10, displayName: t.displayName, progress: t.progress };
+};
 
 // ================= ADD SKILL =================
 exports.addSkill = async (req, res) => {
@@ -145,6 +157,12 @@ exports.getAllSkills = async (req, res) => {
                 "userId.bannedUntil": 0
             }}
         ]);
+
+        // Attach each user's cosmic standing for the Browse card mini-badge
+        // (in-memory; no extra DB round-trip — v7 §1).
+        for (const s of skills) {
+            if (s.userId) s.userId.cosmicStanding = standingFromUser(s.userId);
+        }
 
         res.status(200).json(skills);
 
