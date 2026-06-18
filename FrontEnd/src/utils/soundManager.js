@@ -10,7 +10,8 @@ class SoundManager {
     this.volume = 0.15; // Moderate volume for motivational sounds
     this.musicEnabled = false; // Music disabled by default
     this.ambientAudio = null;  // HTMLAudioElement instance
-    
+    this._gestureUnlockArmed = false; // one-time mobile autoplay retry guard
+
     // Load enabled state from localStorage
     const savedState = localStorage.getItem('skillswap-sounds-enabled');
     if (savedState !== null) {
@@ -31,12 +32,35 @@ class SoundManager {
       this.ambientAudio = new Audio('/audio/Equatorial Complex.mp3');
       this.ambientAudio.loop = true;
       this.ambientAudio.volume = 0.5; // Gentle, non-intrusive level
+      this.ambientAudio.playsInline = true; // iOS Safari: don't force fullscreen/route
+      this.ambientAudio.preload = 'auto';
       this.ambientAudio.play().catch(() => {
-        // Browser autoplay policy: silently ignored — will play on next user gesture
+        // Mobile autoplay policy blocks play() without a user gesture. Arm a
+        // one-time listener so the next tap/click/keypress resumes playback.
+        this._armGestureUnlock();
       });
     } catch (error) {
       console.warn('Failed to start ambient music:', error);
     }
+  }
+
+  // Retry playback inside the first user gesture after an autoplay rejection.
+  _armGestureUnlock() {
+    if (this._gestureUnlockArmed) return;
+    this._gestureUnlockArmed = true;
+
+    const resume = () => {
+      // Only resume if music is still enabled and an element still exists.
+      if (this.musicEnabled && this.ambientAudio) {
+        this.ambientAudio.play().catch(() => {});
+      }
+      this._gestureUnlockArmed = false;
+      document.removeEventListener('pointerdown', resume);
+      document.removeEventListener('keydown', resume);
+    };
+
+    document.addEventListener('pointerdown', resume, { once: true });
+    document.addEventListener('keydown', resume, { once: true });
   }
 
   stopAmbientMusic() {

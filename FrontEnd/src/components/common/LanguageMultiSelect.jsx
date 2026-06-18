@@ -125,9 +125,9 @@ export default function LanguageMultiSelect({
             key={name}
             className="inline-flex items-center gap-1.5 pl-3 pr-1.5 py-1.5 rounded-full text-xs font-medium"
             style={{
-              background: 'rgba(0,198,255,0.15)',
-              border: '1px solid rgba(0,198,255,0.4)',
-              color: '#00c6ff',
+              background: 'color-mix(in srgb, var(--accent-1) 15%, transparent)',
+              border: '1px solid color-mix(in srgb, var(--accent-1) 40%, transparent)',
+              color: 'var(--accent-1)',
             }}
           >
             {name}
@@ -177,10 +177,10 @@ export default function LanguageMultiSelect({
           aria-label="Languages"
           ref={listRef}
           onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)}
-          className="absolute z-30 mt-1.5 w-full overflow-y-auto rounded-xl shadow-2xl"
+          className="absolute z-50 mt-1.5 w-full overflow-y-auto rounded-xl shadow-2xl"
           style={{
             maxHeight: VIEWPORT_H,
-            background: 'var(--surface)',
+            background: 'var(--color-background)',
             border: '1px solid var(--border-subtle)',
           }}
         >
@@ -209,17 +209,17 @@ export default function LanguageMultiSelect({
                     style={{
                       top: idx * ROW_H,
                       height: ROW_H,
-                      background: active ? 'rgba(0,198,255,0.10)' : 'transparent',
+                      background: active ? 'color-mix(in srgb, var(--accent-1) 12%, transparent)' : 'transparent',
                     }}
                   >
                     <span
                       className="inline-flex items-center justify-center w-4 h-4 rounded flex-none"
                       style={{
                         border: selected ? 'none' : '1px solid var(--border-subtle)',
-                        background: selected ? '#00c6ff' : 'transparent',
+                        background: selected ? 'var(--accent-1)' : 'transparent',
                       }}
                     >
-                      {selected && <Check size={11} strokeWidth={3} color="#04121c" />}
+                      {selected && <Check size={11} strokeWidth={3} color="var(--text-on-accent)" />}
                     </span>
                     <span className="text-text-primary truncate">{lang.name}</span>
                     {lang.native && lang.native !== lang.name && (
