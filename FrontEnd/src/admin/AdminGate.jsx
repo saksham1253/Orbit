@@ -13,7 +13,8 @@
 import { useEffect, useState, lazy, Suspense } from 'react';
 
 const AdminApp = lazy(() => import('./AdminApp'));
-const HASH = import.meta.env.VITE_ADMIN_SLUG_HASH;
+// Trim + lowercase to survive accidental whitespace / case from the env UI.
+const HASH = (import.meta.env.VITE_ADMIN_SLUG_HASH || '').trim().toLowerCase();
 
 async function sha256Hex(str) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
@@ -24,10 +25,22 @@ export default function AdminGate({ fallback }) {
   const [match, setMatch] = useState(null); // null = deciding
 
   useEffect(() => {
-    if (!HASH) return;
     const seg = window.location.pathname.replace(/^\/+/, '').split('/')[0] || '';
+    // Safe one-shot diagnostic: visit  /<slug>?ssdebug=1  and open the console.
+    // The hash is one-way (not the secret slug), so logging it is harmless.
+    const debug = new URLSearchParams(window.location.search).get('ssdebug') === '1';
     let on = true;
-    sha256Hex(seg).then((h) => { if (on) setMatch(h === HASH); }).catch(() => { if (on) setMatch(false); });
+    if (!HASH) {
+      if (debug) console.log('[ssctl-debug]', { hashEnvPresent: false, note: 'VITE_ADMIN_SLUG_HASH is NOT in this build — set it in Vercel (Production) and REDEPLOY.' });
+      return;
+    }
+    sha256Hex(seg).then((h) => {
+      if (debug) console.log('[ssctl-debug]', { hashEnvPresent: true, hashEnvLen: HASH.length, segment: seg, computed: h, matched: h === HASH });
+      if (on) setMatch(h === HASH);
+    }).catch((e) => {
+      if (debug) console.log('[ssctl-debug] crypto.subtle failed', e?.message);
+      if (on) setMatch(false);
+    });
     return () => { on = false; };
   }, []);
 
