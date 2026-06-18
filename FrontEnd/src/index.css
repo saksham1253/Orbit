@@ -88,6 +88,20 @@
     --toast-text: #ffffff;
     --toast-border: rgba(255, 255, 255, 0.1);
     --toast-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+
+    /* Elevated OPAQUE panel surface — popovers, dropdowns, cards over the app
+       bg (v7 §2). Previously referenced as var(--surface) but never defined,
+       so those surfaces rendered transparent. #15102b matches the existing
+       scoreInfo fallback so that popover is unchanged. */
+    --surface: #15102b;
+    --color-border: var(--border-subtle);
+
+    /* Status tokens (v7 §2) — semantic + theme-reactive, with guaranteed-
+       contrast foregrounds. Bright fills on dark → dark `-on` text. */
+    --success: #00e5a0;  --success-on: #04211a;
+    --warning: #ffb800;  --warning-on: #2a1f00;
+    --danger:  #ff4b4b;  --danger-on:  #2a0a0a;
+    --info:    #00c6ff;  --info-on:    #04121c;
   }
 
   html[data-mode="light"] {
@@ -139,6 +153,16 @@
     --skill-pink-text: #be185d;
     --skill-green-text: #047857;
     --skill-amber-text: #c2410c;
+
+    /* Elevated OPAQUE panel surface + border for light mode (v7 §2) */
+    --surface: #ffffff;
+    --color-border: var(--border-subtle);
+
+    /* Status tokens (v7 §2) — darker fills for contrast on light bg, white text. */
+    --success: #059669;  --success-on: #ffffff;
+    --warning: #b45309;  --warning-on: #ffffff;
+    --danger:  #dc2626;  --danger-on:  #ffffff;
+    --info:    #0284c7;  --info-on:    #ffffff;
   }
 
   /* Morning Sky (Default Pastel - acts as fallback if a dark theme name is active in light mode) */
@@ -610,32 +634,36 @@ html[data-mode="light"] .pill-want {
   border-color: var(--skill-pink-text) !important;
 }
 
-/* Comprehensive text color overrides for Light Mode */
-html.light .text-white { color: #1a1a2e; }
-html.light .text-white\/10 { color: rgba(26, 26, 46, 0.1); }
-html.light .text-white\/15 { color: rgba(26, 26, 46, 0.15); }
-html.light .text-white\/20 { color: rgba(26, 26, 46, 0.2); }
-html.light .text-white\/25 { color: rgba(26, 26, 46, 0.25); }
-html.light .text-white\/30 { color: rgba(26, 26, 46, 0.3); }
-html.light .text-white\/35 { color: rgba(26, 26, 46, 0.35); }
-html.light .text-white\/40 { color: rgba(26, 26, 46, 0.4); }
-html.light .text-white\/45 { color: rgba(26, 26, 46, 0.45); }
-html.light .text-white\/50 { color: rgba(26, 26, 46, 0.5); }
-html.light .text-white\/55 { color: rgba(26, 26, 46, 0.55); }
-html.light .text-white\/60 { color: rgba(26, 26, 46, 0.6); }
-html.light .text-white\/70 { color: rgba(26, 26, 46, 0.7); }
-html.light .text-white\/80 { color: rgba(26, 26, 46, 0.8); }
-html.light .text-white\/90 { color: rgba(26, 26, 46, 0.9); }
+/* Comprehensive text color overrides for Light Mode.
+   NOTE (v7 §2): the theme store sets html[data-mode="light"], never a `.light`
+   class, so these were previously DEAD. Re-scoped to the real attribute so the
+   faint white-on-light text becomes legible. btn-gradient sets its own
+   color:white in CSS (not the .text-white utility), so buttons are unaffected. */
+html[data-mode="light"] .text-white { color: #1a1a2e; }
+html[data-mode="light"] .text-white\/10 { color: rgba(26, 26, 46, 0.1); }
+html[data-mode="light"] .text-white\/15 { color: rgba(26, 26, 46, 0.15); }
+html[data-mode="light"] .text-white\/20 { color: rgba(26, 26, 46, 0.2); }
+html[data-mode="light"] .text-white\/25 { color: rgba(26, 26, 46, 0.25); }
+html[data-mode="light"] .text-white\/30 { color: rgba(26, 26, 46, 0.3); }
+html[data-mode="light"] .text-white\/35 { color: rgba(26, 26, 46, 0.35); }
+html[data-mode="light"] .text-white\/40 { color: rgba(26, 26, 46, 0.4); }
+html[data-mode="light"] .text-white\/45 { color: rgba(26, 26, 46, 0.45); }
+html[data-mode="light"] .text-white\/50 { color: rgba(26, 26, 46, 0.5); }
+html[data-mode="light"] .text-white\/55 { color: rgba(26, 26, 46, 0.55); }
+html[data-mode="light"] .text-white\/60 { color: rgba(26, 26, 46, 0.6); }
+html[data-mode="light"] .text-white\/70 { color: rgba(26, 26, 46, 0.7); }
+html[data-mode="light"] .text-white\/80 { color: rgba(26, 26, 46, 0.8); }
+html[data-mode="light"] .text-white\/90 { color: rgba(26, 26, 46, 0.9); }
 
 /* Override bg-white utilities that are used as faint backgrounds */
-html.light .bg-white\/05 { background: rgba(0, 114, 255, 0.05); }
-html.light .bg-white\/10 { background: rgba(0, 114, 255, 0.1); }
-html.light .border-white\/10 { border-color: rgba(0, 114, 255, 0.1); }
-html.light ::-webkit-scrollbar-track { background: #e8edf5; }
-html.light ::-webkit-scrollbar-thumb { background: rgba(0,114,255,0.2); }
-html.light ::-webkit-scrollbar-thumb:hover { background: rgba(0,114,255,0.4); }
+html[data-mode="light"] .bg-white\/05 { background: rgba(0, 114, 255, 0.05); }
+html[data-mode="light"] .bg-white\/10 { background: rgba(0, 114, 255, 0.1); }
+html[data-mode="light"] .border-white\/10 { border-color: rgba(0, 114, 255, 0.1); }
+html[data-mode="light"] ::-webkit-scrollbar-track { background: #e8edf5; }
+html[data-mode="light"] ::-webkit-scrollbar-thumb { background: rgba(0,114,255,0.2); }
+html[data-mode="light"] ::-webkit-scrollbar-thumb:hover { background: rgba(0,114,255,0.4); }
 
-html.light ::selection {
+html[data-mode="light"] ::selection {
   background: rgba(0, 114, 255, 0.25);
   color: #1a1a2e;
 }

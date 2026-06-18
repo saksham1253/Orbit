@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, UserPlus, UserCheck, Zap, PhoneOff, Star } from 'lucide-react';
 import { useSound } from '../../utils/soundManager';
@@ -34,36 +34,32 @@ const NotificationSystem = ({ notifications, onDismiss, onAction }) => {
     }
   }, [notifications.length]);
 
-  const getNotificationIcon = (type) => {
-    switch (type) {
-      case 'match':
-        return <Zap size={24} className="text-amber" />;
-      case 'connection_request':
-        return <UserPlus size={24} className="text-accent" />;
-      case 'connection_accepted':
-        return <UserCheck size={24} className="text-green-400" />;
-      case 'user_offline':
-        return <PhoneOff size={24} className="text-danger" />;
-      case 'call_ended':
-        return <Star size={24} className="text-amber" />;
-      default:
-        return <Zap size={24} className="text-accent" />;
-    }
+  // Map each notification type to a semantic status token (v7 §2) so colors
+  // are theme-reactive and pass contrast in both light and dark.
+  const TYPE_STATUS = {
+    match: 'warning',
+    connection_request: 'info',
+    connection_accepted: 'success',
+    user_offline: 'danger',
+    call_ended: 'danger',
   };
+  const statusVar = (type) => `var(--${TYPE_STATUS[type] || 'info'})`;
 
-  const getNotificationColor = (type) => {
+  const getNotificationIcon = (type) => {
+    const color = statusVar(type);
     switch (type) {
       case 'match':
-        return 'rgba(255, 184, 0, 0.15)';
+        return <Zap size={24} color={color} />;
       case 'connection_request':
-        return 'rgba(0, 198, 255, 0.15)';
+        return <UserPlus size={24} color={color} />;
       case 'connection_accepted':
-        return 'rgba(0, 229, 160, 0.15)';
+        return <UserCheck size={24} color={color} />;
       case 'user_offline':
+        return <PhoneOff size={24} color={color} />;
       case 'call_ended':
-        return 'rgba(255, 75, 75, 0.15)';
+        return <Star size={24} color={color} />;
       default:
-        return 'rgba(0, 198, 255, 0.15)';
+        return <Zap size={24} color={color} />;
     }
   };
 
@@ -80,10 +76,11 @@ const NotificationSystem = ({ notifications, onDismiss, onAction }) => {
             className="pointer-events-auto"
           >
             <div
-              className="backdrop-blur-xl rounded-2xl p-4 shadow-2xl border"
+              className="backdrop-blur-xl rounded-2xl p-4 border"
               style={{
-                background: `linear-gradient(135deg, ${getNotificationColor(notification.type)}, rgba(0, 0, 0, 0.4))`,
-                borderColor: 'rgba(255, 255, 255, 0.1)',
+                background: `linear-gradient(135deg, color-mix(in srgb, ${statusVar(notification.type)} 16%, transparent), var(--toast-bg))`,
+                borderColor: 'var(--toast-border)',
+                boxShadow: 'var(--toast-shadow)',
               }}
             >
               <div className="flex items-start gap-3">
@@ -107,8 +104,8 @@ const NotificationSystem = ({ notifications, onDismiss, onAction }) => {
                           onClick={() => onAction(notification.id, action.handler)}
                           className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                             action.primary
-                              ? 'bg-accent hover:bg-accent-light text-text-primary'
-                              : 'bg-surface-hover hover:bg-white/20 text-white/80'
+                              ? 'bg-accent hover:bg-accent-light text-text-on-accent'
+                              : 'bg-surface-hover hover:bg-surface text-text-secondary'
                           }`}
                         >
                           {action.label}
