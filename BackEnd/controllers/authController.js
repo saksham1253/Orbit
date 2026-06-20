@@ -90,6 +90,15 @@ exports.login = async (req, res) => {
         // Track login activity (used for trust score calculation)
         user.loginCount += 1;
         user.lastLogin   = new Date();
+
+        // Throttle the "new login" email so frequent logins don't spam the inbox.
+        // Only notify if we haven't already emailed within the cooldown window.
+        const LOGIN_EMAIL_COOLDOWN_MS = 6 * 60 * 60 * 1000; // 6 hours
+        const now = Date.now();
+        const lastEmail = user.lastLoginEmailAt ? new Date(user.lastLoginEmailAt).getTime() : 0;
+        const shouldEmailLogin = now - lastEmail > LOGIN_EMAIL_COOLDOWN_MS;
+        if (shouldEmailLogin) user.lastLoginEmailAt = new Date();
+
         await user.save();
 
         const token = jwt.sign(
@@ -98,9 +107,12 @@ exports.login = async (req, res) => {
             { expiresIn: "1d" }
         );
 
-        // Asynchronously send the email notification (don't block the response)
-        const { sendLoginNotification } = require('../utils/sendEmail');
-        sendLoginNotification(user.email, user.name);
+        // Asynchronously send the email notification (don't block the response),
+        // but only when outside the cooldown window (anti-spam).
+        if (shouldEmailLogin) {
+            const { sendLoginNotification } = require('../utils/sendEmail');
+            sendLoginNotification(user.email, user.name);
+        }
 
         res.status(200).json({
             message: "Login successful",
@@ -154,12 +166,8 @@ exports.forgotPassword = async (req, res) => {
 
         // Send asynchronously (prevents a 15s Axios timeout if SMTP is slow/blocked),
         // but log the resolved messageId on success and the explicit error on failure.
-        const { sendEmail } = require('../utils/sendEmail');
-        sendEmail({
-            to: user.email,
-            subject: 'SkillSwap – Password Reset',
-            html: `<p>Hello ${user.name},</p><p>You requested a password reset. Click the link below (valid for 1 hour):</p><a href="${resetUrl}">${resetUrl}</a><p>If you did not request this, ignore this email.</p>`
-        })
+        const { sendPasswordResetEmail } = require('../utils/sendEmail');
+        sendPasswordResetEmail({ to: user.email, name: user.name, resetUrl })
             .then(info => console.log(`[forgot-password] reset email queued for ${user.email} — messageId=${info?.messageId || 'n/a'}`))
             .catch(mailErr => console.error(`[forgot-password] reset email FAILED for ${user.email}:`, mailErr?.message || mailErr));
 

@@ -102,6 +102,13 @@ const userSchema = new mongoose.Schema({
         default: null
     },
 
+    // When the last "new login" email was sent. Used to throttle repeat login
+    // notifications so frequent logins don't spam the inbox (see authController).
+    lastLoginEmailAt: {
+        type: Date,
+        default: null
+    },
+
     reportCount: {
         type: Number,
         default: 0
