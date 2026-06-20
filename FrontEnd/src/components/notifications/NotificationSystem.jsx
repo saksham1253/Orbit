@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, UserPlus, UserCheck, Zap, PhoneOff, Star } from 'lucide-react';
+import { X, UserPlus, UserCheck, Zap, PhoneOff, Star, Handshake } from 'lucide-react';
 import { useSound } from '../../utils/soundManager';
 
 /**
@@ -18,6 +18,7 @@ const NotificationSystem = ({ notifications, onDismiss, onAction }) => {
       
       switch (latestNotification.type) {
         case 'match':
+        case 'perfect_match':
         case 'connection_accepted':
           playSuccess();
           break;
@@ -38,6 +39,7 @@ const NotificationSystem = ({ notifications, onDismiss, onAction }) => {
   // are theme-reactive and pass contrast in both light and dark.
   const TYPE_STATUS = {
     match: 'warning',
+    perfect_match: 'success',
     connection_request: 'info',
     connection_accepted: 'success',
     user_offline: 'danger',
@@ -50,6 +52,8 @@ const NotificationSystem = ({ notifications, onDismiss, onAction }) => {
     switch (type) {
       case 'match':
         return <Zap size={24} color={color} />;
+      case 'perfect_match':
+        return <Handshake size={24} color={color} />;
       case 'connection_request':
         return <UserPlus size={24} color={color} />;
       case 'connection_accepted':

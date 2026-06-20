@@ -1,5 +1,7 @@
 const Skill = require("../models/skill");
 const User = require("../models/user");
+const Connection = require("../models/Connection");
+const MatchNotification = require("../models/matchNotification");
 const mongoose = require("mongoose");
 const { validateSkillContent } = require("../utils/bannedKeywords");
 const { tierObjectFor } = require("../services/cosmicTier");
@@ -85,7 +87,9 @@ exports.addSkill = async (req, res) => {
 
         const io = req.app.get("io");
         if (io) {
-            // Broadcast new skill to all users
+            // Broadcast new skill so everyone's Browse list refreshes live.
+            // (No global toast — that was phantom noise; the client only uses
+            // this to invalidate the skills query. v7 §3.)
             io.emit("new-skill", {
                 _id: skill._id,
                 userId: user,
@@ -96,22 +100,60 @@ exports.addSkill = async (req, res) => {
                 createdAt: skill.createdAt
             });
 
-            // Notify potential matches
-            potentialMatches.forEach(match => {
-                if (match.userId && match.userId._id) {
-                    io.to(`user_${match.userId._id}`).emit("skill-match", {
-                        matchedUser: {
+            // Perfect-match notification (v7 §3): a reciprocal pair is announced
+            // to BOTH people exactly once. De-duped per user-pair so adding more
+            // skills later never re-spams, and skipped if the two are already
+            // connected (they don't need a "found a match" nudge).
+            for (const match of potentialMatches) {
+                const otherId = match.userId && match.userId._id;
+                if (!otherId) continue;
+
+                try {
+                    const alreadyConnected = await Connection.exists({
+                        $or: [
+                            { requester: req.user.id, receiver: otherId },
+                            { requester: otherId, receiver: req.user.id }
+                        ]
+                    });
+                    if (alreadyConnected) continue;
+
+                    // Unique pairKey insert is the de-dupe gate: a duplicate-key
+                    // error means this pair was already announced — skip silently.
+                    const pairKey = MatchNotification.keyFor(req.user.id, otherId);
+                    try {
+                        await MatchNotification.create({ pairKey });
+                    } catch (dupErr) {
+                        if (dupErr && dupErr.code === 11000) continue; // already announced
+                        throw dupErr;
+                    }
+
+                    // Notify the POSTER about this existing match (the asymmetry
+                    // bug: previously only the other side ever heard about it).
+                    io.to(`user_${req.user.id}`).emit("perfect-match", {
+                        otherUser: {
+                            _id: otherId,
+                            name: match.userId.name || "Someone",
+                            avatar: match.userId.avatar
+                        },
+                        youTeach: skillOffered,
+                        youLearn: skillWanted
+                    });
+
+                    // Notify the OTHER user, framed from THEIR point of view.
+                    io.to(`user_${otherId}`).emit("perfect-match", {
+                        otherUser: {
                             _id: req.user.id,
                             name: user?.name || "Someone",
                             avatar: user?.avatar
                         },
-                        skill: {
-                            skillOffered: skillOffered,
-                            skillWanted: skillWanted
-                        }
+                        youTeach: match.skillOffered,
+                        youLearn: match.skillWanted
                     });
+                } catch (notifyErr) {
+                    // Notifications are best-effort — never fail the skill add.
+                    console.error("perfect-match notify error:", notifyErr);
                 }
-            });
+            }
         }
 
         res.status(201).json({
@@ -319,6 +361,12 @@ exports.getMatches = async (req, res) => {
                 "userId.bannedUntil": 0
             }}
         ]);
+
+        // Attach each matched user's cosmic standing so the Matches card shows
+        // the same tier mini-badge as Browse (single source of truth — v7 §1).
+        for (const m of matches) {
+            if (m.userId) m.userId.cosmicStanding = standingFromUser(m.userId);
+        }
 
         res.status(200).json({ matches });
 

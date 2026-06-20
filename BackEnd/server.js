@@ -294,6 +294,21 @@ io.on("connection", (socket) => {
         // own device) and dedupe duplicate/late events client-side (v5 §3).
         io.to(`user_${targetUserId}`).emit("incoming-call", { roomId, callerName, callerId });
 
+        // If the callee isn't connected, tell the caller they're offline (v7 §3).
+        // Previously the client listened for "user-offline" but the server never
+        // emitted it, so the dead listener never fired.
+        if (targetUserId && callerId && !onlineUsers.has(String(targetUserId))) {
+            try {
+                const User = require("./models/user");
+                const callee = await User.findById(targetUserId).select("name");
+                io.to(`user_${callerId}`).emit("user-offline", {
+                    userName: callee?.name || "That user"
+                });
+            } catch (err) {
+                console.error("Error emitting user-offline:", err);
+            }
+        }
+
         try {
             // The WebRTC call socket connects WITHOUT a token (by design — see the
             // io.use note), so socket.userId is undefined here. Use the caller id

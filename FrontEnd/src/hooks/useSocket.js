@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { connectSocket, disconnectSocket, getSocket } from '../services/socket';
+import { connectSocket, disconnectSocket } from '../services/socket';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
 import { useQueryClient } from '@tanstack/react-query';
@@ -26,9 +26,10 @@ const useSocket = () => {
     const socket = connectSocket(user._id);
     isConnected.current = true;
 
-    // Listen for new skills in the community
-    socket.on('new-skill', (skill) => {
-      addToast(`New skill listed: ${skill.skillOffered}`, 'info');
+    // New skill in the community → refresh Browse live. No toast: broadcasting a
+    // popup to every user on every skill add was phantom noise (v7 §3). Genuine
+    // reciprocal matches are surfaced via the de-duped `perfect-match` event.
+    socket.on('new-skill', () => {
       queryClient.invalidateQueries({ queryKey: ['skills', 'all'] });
     });
 

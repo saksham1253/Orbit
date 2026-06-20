@@ -145,7 +145,7 @@ export default function Observatory() {
               {[0.17, 0.30, 0.43].map((f, i) => (
                 <div key={i} className="absolute rounded-full" style={{
                   left: '50%', top: '50%', width: SIZE * f * 2, height: SIZE * f * 2,
-                  transform: 'translate(-50%,-50%)', border: '1px dashed rgba(255,255,255,0.07)',
+                  transform: 'translate(-50%,-50%)', border: '1px dashed var(--border-subtle)',
                 }} />
               ))}
 
@@ -343,7 +343,7 @@ export default function Observatory() {
           role="dialog" aria-modal="true" aria-label="Observatory tour">
           <div className="fixed inset-0" style={{ background: 'rgba(0,0,0,0.6)' }} onClick={dismissCoach} aria-hidden="true" />
           <div className="relative w-full max-w-xs rounded-2xl p-5 z-10"
-            style={{ background: 'rgba(8,10,22,0.96)', border: '1px solid rgba(0,198,255,0.25)', boxShadow: '0 20px 60px rgba(0,0,0,0.6)' }}>
+            style={{ background: 'var(--surface)', border: '1px solid rgba(0,198,255,0.25)', boxShadow: '0 20px 60px rgba(0,0,0,0.6)' }}>
             <div className="flex items-center gap-2 mb-2 text-accent">
               {coachStep === 0 ? <Crown size={16} /> : coachStep === 1 ? <Sparkles size={16} /> : <Star size={16} />}
               <h3 className="font-display font-bold text-text-primary text-base">{COACH_STEPS[coachStep].title}</h3>

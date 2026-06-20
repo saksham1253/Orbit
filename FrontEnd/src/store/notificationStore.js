@@ -71,6 +71,35 @@ export const useNotificationStore = create((set, get) => ({
   },
 
   // ──────── Helper Methods for Specific Notifications ────────
+  // Perfect (reciprocal) match — fired to BOTH people once per pair (v7 §3).
+  // Framed from the recipient's POV: what THEY can learn / teach.
+  notifyPerfectMatch: (otherUser, { youTeach, youLearn } = {}) => {
+    const name = otherUser?.name || 'Someone';
+    const learn = youLearn ? `learn ${youLearn} from ${name}` : `connect with ${name}`;
+    const teach = youTeach ? ` and teach them ${youTeach}` : '';
+    get().addNotification({
+      type: 'perfect_match',
+      title: 'Perfect Match Found!',
+      message: `You can ${learn}${teach}.`,
+      actions: [
+        {
+          label: 'View Profile',
+          primary: true,
+          handler: () => {
+            window.location.href = `/profile?userId=${otherUser?._id}`;
+          },
+        },
+        {
+          label: 'Find Matches',
+          handler: () => {
+            window.location.href = '/matches';
+          },
+        },
+      ],
+      duration: 9000,
+    });
+  },
+
   notifySkillMatch: (matchedUser, skill) => {
     get().addNotification({
       type: 'match',

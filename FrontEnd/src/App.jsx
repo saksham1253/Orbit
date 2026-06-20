@@ -95,7 +95,7 @@ function AppInner() {
     notifyConnectionAccepted,
     notifyUserOffline,
     notifyCallEnded,
-    notifySkillMatch,
+    notifyPerfectMatch,
   } = useNotificationStore();
 
   const { initializeTheme } = useThemeStore();
@@ -140,9 +140,10 @@ function AppInner() {
 
     // ──────── Listen to notification events ────────
 
-    // Skill match found
-    socket.on('skill-match', (data) => {
-      notifySkillMatch(data.matchedUser, data.skill);
+    // Perfect (reciprocal) match found — fired to BOTH people once per pair,
+    // POV-framed by the server (v7 §3).
+    socket.on('perfect-match', (data) => {
+      notifyPerfectMatch(data.otherUser, data);
     });
 
     // New connection request received
@@ -190,7 +191,7 @@ function AppInner() {
     // We don't disconnect the singleton completely here because other components (like ChatDrawer)
     // might still be relying on it while navigating. Disconnect is handled cleanly when logging out.
     return () => {
-      socket.off('skill-match');
+      socket.off('perfect-match');
       socket.off('connection-request');
       socket.off('connection-accepted');
       socket.off('user-offline');
@@ -198,7 +199,7 @@ function AppInner() {
       socket.off('call-ended');
       socket.off('force-disconnect');
     };
-  }, [token, user, notifyConnectionRequest, notifyConnectionAccepted, notifyUserOffline, notifyCallEnded, notifySkillMatch]);
+  }, [token, user, notifyConnectionRequest, notifyConnectionAccepted, notifyUserOffline, notifyCallEnded, notifyPerfectMatch]);
 
   const handleAcceptCall = useCallback(() => {
     if (!incomingCall) return;
