@@ -22,6 +22,30 @@ class SoundManager {
     if (savedMusicState !== null) {
       this.musicEnabled = savedMusicState === 'true';
     }
+
+    // Battery-friendly background pause (v7 §5): pause the ambient track when the
+    // tab is hidden and resume when it's visible again. We only auto-resume what
+    // WE paused, so a user who turned music off stays off.
+    this._pausedByVisibility = false;
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => this._handleVisibility());
+    }
+  }
+
+  _handleVisibility() {
+    if (typeof document === 'undefined') return;
+    if (document.hidden) {
+      if (this.ambientAudio && !this.ambientAudio.paused) {
+        this.ambientAudio.pause();
+        this._pausedByVisibility = true;
+      }
+    } else if (this._pausedByVisibility) {
+      this._pausedByVisibility = false;
+      if (this.musicEnabled && this.ambientAudio) {
+        // Already unlocked (it was playing before), so this resumes silently.
+        this.ambientAudio.play().catch(() => {});
+      }
+    }
   }
 
   // Play the uploaded ambient track via HTMLAudioElement
@@ -64,6 +88,7 @@ class SoundManager {
   }
 
   stopAmbientMusic() {
+    this._pausedByVisibility = false; // user-driven stop — don't auto-resume
     if (!this.ambientAudio) return;
 
     try {
@@ -129,7 +154,7 @@ class SoundManager {
         oscillator.stop(audioContext.currentTime + 0.04);
         break;
         
-      case 'success':
+      case 'success': {
         // Achievement sound - uplifting major chord arpeggio
         // C-E-G major chord (victory feeling)
         const osc2 = audioContext.createOscillator();
@@ -170,7 +195,8 @@ class SoundManager {
         osc2.stop(audioContext.currentTime + 0.35);
         osc3.stop(audioContext.currentTime + 0.35);
         break;
-        
+      }
+
       case 'error':
         // Gentle nudge (not harsh) - encouraging retry
         oscillator.type = 'sine';

@@ -94,8 +94,12 @@ export default function MomentLab() {
   const cycleAll = () => {
     stopCycle();
     setCycling(true);
+    // Full review set (v7 §7): every tier rank-UP, every tier rank-DOWN
+    // (Descent), then the secret Quasar — so the admin sees & hears all three
+    // variants for every tier in one pass.
     const sequence = [
       ...LADDER.map((id) => ({ variant: 'up', tierId: id, fromTierId: null, score: null, name })),
+      ...LADDER.map((id) => ({ variant: 'down', tierId: id, fromTierId: null, score: null, name })),
       { variant: 'quasar', tierId: 'quasar', fromTierId: null, score: null, name },
     ];
     let i = 0;
