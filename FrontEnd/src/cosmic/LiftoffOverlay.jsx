@@ -17,64 +17,16 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Share2, X, Sparkles } from 'lucide-react';
+import { X } from 'lucide-react';
 import useLiftoffStore from './liftoffStore';
 import useAppearanceStore from '../store/appearanceStore';
-import CosmicBadge from './CosmicBadge';
-import { getTier, TIER_ORDER } from './tiers';
+import { getTier } from './tiers';
 import { LiftoffEngine } from './liftoffEngine';
 import { playLiftoffChime } from './liftoffSound';
 import { buildShareCard, shareOrDownload } from './shareCard';
+import RankMomentCard from './RankMomentCard';
+import { isPromotion, momentCopy } from './momentCopy';
 import './LiftoffOverlay.css';
-
-const idx = (tierId) => TIER_ORDER.indexOf(tierId);
-const isPromotion = (fromId, toId) => {
-  if (!fromId) return getTier(toId).category !== 'moon' ? true : false; // first reveal: treat non-moon as grand
-  return getTier(fromId).category !== getTier(toId).category && idx(toId) > idx(fromId);
-};
-
-function headlineFor(tierId, city, direction, pointsToRecover, fromTierId) {
-  const t = getTier(tierId);
-  const where = city ? ` over ${city}'s sky` : '';
-
-  // v4 §5 — rank-DOWN: dignified, encouraging, never shaming. Always forward-
-  // looking with the exact points to recover.
-  if (direction === 'down') {
-    const recover = pointsToRecover != null
-      ? ` You need +${pointsToRecover} to return to ${getTier(fromTierId).displayName}.`
-      : '';
-    const calm = {
-      asteroid: "Your light dimmed a little — you're now",
-      meteor:   "You've cooled into",
-      stardust: "You've drifted out to",
-      moon:     "You've cooled to",
-      planet:   "You've cooled to",
-      star:     "You've cooled from a brighter sky to",
-      pulsar:   "You've eased down to",
-      supernova:"You've settled to",
-      galaxy:   "You've eased down to",
-    };
-    return {
-      kicker: 'STILL BURNING',
-      line: `${calm[t.category] || 'You moved to'} ${t.displayName}. Stars flicker; climb back.${recover}`,
-    };
-  }
-
-  // Rank-UP / intro (warm, hopeful — including the Descent's "rising" theme).
-  switch (t.category) {
-    case 'stardust':  return { kicker: 'A SPARK CATCHES', line: `You're gathering light again — ${t.displayName}.` };
-    case 'meteor':    return { kicker: 'STILL ON FIRE', line: `You're rising — ${t.displayName}.` };
-    case 'asteroid':  return { kicker: 'GATHERING MASS', line: `Almost a world again — ${t.displayName}.` };
-    case 'moon':      return { kicker: 'BACK IN ORBIT', line: `You've gathered enough mass to hold an orbit again — ${t.displayName}.` };
-    case 'planet':    return { kicker: 'A WORLD IS BORN', line: `You've ascended to ${t.displayName}.` };
-    case 'star':      return { kicker: 'IGNITION', line: `You now generate your own light — ${t.displayName}.` };
-    case 'pulsar':    return { kicker: 'A LIGHTHOUSE RISES', line: `You're a pulsar${where} — ${t.displayName}.` };
-    case 'supernova': return { kicker: 'SUPERNOVA', line: `The whole community is watching — ${t.displayName}.` };
-    case 'galaxy':    return { kicker: 'ANDROMEDA CLASS', line: `A universe unto yourself — ${t.displayName}.` };
-    case 'quasar':    return { kicker: 'BEYOND THE LADDER', line: `You are ${t.displayName} — shining forever.` };
-    default:          return { kicker: "YOU'VE GROWN", line: `Welcome to ${t.displayName}.` };
-  }
-}
 
 export default function LiftoffOverlay() {
   const event = useLiftoffStore((s) => s.event);
@@ -88,6 +40,8 @@ export default function LiftoffOverlay() {
 
   const promotion = event ? isPromotion(event.fromTierId, event.toTierId) : false;
   const isDown = event?.direction === 'down';
+  const isQuasar = event ? getTier(event.toTierId).category === 'quasar' : false;
+  const variant = isQuasar ? 'quasar' : (isDown ? 'down' : 'up');
   const reduced = useMemo(
     () => (typeof window !== 'undefined' &&
       window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches),
@@ -97,7 +51,9 @@ export default function LiftoffOverlay() {
   // Rank-DOWN is always a calm crossfade (no explosive canvas), per v4 §5.
   const stillMode = reduced || speed === 0 || isDown; // crossfade instead of canvas storm
 
-  const head = event ? headlineFor(event.toTierId, event.city, event.direction, event.pointsToRecover, event.fromTierId) : null;
+  const copy = event
+    ? momentCopy({ variant, tierId: event.toTierId, fromTierId: event.fromTierId, pointsToRecover: event.pointsToRecover, city: event.city })
+    : null;
 
   // Run the cinematics when an event arrives.
   // The reveal-state transitions below are intentional, imperative cinematic
@@ -108,10 +64,12 @@ export default function LiftoffOverlay() {
     if (!event) return;
     setRevealed(false);
 
-    // Chime obeys UI Sounds. Rank-UP → bright rising fanfare (grand for category
-    // promotions, sparkle for within-tier); rank-DOWN → a distinct soft
-    // descending cooling cue (v5 §1). One play per event (keyed on event.id).
-    if (isDown) playLiftoffChime(false, { down: true });
+    // Chime obeys UI Sounds. Quasar → its own grandest cue (v7 §6); rank-UP →
+    // bright rising fanfare (grand for category promotions, sparkle for
+    // within-tier); rank-DOWN → a distinct soft descending cooling cue (v5 §1).
+    // One play per event (keyed on event.id).
+    if (isQuasar) playLiftoffChime(false, { quasar: true });
+    else if (isDown) playLiftoffChime(false, { down: true });
     else playLiftoffChime(promotion);
 
     const sp = Math.max(speed || 1, 0.2);
@@ -175,7 +133,7 @@ export default function LiftoffOverlay() {
       const url = buildShareCard({ tierId: event.toTierId, score: event.score, city: event.city });
       await shareOrDownload(url, {
         filename: `skillswap-${event.toTierId}.png`,
-        text: `${head?.line} — on SkillSwap 🛰️`,
+        text: `${tier.displayName} — ${copy?.support} on SkillSwap 🛰️`,
       });
     } finally {
       setSharing(false);
@@ -206,52 +164,19 @@ export default function LiftoffOverlay() {
         </button>
 
         <div className="liftoff-stage" onClick={(e) => e.stopPropagation()}>
-          <AnimatePresence>
-            {revealed && (
-              <motion.div
-                key="badge"
-                initial={stillMode ? { opacity: 0 } : { opacity: 0, scale: 0.2, rotate: -25 }}
-                animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                transition={stillMode
-                  ? { duration: 0.6 }
-                  : { type: 'spring', stiffness: 160, damping: 14, mass: 0.8 }}
-                className="liftoff-badge-wrap"
-              >
-                <div className={`liftoff-badge-halo cb-halo-${tier.category}`}>
-                  <CosmicBadge tierId={event.toTierId} size="full" className="liftoff-badge" />
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <AnimatePresence>
-            {revealed && (
-              <motion.div
-                key="text"
-                initial={{ opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: stillMode ? 0.2 : 0.35, duration: 0.6 }}
-                className="liftoff-text"
-              >
-                <div className="liftoff-kicker">
-                  {isDown ? 'A QUIET DESCENT' : (promotion ? 'LIFTOFF' : 'RANK UP')} · {head.kicker}
-                </div>
-                <h2 className="liftoff-headline">{head.line}</h2>
-                {event.score != null && (
-                  <div className="liftoff-score">CosmicScore {event.score}</div>
-                )}
-
-                <div className="liftoff-actions">
-                  <button className="liftoff-share" onClick={handleShare} disabled={sharing}>
-                    <Share2 size={15} /> {sharing ? 'Preparing…' : 'Share your card'}
-                  </button>
-                  <button className="liftoff-dismiss" onClick={clear}>
-                    <Sparkles size={14} /> Continue
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <RankMomentCard
+            variant={variant}
+            tierId={event.toTierId}
+            fromTierId={event.fromTierId}
+            score={event.score}
+            pointsToRecover={event.pointsToRecover}
+            city={event.city}
+            revealed={revealed}
+            stillMode={stillMode}
+            sharing={sharing}
+            onShare={handleShare}
+            onContinue={clear}
+          />
         </div>
       </motion.div>
     </AnimatePresence>,

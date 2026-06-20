@@ -5,13 +5,14 @@
  */
 import { useState } from 'react';
 import {
-  LayoutDashboard, Users, Sparkles, ShieldAlert, Database, ScrollText,
+  LayoutDashboard, Users, Sparkles, Clapperboard, ShieldAlert, Database, ScrollText,
   SlidersHorizontal, LogOut, Lock,
 } from 'lucide-react';
 import adminApi from './adminApi';
 import Overview from './pages/Overview';
 import UsersPage from './pages/Users';
 import Cosmic from './pages/Cosmic';
+import MomentLab from './pages/MomentLab';
 import Records from './pages/Records';
 import Audit from './pages/Audit';
 import Moderation from './pages/Moderation';
@@ -21,6 +22,7 @@ const SECTIONS = [
   { id: 'overview', label: 'Overview', Icon: LayoutDashboard, Comp: Overview },
   { id: 'users', label: 'Users', Icon: Users, Comp: UsersPage },
   { id: 'cosmic', label: 'Cosmic', Icon: Sparkles, Comp: Cosmic },
+  { id: 'momentlab', label: 'Moment Lab', Icon: Clapperboard, Comp: MomentLab },
   { id: 'moderation', label: 'Moderation', Icon: ShieldAlert, Comp: Moderation },
   { id: 'records', label: 'Records', Icon: Database, Comp: Records },
   { id: 'audit', label: 'Audit Log', Icon: ScrollText, Comp: Audit },

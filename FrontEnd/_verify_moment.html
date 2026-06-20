@@ -1,0 +1,29 @@
+<!doctype html>
+<html data-mode="dark">
+  <head><meta charset="utf-8" /><title>moment verify</title></head>
+  <body style="margin:0">
+    <div id="root"></div>
+    <script type="module">
+      import React from 'react';
+      import { createRoot } from 'react-dom/client';
+      import LiftoffOverlay from '/src/cosmic/LiftoffOverlay.jsx';
+      import BadgeDefsSprite from '/src/cosmic/BadgeDefsSprite.jsx';
+      import useLiftoffStore from '/src/cosmic/liftoffStore.js';
+      import '/src/index.css';
+
+      createRoot(document.getElementById('root')).render(
+        React.createElement(React.Fragment, null,
+          React.createElement(BadgeDefsSprite),
+          React.createElement(LiftoffOverlay)));
+
+      // Trigger a moment based on ?v= query: up | down | quasar
+      const v = new URLSearchParams(location.search).get('v') || 'up';
+      const cfg = {
+        up:     ['moon_3', { fromTierId: 'moon_4', score: 53, direction: 'up' }],
+        down:   ['moon_4', { fromTierId: 'moon_3', score: 49, direction: 'down', pointsToRecover: 3 }],
+        quasar: ['quasar', { fromTierId: 'galaxy_1', score: 99, direction: 'up' }],
+      }[v];
+      setTimeout(() => { useLiftoffStore.getState().play(cfg[0], cfg[1]); window.__fired = true; }, 200);
+    </script>
+  </body>
+</html>

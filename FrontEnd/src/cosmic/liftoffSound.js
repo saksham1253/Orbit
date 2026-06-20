@@ -68,9 +68,102 @@ export function playDescentChime() {
   }
 }
 
+/**
+ * Quasar cue (v7 §6) — the grandest, rarest moment. A slow cinematic swell of
+ * stacked harmonics under a long rising shimmer that climbs higher than any
+ * other cue, capped by a bright bell arpeggio and a deep sub-impact. ~2.6s,
+ * clearly distinct from the standard rank-up fanfare (reserved for the secret
+ * Quasar tier). Best-effort; never throws into the UI.
+ */
+export function playQuasarChime() {
+  if (!soundManager.isEnabled()) return;     // respect the UI Sounds toggle
+
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    const ac = new Ctx();
+    const now = ac.currentTime;
+    const dur = 2.7;
+
+    const master = ac.createGain();
+    master.gain.setValueAtTime(0.0001, now);
+    master.gain.exponentialRampToValueAtTime(0.3, now + 0.4);     // slow, awe-inducing swell
+    master.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    master.connect(ac.destination);
+
+    // Sustained harmonic bed — a chord of stacked octaves + fifth, lightly
+    // detuned for shimmer/richness (distinct from the bright arpeggio of rank-up).
+    const bed = [130.81, 196.0, 261.63, 392.0, 523.25];          // C3 G3 C4 G4 C5
+    bed.forEach((f, i) => {
+      [0, 1.5].forEach((detune) => {                              // two detuned voices
+        const o = ac.createOscillator();
+        const g = ac.createGain();
+        o.type = i < 2 ? 'sawtooth' : 'triangle';
+        o.frequency.setValueAtTime(f, now);
+        o.detune.setValueAtTime(detune, now);
+        const t = now + i * 0.08;
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.07, t + 0.5);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+        const lp = ac.createBiquadFilter();
+        lp.type = 'lowpass';
+        lp.frequency.setValueAtTime(900, now);
+        lp.frequency.exponentialRampToValueAtTime(4200, now + 1.6); // filter opens = "blooming"
+        o.connect(lp); lp.connect(g); g.connect(master);
+        o.start(t); o.stop(now + dur);
+      });
+    });
+
+    // Long rising shimmer — climbs higher than the grand fanfare's sweep.
+    const shimmer = ac.createOscillator();
+    const sg = ac.createGain();
+    shimmer.type = 'sine';
+    shimmer.frequency.setValueAtTime(1046.5, now + 0.3);
+    shimmer.frequency.exponentialRampToValueAtTime(4186, now + 2.0);  // up to C8
+    sg.gain.setValueAtTime(0.0001, now + 0.3);
+    sg.gain.exponentialRampToValueAtTime(0.12, now + 1.0);
+    sg.gain.exponentialRampToValueAtTime(0.0001, now + 2.5);
+    shimmer.connect(sg); sg.connect(master);
+    shimmer.start(now + 0.3); shimmer.stop(now + 2.5);
+
+    // Bright bell arpeggio at the peak — the "burst" landing.
+    const bells = [1046.5, 1318.5, 1568.0, 2093.0];              // C6 E6 G6 C7
+    bells.forEach((f, i) => {
+      const o = ac.createOscillator();
+      const g = ac.createGain();
+      o.type = 'triangle';
+      const t = now + 1.1 + i * 0.1;
+      o.frequency.setValueAtTime(f, t);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.14, t + 0.04);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 1.0);
+      o.connect(g); g.connect(master);
+      o.start(t); o.stop(t + 1.1);
+    });
+
+    // Deep sub-impact for cinematic weight.
+    const sub = ac.createOscillator();
+    const subg = ac.createGain();
+    sub.type = 'sine';
+    sub.frequency.setValueAtTime(70, now + 1.0);
+    sub.frequency.exponentialRampToValueAtTime(34, now + 2.2);
+    subg.gain.setValueAtTime(0.0001, now + 1.0);
+    subg.gain.exponentialRampToValueAtTime(0.32, now + 1.15);
+    subg.gain.exponentialRampToValueAtTime(0.0001, now + 2.3);
+    sub.connect(subg); subg.connect(master);
+    sub.start(now + 1.0); sub.stop(now + 2.4);
+
+    setTimeout(() => { try { ac.close(); } catch { /* noop */ } }, (dur + 0.4) * 1000);
+  } catch {
+    /* audio is best-effort; never throw into the UI */
+  }
+}
+
 export function playLiftoffChime(grand = true, opts = {}) {
   if (!soundManager.isEnabled()) return;     // respect the UI Sounds toggle
 
+  // Quasar gets its own grandest, distinct cue (v7 §6).
+  if (opts.quasar) return playQuasarChime();
   // Rank-DOWN delegates to the dedicated descending cooling cue.
   if (opts.down) return playDescentChime();
 
