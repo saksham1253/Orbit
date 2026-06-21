@@ -127,7 +127,7 @@
   line-height: 1.45;
   color: rgba(226,232,245,0.78);
   max-width: 30ch;
-  margin: 0 0 18px;
+  margin: 0 auto 18px;   /* auto side-margins so the narrow box stays centred under the tier name */
 }
 
 .rmc-score {
