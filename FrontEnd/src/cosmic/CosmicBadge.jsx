@@ -265,14 +265,48 @@ function GalaxyArt({ div, anim, dc }) {
 }
 
 function QuasarArt({ anim }) {
+  // The brightest object in the universe and the rarest, secret tier — so this
+  // is deliberately the most spectacular badge (v7 §6): a blazing accretion disk
+  // around a supermassive core, twin relativistic jets, and a radiant corona.
+  const rays = 12;
+  const spikes = [];
+  for (let i = 0; i < rays; i++) {
+    const a = (Math.PI * 2 * i) / rays;
+    const len = i % 2 ? 30 : 39;
+    spikes.push(
+      <line key={i} x1="50" y1="50"
+        x2={50 + Math.cos(a) * len} y2={50 + Math.sin(a) * len}
+        stroke={i % 2 ? '#9B6BFF' : '#E9DEFF'} strokeOpacity={i % 2 ? 0.35 : 0.65}
+        strokeWidth={i % 2 ? 1.2 : 2.6} strokeLinecap="round" />
+    );
+  }
   return (
-    <>
-      <rect x="47" y="2" width="6" height="96" fill="url(#cb-quasar-jet)"
-        className={anim ? 'cb-jet' : ''} filter={anim ? 'url(#cb-glow)' : undefined} />
-      <circle cx="50" cy="50" r="7" fill="url(#cb-quasar-core)"
-        className={anim ? 'cb-pulse' : ''} filter={anim ? 'url(#cb-glow)' : undefined}
+    <g filter={anim ? 'url(#cb-glow)' : undefined}>
+      {/* radiant corona rays — slow majestic rotation */}
+      <g className={anim ? 'cb-spin-slow' : ''} style={{ transformBox: 'fill-box', transformOrigin: 'center' }}>
+        {spikes}
+      </g>
+      {/* expanding shock halo */}
+      <circle cx="50" cy="50" r="28" fill="none" stroke="#C9B8FF" strokeWidth="2"
+        className={anim ? 'cb-nova-shock' : ''}
         style={{ transformBox: 'fill-box', transformOrigin: 'center' }} />
-    </>
+      {/* twin relativistic jets (bidirectional) */}
+      <rect x="47.5" y="2" width="5" height="96" fill="url(#cb-quasar-jet)"
+        className={anim ? 'cb-jet' : ''} />
+      {/* blazing accretion disk — tilted glowing ring that spins */}
+      <g transform="rotate(-22 50 50)" className={anim ? 'cb-spin' : ''}
+        style={{ transformBox: 'fill-box', transformOrigin: 'center' }}>
+        <ellipse cx="50" cy="50" rx="33" ry="11.5" fill="none" stroke="#A77BFF" strokeOpacity="0.85" strokeWidth="4.5" />
+        <ellipse cx="50" cy="50" rx="33" ry="11.5" fill="none" stroke="#FFFFFF" strokeOpacity="0.55" strokeWidth="1.3" />
+      </g>
+      {/* core: outer bloom → bright body → white-hot center, pulsing */}
+      <circle cx="50" cy="50" r="14" fill="url(#cb-quasar-core)" opacity="0.45"
+        className={anim ? 'cb-swell' : ''} style={{ transformBox: 'fill-box', transformOrigin: 'center' }} />
+      <circle cx="50" cy="50" r="8.5" fill="url(#cb-quasar-core)"
+        className={anim ? 'cb-pulse' : ''} style={{ transformBox: 'fill-box', transformOrigin: 'center' }} />
+      <circle cx="50" cy="50" r="4" fill="#FFFFFF" className={anim ? 'cb-nova-core' : ''}
+        style={{ transformBox: 'fill-box', transformOrigin: 'center' }} />
+    </g>
   );
 }
 

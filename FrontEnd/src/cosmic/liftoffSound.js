@@ -21,6 +21,7 @@ export function playDescentChime() {
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return;
     const ac = new Ctx();
+    ac.resume?.();   // browsers create the context SUSPENDED — resume so the cue actually plays
     const now = ac.currentTime;
 
     const master = ac.createGain();
@@ -82,6 +83,7 @@ export function playQuasarChime() {
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return;
     const ac = new Ctx();
+    ac.resume?.();   // browsers create the context SUSPENDED — resume so the cue actually plays
     const now = ac.currentTime;
     const dur = 2.7;
 
@@ -171,6 +173,7 @@ export function playLiftoffChime(grand = true, opts = {}) {
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return;
     const ac = new Ctx();
+    ac.resume?.();   // browsers create the context SUSPENDED — resume so the cue actually plays
     const now = ac.currentTime;
 
     const master = ac.createGain();
