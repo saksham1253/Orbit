@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
-import { Eye, EyeOff, CheckCircle, Sparkles, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, CheckCircle, Sparkles, ArrowLeft, Check, X } from 'lucide-react';
 import api from '../services/api';
 import { useUIStore } from '../store/uiStore';
 
@@ -15,6 +15,22 @@ const ResetPassword = () => {
   const [confirm, setConfirm] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [done, setDone] = useState(false);
+
+  // Same policy as registration (Register.jsx): 8+ chars, upper, lower, number, special.
+  const hasMinLength = password.length >= 8;
+  const hasUpperCase = /[A-Z]/.test(password);
+  const hasLowerCase = /[a-z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSpecialChar = /[^A-Za-z0-9]/.test(password);
+  const requirements = [
+    { ok: hasMinLength, label: 'At least 8 characters' },
+    { ok: hasUpperCase, label: 'One uppercase letter' },
+    { ok: hasLowerCase, label: 'One lowercase letter' },
+    { ok: hasNumber, label: 'One number' },
+    { ok: hasSpecialChar, label: 'One special character' },
+  ];
+  const passedCount = requirements.filter(r => r.ok).length;
+  const isStrong = passedCount === requirements.length;
 
   const mutation = useMutation({
     mutationFn: (pwd) => api.post(`/auth/reset-password/${token}`, { password: pwd }),
@@ -30,8 +46,8 @@ const ResetPassword = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (password.length < 6) {
-      addToast('Password must be at least 6 characters', 'error');
+    if (!isStrong) {
+      addToast('Password must be 8+ chars with uppercase, lowercase, a number, and a special character', 'error');
       return;
     }
     if (password !== confirm) {
@@ -113,8 +129,8 @@ const ResetPassword = () => {
                       value={password}
                       onChange={e => setPassword(e.target.value)}
                       required
-                      minLength={6}
-                      placeholder="At least 6 characters"
+                      minLength={8}
+                      placeholder="At least 8 characters"
                       autoComplete="new-password"
                       className="input-glass w-full px-4 py-3 pr-11 text-sm text-text-primary"
                     />
@@ -126,19 +142,30 @@ const ResetPassword = () => {
                       {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
-                  {/* Strength indicator */}
+                  {/* Strength bar + requirements checklist (matches Register) */}
                   {password.length > 0 && (
-                    <div className="flex gap-1 mt-2">
-                      {[1, 2, 3, 4].map(i => (
-                        <div key={i} className="flex-1 h-1 rounded-full transition-all"
-                          style={{
-                            background: password.length >= i * 2
-                              ? (password.length >= 8 ? '#00e5a0' : password.length >= 6 ? '#ffb800' : '#ff4b4b')
-                              : 'rgba(255,255,255,0.1)'
-                          }}
-                        />
-                      ))}
-                    </div>
+                    <>
+                      <div className="flex gap-1 mt-2">
+                        {[1, 2, 3, 4, 5].map(i => (
+                          <div key={i} className="flex-1 h-1 rounded-full transition-all"
+                            style={{
+                              background: passedCount >= i
+                                ? (passedCount >= 5 ? '#00e5a0' : passedCount >= 3 ? '#ffb800' : '#ff4b4b')
+                                : 'rgba(255,255,255,0.1)'
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <ul className="mt-2.5 grid grid-cols-1 gap-1">
+                        {requirements.map((r) => (
+                          <li key={r.label} className="flex items-center gap-1.5 text-xs"
+                            style={{ color: r.ok ? '#00e5a0' : 'var(--text-muted)' }}>
+                            {r.ok ? <Check size={13} /> : <X size={13} />}
+                            {r.label}
+                          </li>
+                        ))}
+                      </ul>
+                    </>
                   )}
                 </div>
 
@@ -169,7 +196,7 @@ const ResetPassword = () => {
 
                 <button
                   type="submit"
-                  disabled={mutation.isPending || !password || !confirm}
+                  disabled={mutation.isPending || !isStrong || password !== confirm}
                   className="btn-gradient w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-sm mt-2 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {mutation.isPending ? (

@@ -188,8 +188,17 @@ exports.resetPassword = async (req, res) => {
         if (!token || !password) {
             return res.status(400).json({ message: "Token and new password are required" });
         }
-        if (password.length < 6) {
-            return res.status(400).json({ message: "Password must be at least 6 characters" });
+        // Enforce the SAME policy as registration (8+ chars, upper, lower,
+        // number, special) so reset passwords aren't weaker than signup ones.
+        const strong = password.length >= 8
+            && /[A-Z]/.test(password)
+            && /[a-z]/.test(password)
+            && /[0-9]/.test(password)
+            && /[^A-Za-z0-9]/.test(password);
+        if (!strong) {
+            return res.status(400).json({
+                message: "Password must be at least 8 characters and include an uppercase letter, a lowercase letter, a number, and a special character."
+            });
         }
 
         const crypto = require('crypto');
