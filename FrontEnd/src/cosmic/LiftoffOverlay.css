@@ -21,11 +21,78 @@
   overflow: hidden;
   cursor: pointer;
 }
-/* v4 §5 — rank-DOWN: a calm, cool, dignified backdrop (never harsh/red) */
+/* ── Per-category rank-UP backdrops (v7 §6) ───────────────────────
+   Each tier gets its own nebula palette so the moment feels bespoke —
+   two coloured light-clouds over a deep, tier-tinted base. Quasar is the
+   richest (three clouds + a gold core). Theme-agnostic (always deep space). */
+.liftoff-overlay.liftoff-cat-moon {
+  background:
+    radial-gradient(60% 50% at 30% 26%, rgba(148,163,210,0.20), transparent 70%),
+    radial-gradient(55% 45% at 72% 72%, rgba(99,110,170,0.16), transparent 70%),
+    radial-gradient(circle at 50% 42%, rgba(18,16,40,0.94), rgba(6,5,16,0.97) 72%);
+}
+.liftoff-overlay.liftoff-cat-planet {
+  background:
+    radial-gradient(60% 50% at 28% 26%, rgba(216,164,127,0.20), transparent 70%),
+    radial-gradient(55% 48% at 74% 72%, rgba(56,170,158,0.16), transparent 70%),
+    radial-gradient(circle at 50% 42%, rgba(12,22,26,0.94), rgba(5,9,12,0.97) 72%);
+}
+.liftoff-overlay.liftoff-cat-star {
+  background:
+    radial-gradient(62% 52% at 30% 26%, rgba(169,214,255,0.24), transparent 70%),
+    radial-gradient(55% 46% at 72% 70%, rgba(90,150,230,0.18), transparent 70%),
+    radial-gradient(circle at 50% 42%, rgba(10,18,42,0.94), rgba(4,7,20,0.97) 72%);
+}
+.liftoff-overlay.liftoff-cat-pulsar {
+  background:
+    radial-gradient(62% 52% at 30% 26%, rgba(76,201,240,0.24), transparent 70%),
+    radial-gradient(55% 46% at 73% 72%, rgba(40,150,205,0.18), transparent 70%),
+    radial-gradient(circle at 50% 42%, rgba(6,20,30,0.94), rgba(3,8,15,0.97) 72%);
+}
+.liftoff-overlay.liftoff-cat-supernova {
+  background:
+    radial-gradient(64% 54% at 30% 26%, rgba(255,107,53,0.24), transparent 70%),
+    radial-gradient(56% 48% at 72% 72%, rgba(236,72,153,0.18), transparent 70%),
+    radial-gradient(circle at 50% 42%, rgba(28,10,18,0.94), rgba(12,4,8,0.97) 72%);
+}
+.liftoff-overlay.liftoff-cat-galaxy {
+  background:
+    radial-gradient(62% 52% at 30% 26%, rgba(255,143,207,0.22), transparent 70%),
+    radial-gradient(58% 50% at 72% 72%, rgba(139,92,246,0.20), transparent 70%),
+    radial-gradient(circle at 50% 42%, rgba(24,12,40,0.94), rgba(10,5,20,0.97) 72%);
+}
+.liftoff-overlay.liftoff-cat-quasar {
+  background:
+    radial-gradient(45% 40% at 50% 38%, rgba(255,214,140,0.16), transparent 66%),
+    radial-gradient(64% 54% at 28% 24%, rgba(142,197,255,0.24), transparent 70%),
+    radial-gradient(60% 52% at 74% 74%, rgba(168,85,247,0.22), transparent 70%),
+    radial-gradient(circle at 50% 42%, rgba(16,10,38,0.95), rgba(5,3,16,0.98) 74%);
+}
+/* Descent tiers (asteroid/meteor/stardust) keep a quiet, dim base — the calm
+   .liftoff-down rule below refines them further when it's actually a rank-down. */
+.liftoff-overlay.liftoff-cat-meteor {
+  background:
+    radial-gradient(58% 48% at 30% 28%, rgba(224,138,60,0.16), transparent 72%),
+    radial-gradient(circle at 50% 42%, rgba(22,14,10,0.95), rgba(9,5,4,0.97) 72%);
+}
+.liftoff-overlay.liftoff-cat-asteroid {
+  background:
+    radial-gradient(58% 48% at 30% 28%, rgba(150,140,128,0.15), transparent 72%),
+    radial-gradient(circle at 50% 42%, rgba(16,15,13,0.95), rgba(7,6,5,0.97) 72%);
+}
+.liftoff-overlay.liftoff-cat-stardust {
+  background:
+    radial-gradient(58% 48% at 30% 28%, rgba(159,179,200,0.16), transparent 72%),
+    radial-gradient(circle at 50% 42%, rgba(14,16,24,0.95), rgba(5,6,12,0.97) 72%);
+}
+
+/* v4 §5 — rank-DOWN: a calm, cool, dignified aurora backdrop (never harsh/red).
+   Placed AFTER the category rules so it wins whenever the moment is a descent. */
 .liftoff-overlay.liftoff-down {
   background:
-    radial-gradient(60% 50% at 50% 34%, rgba(96,130,180,0.16), transparent 72%),
-    radial-gradient(circle at 50% 42%, rgba(30,41,59,0.94), rgba(8,12,22,0.97) 72%);
+    radial-gradient(62% 50% at 32% 30%, rgba(96,150,200,0.16), transparent 72%),
+    radial-gradient(54% 46% at 70% 72%, rgba(120,160,205,0.12), transparent 72%),
+    radial-gradient(circle at 50% 42%, rgba(20,28,44,0.95), rgba(6,10,20,0.97) 72%);
 }
 
 .liftoff-canvas {

@@ -147,7 +147,7 @@ export default function LiftoffOverlay() {
     <AnimatePresence>
       <motion.div
         key={event.id}
-        className={`liftoff-overlay ${isDown ? 'liftoff-down' : ''}`}
+        className={`liftoff-overlay liftoff-cat-${tier.category} ${isDown ? 'liftoff-down' : ''}`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}

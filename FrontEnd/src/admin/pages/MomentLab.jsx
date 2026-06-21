@@ -49,7 +49,10 @@ export default function MomentLab() {
   const revealTimer = useRef(null);
 
   const effectiveTier = variant === 'quasar' ? 'quasar' : toTier;
-  const soundsOff = !soundManager.isEnabled();
+  // Sound toggle lives HERE in the admin (mirrors soundManager) so the owner
+  // never has to leave for the user-dashboard settings to hear previews.
+  const [soundsOn, setSoundsOn] = useState(soundManager.isEnabled());
+  const toggleSounds = () => setSoundsOn(soundManager.toggle());
 
   const stopCycle = useCallback(() => {
     if (cycleRef.current) { clearTimeout(cycleRef.current); cycleRef.current = null; }
@@ -181,15 +184,19 @@ export default function MomentLab() {
           </label>
         </div>
 
-        {/* Motion override */}
+        {/* Motion + sound overrides */}
         <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }} className="ssctl-muted">
           <input type="checkbox" checked={forceMotion} onChange={(e) => setForceMotion(e.target.checked)} />
           Force full animation (override reduced-motion / Descent crossfade)
         </label>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }} className="ssctl-muted">
+          <input type="checkbox" checked={soundsOn} onChange={toggleSounds} />
+          Enable preview sound (toggles UI Sounds — no need to leave the admin)
+        </label>
 
-        {soundsOff && (
+        {!soundsOn && (
           <p className="ssctl-muted" style={{ fontSize: 12 }}>
-            UI Sounds are off — moments will preview silently until sounds are enabled.
+            Sound is off — moments preview silently. Tick the box above to hear the cues.
           </p>
         )}
 
@@ -217,7 +224,7 @@ export default function MomentLab() {
       </div>
 
       {preview && createPortal(
-        <div className={`liftoff-overlay ${preview.variant === 'down' ? 'liftoff-down' : ''}`} onClick={close}
+        <div className={`liftoff-overlay liftoff-cat-${getTier(preview.tierId).category} ${preview.variant === 'down' ? 'liftoff-down' : ''}`} onClick={close}
           role="dialog" aria-modal="true" aria-label={`Preview: ${tierLabel(preview.tierId)}`}>
           <button className="liftoff-close" onClick={close} aria-label="Close preview"><X size={20} /></button>
           <span style={{
