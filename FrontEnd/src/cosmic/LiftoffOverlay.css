@@ -26,10 +26,12 @@
    two coloured light-clouds over a deep, tier-tinted base. Quasar is the
    richest (three clouds + a gold core). Theme-agnostic (always deep space). */
 .liftoff-overlay.liftoff-cat-moon {
+  /* Pearl moonlight — soft silver + a faint warm cream, deliberately low-saturation
+     so it reads clearly apart from the vivid azure Star backdrop. */
   background:
-    radial-gradient(60% 50% at 30% 26%, rgba(148,163,210,0.20), transparent 70%),
-    radial-gradient(55% 45% at 72% 72%, rgba(99,110,170,0.16), transparent 70%),
-    radial-gradient(circle at 50% 42%, rgba(18,16,40,0.94), rgba(6,5,16,0.97) 72%);
+    radial-gradient(58% 48% at 30% 26%, rgba(224,228,240,0.20), transparent 70%),
+    radial-gradient(52% 44% at 72% 72%, rgba(206,180,150,0.12), transparent 70%),
+    radial-gradient(circle at 50% 42%, rgba(22,22,34,0.94), rgba(8,8,14,0.97) 72%);
 }
 .liftoff-overlay.liftoff-cat-planet {
   background:
@@ -38,10 +40,12 @@
     radial-gradient(circle at 50% 42%, rgba(12,22,26,0.94), rgba(5,9,12,0.97) 72%);
 }
 .liftoff-overlay.liftoff-cat-star {
+  /* Vivid stellar azure — brighter and bluer than Moon, with an icy-white core. */
   background:
-    radial-gradient(62% 52% at 30% 26%, rgba(169,214,255,0.24), transparent 70%),
-    radial-gradient(55% 46% at 72% 70%, rgba(90,150,230,0.18), transparent 70%),
-    radial-gradient(circle at 50% 42%, rgba(10,18,42,0.94), rgba(4,7,20,0.97) 72%);
+    radial-gradient(40% 36% at 50% 40%, rgba(214,236,255,0.22), transparent 64%),
+    radial-gradient(64% 54% at 28% 24%, rgba(96,176,255,0.30), transparent 70%),
+    radial-gradient(58% 48% at 74% 74%, rgba(56,116,225,0.22), transparent 70%),
+    radial-gradient(circle at 50% 42%, rgba(8,16,44,0.95), rgba(3,6,22,0.98) 72%);
 }
 .liftoff-overlay.liftoff-cat-pulsar {
   background:

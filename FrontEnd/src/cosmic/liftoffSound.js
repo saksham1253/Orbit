@@ -10,6 +10,121 @@
  */
 import soundManager from '../utils/soundManager';
 
+/* ── Tiny WebAudio toolkit shared by every cue ──────────────────────────────
+   makeCtx() creates + resumes a context (browsers start them SUSPENDED, which
+   was making cues silent). tone()/noise() are one-shot voices with an
+   attack/decay envelope and a lowpass for warmth. */
+function makeCtx() {
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if (!Ctx) return null;
+  const ac = new Ctx();
+  ac.resume?.();
+  return ac;
+}
+
+function tone(ac, master, { freq, t, dur, type = 'sine', peak = 0.18, lp = 3200, detune = 0, slideTo }) {
+  const o = ac.createOscillator();
+  const g = ac.createGain();
+  const f = ac.createBiquadFilter();
+  f.type = 'lowpass';
+  f.frequency.value = lp;
+  o.type = type;
+  o.frequency.setValueAtTime(freq, t);
+  if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+  if (detune) o.detune.setValueAtTime(detune, t);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(peak, t + 0.03);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(f); f.connect(g); g.connect(master);
+  o.start(t); o.stop(t + dur + 0.05);
+}
+
+function noise(ac, master, { t, dur, peak = 0.18, lp = 5000, hp = 300 }) {
+  const buf = ac.createBuffer(1, Math.ceil(ac.sampleRate * dur), ac.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  const src = ac.createBufferSource(); src.buffer = buf;
+  const g = ac.createGain();
+  const hpf = ac.createBiquadFilter(); hpf.type = 'highpass'; hpf.frequency.value = hp;
+  const lpf = ac.createBiquadFilter(); lpf.type = 'lowpass'; lpf.frequency.value = lp;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(peak, t + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  src.connect(hpf); hpf.connect(lpf); lpf.connect(g); g.connect(master);
+  src.start(t); src.stop(t + dur + 0.02);
+}
+
+function masterGain(ac, dur) {
+  const m = ac.createGain();
+  m.gain.value = 1;
+  m.connect(ac.destination);
+  setTimeout(() => { try { ac.close(); } catch { /* noop */ } }, (dur + 0.5) * 1000);
+  return m;
+}
+
+/* ── Per-category rank-UP cues (v7 §6) — each tier its OWN distinct voice ──── */
+const C = { C4: 261.63, E4: 329.63, G4: 392.0, A4: 440.0, C5: 523.25, D5: 587.33, E5: 659.25, G5: 783.99, A5: 880.0, C6: 1046.5, E6: 1318.51, G6: 1568.0 };
+
+const UP_CUES = {
+  // Warm temple bell — gentle, resonant (fixes Moon's dull single "tu").
+  moon(ac, m) {
+    [C.A4, C.C5, C.E5].forEach((f, i) => {
+      tone(ac, m, { freq: f, t: i * 0.16, dur: 1.6, type: 'sine', peak: 0.24, lp: 2600 });
+      tone(ac, m, { freq: f * 2, t: i * 0.16, dur: 1.0, type: 'sine', peak: 0.08, lp: 3200 });
+    });
+    tone(ac, m, { freq: 110, t: 0, dur: 1.4, type: 'sine', peak: 0.18 });   // soft body
+  },
+  // A world forms — round, full major chord with a warm sub thump.
+  planet(ac, m) {
+    [C.C4, C.E4, C.G4, C.C5].forEach((f, i) => tone(ac, m, { freq: f, t: i * 0.1, dur: 1.6, type: 'triangle', peak: 0.2, lp: 2600 }));
+    tone(ac, m, { freq: 65, t: 0.05, dur: 0.9, type: 'sine', peak: 0.28, slideTo: 45 });
+  },
+  // Ignition — bright sparkling rising arpeggio + a high shimmer sweep.
+  star(ac, m) {
+    [C.C5, C.E5, C.G5, C.C6, C.E6].forEach((f, i) => tone(ac, m, { freq: f, t: i * 0.085, dur: 1.1, type: i % 2 ? 'triangle' : 'sine', peak: 0.2, lp: 5200 }));
+    tone(ac, m, { freq: 1200, t: 0.4, dur: 1.4, type: 'sine', peak: 0.08, lp: 6000, slideTo: 2600 });
+  },
+  // Lighthouse — rhythmic pulsing beeps through a resonant sweep (electronic).
+  pulsar(ac, m) {
+    const seq = [C.G4, C.C5, C.G5, C.C6];
+    seq.forEach((f, i) => tone(ac, m, { freq: f, t: i * 0.16, dur: 0.16, type: 'square', peak: 0.14, lp: 3000 }));
+    tone(ac, m, { freq: C.C5, t: 0.7, dur: 1.0, type: 'sawtooth', peak: 0.14, lp: 1200, slideTo: C.C6 });
+  },
+  // Cataclysm — sub boom + noise blast, then a bright rising spray.
+  supernova(ac, m) {
+    tone(ac, m, { freq: 90, t: 0, dur: 1.2, type: 'sine', peak: 0.34, slideTo: 38 });
+    noise(ac, m, { t: 0, dur: 0.5, peak: 0.22, lp: 5200, hp: 250 });
+    [C.E5, C.A5, C.C6, C.E6, C.G6].forEach((f, i) => tone(ac, m, { freq: f, t: 0.25 + i * 0.07, dur: 1.0, type: 'triangle', peak: 0.18, lp: 6000 }));
+  },
+  // A universe — lush, wide, detuned chord pad with a slow shimmer bloom.
+  galaxy(ac, m) {
+    [C.C4, C.G4, C.C5, C.E5].forEach((f, i) => {
+      tone(ac, m, { freq: f, t: i * 0.06, dur: 2.0, type: 'sawtooth', peak: 0.12, lp: 2200, detune: -6 });
+      tone(ac, m, { freq: f, t: i * 0.06, dur: 2.0, type: 'sawtooth', peak: 0.12, lp: 2200, detune: 7 });
+    });
+    tone(ac, m, { freq: 1400, t: 0.6, dur: 1.6, type: 'sine', peak: 0.09, lp: 6000, slideTo: 2800 });
+  },
+  // Descent tiers climbing back up — a gentle, hopeful "spark catches".
+  _spark(ac, m) {
+    [C.G4, C.C5, C.E5].forEach((f, i) => tone(ac, m, { freq: f, t: i * 0.1, dur: 0.9, type: 'sine', peak: 0.2, lp: 3200 }));
+  },
+};
+
+function playCategoryUpCue(category) {
+  if (!soundManager.isEnabled()) return;
+  try {
+    const ac = makeCtx();
+    if (!ac) return;
+    const builder = UP_CUES[category] || (['asteroid', 'meteor', 'stardust'].includes(category) ? UP_CUES._spark : null);
+    const dur = 2.6;
+    const m = masterGain(ac, dur);
+    if (builder) builder(ac, m);
+    else { // generic fallback rise
+      [C.G4, C.C5, C.E5, C.G5].forEach((f, i) => tone(ac, m, { freq: f, t: i * 0.09, dur: 1.0, type: 'triangle', peak: 0.18 }));
+    }
+  } catch { /* audio is best-effort */ }
+}
+
 /**
  * Rank-DOWN cooling cue (v5 §1): a gentle descending arpeggio, low and quiet,
  * ~0.9s. Encouraging, not punishing — matches the v4 "still burning" tone.
@@ -28,40 +143,40 @@ export function playDescentChime() {
     master.gain.value = 0.0001;
     master.connect(ac.destination);
 
-    const dur = 0.95;
+    const dur = 1.15;
     master.gain.setValueAtTime(0.0001, now);
-    master.gain.exponentialRampToValueAtTime(0.12, now + 0.12);   // quieter than rank-up
+    master.gain.exponentialRampToValueAtTime(0.26, now + 0.12);   // audible, still gentler than rank-up
     master.gain.exponentialRampToValueAtTime(0.0001, now + dur);
 
     // Descending minor-ish arpeggio — feels like a soft cooling, not a fall.
-    const notes = [523.25, 392.0, 311.13];                        // C5 → G4 → Eb4
+    const notes = [587.33, 466.16, 349.23, 277.18];              // D5 → A#4 → F4 → C#4
     notes.forEach((f, i) => {
       const o = ac.createOscillator();
       const g = ac.createGain();
       const lp = ac.createBiquadFilter();
       lp.type = 'lowpass';
-      lp.frequency.value = 1600;                                  // soft, rounded
-      o.type = 'sine';
+      lp.frequency.value = 2000;                                  // soft, rounded but present
+      o.type = 'triangle';
       const t = now + i * 0.13;
       o.frequency.setValueAtTime(f, t);
       g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.14, t + 0.04);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.55);
+      g.gain.exponentialRampToValueAtTime(0.28, t + 0.04);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
       o.connect(lp); lp.connect(g); g.connect(master);
-      o.start(t); o.stop(t + 0.6);
+      o.start(t); o.stop(t + 0.65);
     });
 
     // Gentle descending sub-bass glide for warmth (no hard impact).
     const sub = ac.createOscillator();
     const sg = ac.createGain();
     sub.type = 'sine';
-    sub.frequency.setValueAtTime(120, now + 0.1);
-    sub.frequency.exponentialRampToValueAtTime(60, now + 0.8);
+    sub.frequency.setValueAtTime(130, now + 0.1);
+    sub.frequency.exponentialRampToValueAtTime(60, now + 0.9);
     sg.gain.setValueAtTime(0.0001, now + 0.1);
-    sg.gain.exponentialRampToValueAtTime(0.12, now + 0.2);
-    sg.gain.exponentialRampToValueAtTime(0.0001, now + 0.9);
+    sg.gain.exponentialRampToValueAtTime(0.22, now + 0.2);
+    sg.gain.exponentialRampToValueAtTime(0.0001, now + 1.0);
     sub.connect(sg); sg.connect(master);
-    sub.start(now + 0.1); sub.stop(now + 0.95);
+    sub.start(now + 0.1); sub.stop(now + 1.1);
 
     setTimeout(() => { try { ac.close(); } catch { /* noop */ } }, (dur + 0.4) * 1000);
   } catch {
@@ -168,6 +283,8 @@ export function playLiftoffChime(grand = true, opts = {}) {
   if (opts.quasar) return playQuasarChime();
   // Rank-DOWN delegates to the dedicated descending cooling cue.
   if (opts.down) return playDescentChime();
+  // Rank-UP: each tier category has its OWN bespoke voice (v7 §6).
+  if (opts.category) return playCategoryUpCue(opts.category);
 
   try {
     const Ctx = window.AudioContext || window.webkitAudioContext;

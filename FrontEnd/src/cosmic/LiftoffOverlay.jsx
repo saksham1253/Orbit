@@ -70,7 +70,7 @@ export default function LiftoffOverlay() {
     // One play per event (keyed on event.id).
     if (isQuasar) playLiftoffChime(false, { quasar: true });
     else if (isDown) playLiftoffChime(false, { down: true });
-    else playLiftoffChime(promotion);
+    else playLiftoffChime(promotion, { category: getTier(event.toTierId).category });
 
     const sp = Math.max(speed || 1, 0.2);
     let autoTimer, safetyTimer;

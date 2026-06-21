@@ -16,6 +16,7 @@ import { Play, Repeat, Volume2, FastForward, X, ShieldCheck } from 'lucide-react
 import RankMomentCard from '../../cosmic/RankMomentCard';
 import { isPromotion } from '../../cosmic/momentCopy';
 import BadgeDefsSprite from '../../cosmic/BadgeDefsSprite';
+import { LiftoffEngine } from '../../cosmic/liftoffEngine';
 import { getTier, TIER_ORDER } from '../../cosmic/tiers';
 import { playLiftoffChime, playDescentChime, playQuasarChime } from '../../cosmic/liftoffSound';
 import soundManager from '../../utils/soundManager';
@@ -29,7 +30,7 @@ const CYCLE_MS = 2600;
 function playMomentSound(variant, fromTierId, toTierId) {
   if (variant === 'quasar') return playQuasarChime();
   if (variant === 'down') return playDescentChime();
-  return playLiftoffChime(isPromotion(fromTierId, toTierId));
+  return playLiftoffChime(isPromotion(fromTierId, toTierId), { category: getTier(toTierId).category });
 }
 
 export default function MomentLab() {
@@ -43,10 +44,13 @@ export default function MomentLab() {
   const [preview, setPreview] = useState(null); // { variant, tierId, fromTierId, score, revealed }
   const [cycling, setCycling] = useState(false);
   const [hasPlayed, setHasPlayed] = useState(false);
+  const [playId, setPlayId] = useState(0);       // bumped per play → (re)starts the canvas engine
 
   const lastRef = useRef(null);
   const cycleRef = useRef(null);
   const revealTimer = useRef(null);
+  const canvasRef = useRef(null);
+  const engineRef = useRef(null);
 
   const effectiveTier = variant === 'quasar' ? 'quasar' : toTier;
   // Sound toggle lives HERE in the admin (mirrors soundManager) so the owner
@@ -65,6 +69,7 @@ export default function MomentLab() {
     lastRef.current = opts;
     setHasPlayed(true);
     setPreview({ ...opts, revealed: false, still });
+    setPlayId((n) => n + 1);   // (re)start the cinematic canvas for this play
     // Reveal a beat later so the badge spring + text fade read as a "moment".
     revealTimer.current = setTimeout(() => {
       setPreview((p) => (p ? { ...p, revealed: true } : p));
@@ -90,8 +95,29 @@ export default function MomentLab() {
   const close = useCallback(() => {
     stopCycle();
     if (revealTimer.current) clearTimeout(revealTimer.current);
+    if (engineRef.current) { engineRef.current.stop(); engineRef.current = null; }
     setPreview(null);
   }, [stopCycle]);
+
+  // Run the REAL canvas cinematics (per-tier flashes/bursts) for each play, so
+  // the admin preview is exactly what users see (v7 §7). Rank-down stays calm
+  // (no burst); honours the "Force full animation" toggle.
+  useEffect(() => {
+    if (!playId) return undefined;
+    const opts = lastRef.current;
+    if (!opts || !canvasRef.current) return undefined;
+    if (!forceMotion || opts.variant === 'down') return undefined;
+    const category = opts.variant === 'quasar' ? 'quasar' : getTier(opts.tierId).category;
+    const promotion = opts.variant === 'quasar' ? true : isPromotion(opts.fromTierId, opts.tierId);
+    let engine = null;
+    try {
+      engine = new LiftoffEngine(canvasRef.current, { category, promotion, speed: 1, onReveal: () => {}, onDone: () => {} });
+      engineRef.current = engine;
+      engine.start();
+    } catch { /* canvas best-effort — the card still shows */ }
+    return () => { if (engine) engine.stop(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playId]);
 
   // Cycle through every tier (rank-up) then the Quasar, one after another.
   const cycleAll = () => {
@@ -226,6 +252,9 @@ export default function MomentLab() {
       {preview && createPortal(
         <div className={`liftoff-overlay liftoff-cat-${getTier(preview.tierId).category} ${preview.variant === 'down' ? 'liftoff-down' : ''}`} onClick={close}
           role="dialog" aria-modal="true" aria-label={`Preview: ${tierLabel(preview.tierId)}`}>
+          {forceMotion && preview.variant !== 'down' && (
+            <canvas ref={canvasRef} className="liftoff-canvas" aria-hidden="true" />
+          )}
           <button className="liftoff-close" onClick={close} aria-label="Close preview"><X size={20} /></button>
           <span style={{
             position: 'absolute', top: 20, left: 20, zIndex: 3,
