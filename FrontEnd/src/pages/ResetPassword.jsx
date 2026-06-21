@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
-import { Eye, EyeOff, CheckCircle, Sparkles, ArrowLeft, Check, X } from 'lucide-react';
+import { Eye, EyeOff, CheckCircle, Sparkles, ArrowLeft } from 'lucide-react';
 import api from '../services/api';
 import { useUIStore } from '../store/uiStore';
 
@@ -16,21 +16,17 @@ const ResetPassword = () => {
   const [showPass, setShowPass] = useState(false);
   const [done, setDone] = useState(false);
 
-  // Same policy as registration (Register.jsx): 8+ chars, upper, lower, number, special.
+  // Same policy + UI as registration (Register.jsx): 8+ chars, upper, lower, number, special.
   const hasMinLength = password.length >= 8;
   const hasUpperCase = /[A-Z]/.test(password);
   const hasLowerCase = /[a-z]/.test(password);
   const hasNumber = /[0-9]/.test(password);
   const hasSpecialChar = /[^A-Za-z0-9]/.test(password);
-  const requirements = [
-    { ok: hasMinLength, label: 'At least 8 characters' },
-    { ok: hasUpperCase, label: 'One uppercase letter' },
-    { ok: hasLowerCase, label: 'One lowercase letter' },
-    { ok: hasNumber, label: 'One number' },
-    { ok: hasSpecialChar, label: 'One special character' },
-  ];
-  const passedCount = requirements.filter(r => r.ok).length;
-  const isStrong = passedCount === requirements.length;
+  const requirementsMet = [hasMinLength, hasUpperCase, hasLowerCase, hasNumber, hasSpecialChar].filter(Boolean).length;
+  const strength = requirementsMet === 0 ? 0 : requirementsMet <= 2 ? 1 : requirementsMet <= 3 ? 2 : 3;
+  const strengthLabel = ['', 'Weak', 'Moderate', 'Strong'][strength];
+  const strengthColor = ['', '#ff4b4b', '#ffb800', '#00e5a0'][strength];
+  const isStrong = requirementsMet === 5;
 
   const mutation = useMutation({
     mutationFn: (pwd) => api.post(`/auth/reset-password/${token}`, { password: pwd }),
@@ -142,30 +138,43 @@ const ResetPassword = () => {
                       {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
-                  {/* Strength bar + requirements checklist (matches Register) */}
+                  {/* Strength indicator + requirements checklist (matches Register) */}
                   {password.length > 0 && (
-                    <>
-                      <div className="flex gap-1 mt-2">
-                        {[1, 2, 3, 4, 5].map(i => (
-                          <div key={i} className="flex-1 h-1 rounded-full transition-all"
-                            style={{
-                              background: passedCount >= i
-                                ? (passedCount >= 5 ? '#00e5a0' : passedCount >= 3 ? '#ffb800' : '#ff4b4b')
-                                : 'rgba(255,255,255,0.1)'
-                            }}
-                          />
-                        ))}
+                    <div className="mt-2">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="flex gap-1 flex-1">
+                          {[1, 2, 3].map((i) => (
+                            <div key={i} className="h-1 flex-1 rounded-full transition-all duration-300"
+                              style={{ background: strength >= i ? strengthColor : 'rgba(255,255,255,0.08)' }}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-xs font-medium" style={{ color: strengthColor }}>{strengthLabel}</span>
                       </div>
-                      <ul className="mt-2.5 grid grid-cols-1 gap-1">
-                        {requirements.map((r) => (
-                          <li key={r.label} className="flex items-center gap-1.5 text-xs"
-                            style={{ color: r.ok ? '#00e5a0' : 'var(--text-muted)' }}>
-                            {r.ok ? <Check size={13} /> : <X size={13} />}
-                            {r.label}
-                          </li>
-                        ))}
-                      </ul>
-                    </>
+
+                      <div className="space-y-1">
+                        <div className={`text-xs flex items-center gap-1.5 ${hasMinLength ? 'text-green-400' : 'text-text-muted'}`}>
+                          <div className={`w-1 h-1 rounded-full ${hasMinLength ? 'bg-green-400' : 'bg-white/20'}`} />
+                          At least 8 characters
+                        </div>
+                        <div className={`text-xs flex items-center gap-1.5 ${hasUpperCase ? 'text-green-400' : 'text-text-muted'}`}>
+                          <div className={`w-1 h-1 rounded-full ${hasUpperCase ? 'bg-green-400' : 'bg-white/20'}`} />
+                          One uppercase letter
+                        </div>
+                        <div className={`text-xs flex items-center gap-1.5 ${hasLowerCase ? 'text-green-400' : 'text-text-muted'}`}>
+                          <div className={`w-1 h-1 rounded-full ${hasLowerCase ? 'bg-green-400' : 'bg-white/20'}`} />
+                          One lowercase letter
+                        </div>
+                        <div className={`text-xs flex items-center gap-1.5 ${hasNumber ? 'text-green-400' : 'text-text-muted'}`}>
+                          <div className={`w-1 h-1 rounded-full ${hasNumber ? 'bg-green-400' : 'bg-white/20'}`} />
+                          One number
+                        </div>
+                        <div className={`text-xs flex items-center gap-1.5 ${hasSpecialChar ? 'text-green-400' : 'text-text-muted'}`}>
+                          <div className={`w-1 h-1 rounded-full ${hasSpecialChar ? 'bg-green-400' : 'bg-white/20'}`} />
+                          One special character (!@#$%^&*)
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </div>
 

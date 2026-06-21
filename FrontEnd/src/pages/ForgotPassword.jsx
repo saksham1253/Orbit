@@ -102,7 +102,7 @@ const ForgotPassword = () => {
             <>
               <div className="mb-7">
                 <h2 className="text-xl font-display font-bold text-text-primary mb-1">Reset your password</h2>
-                <p className="text-sm text-text-muted">Enter the email associated with your account and we'll send a reset link.</p>
+                <p className="text-sm text-text-muted">Enter the email address registered to your account. We will send you a secure link to set a new password.</p>
               </div>
 
               <form onSubmit={(e) => { e.preventDefault(); mutation.mutate(email); }} className="space-y-4">
@@ -118,7 +118,7 @@ const ForgotPassword = () => {
                       value={email}
                       onChange={e => setEmail(e.target.value)}
                       required
-                      placeholder="you@example.com"
+                      placeholder="Enter your email address"
                       autoComplete="email"
                       className="input-glass w-full pl-10 pr-4 py-3 text-sm text-text-primary"
                     />
