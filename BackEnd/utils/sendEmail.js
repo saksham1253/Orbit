@@ -1,16 +1,45 @@
-const nodemailer = require('nodemailer');
-
-const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
-    secure: Number(process.env.EMAIL_PORT) === 465, // true for 465, false for other ports
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
-
+// Email is sent via Brevo's HTTPS Transactional API (NOT raw SMTP). Render's
+// free tier blocks outbound SMTP ports, and Gmail blocks server sending — the
+// HTTPS API avoids both and gives reliable delivery. Only an API key + a
+// Brevo-verified sender address are needed; no nodemailer/SMTP transport.
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
+const SENDER_EMAIL = process.env.BREVO_SENDER_EMAIL || process.env.EMAIL_USER; // must be VERIFIED in Brevo
 const APP_URL = process.env.FRONTEND_URL || 'https://react-skill-swap-fully-fledged.vercel.app';
+
+/**
+ * Low-level send via Brevo. Returns { messageId } on success; throws on failure
+ * so callers can log the real reason. Uses native fetch (Node 18+).
+ */
+async function dispatch({ to, subject, html, fromName = 'SkillSwap' }) {
+    if (!BREVO_API_KEY) {
+        throw new Error('BREVO_API_KEY is not set — cannot send email. Add it on the host and redeploy.');
+    }
+    if (!SENDER_EMAIL) {
+        throw new Error('No sender address — set BREVO_SENDER_EMAIL (a Brevo-verified sender) or EMAIL_USER.');
+    }
+
+    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+            'accept': 'application/json',
+            'content-type': 'application/json',
+            'api-key': BREVO_API_KEY,
+        },
+        body: JSON.stringify({
+            sender: { name: fromName, email: SENDER_EMAIL },
+            to: [{ email: to }],
+            subject,
+            htmlContent: html,
+        }),
+    });
+
+    if (!res.ok) {
+        const detail = await res.text().catch(() => '');
+        throw new Error(`Brevo send failed (${res.status}): ${detail}`);
+    }
+    const data = await res.json().catch(() => ({}));
+    return { messageId: data.messageId };
+}
 
 /**
  * Shared, email-client-safe shell (table layout + inline styles so Gmail /
@@ -102,9 +131,9 @@ exports.sendLoginNotification = async (userEmail, userName) => {
             ${ctaButton(`${APP_URL}/dashboard`, 'Go to my dashboard', accent)}
         `;
 
-        const mailOptions = {
-            from: `"SkillSwap Security" <${process.env.EMAIL_USER}>`,
+        const info = await dispatch({
             to: userEmail,
+            fromName: 'SkillSwap Security',
             subject: '🛰️ New sign-in to your SkillSwap account',
             html: emailShell({
                 accent,
@@ -113,12 +142,10 @@ exports.sendLoginNotification = async (userEmail, userName) => {
                 badge: 'Security Alert',
                 bodyHtml
             })
-        };
-
-        const info = await transporter.sendMail(mailOptions);
+        });
         console.log("Login notification sent: %s", info.messageId);
     } catch (error) {
-        console.error("Error sending login notification:", error);
+        console.error("Error sending login notification:", error.message || error);
     }
 };
 
@@ -152,9 +179,9 @@ exports.sendRegistrationNotification = async (userEmail, userName) => {
             ${ctaButton(`${APP_URL}/dashboard`, 'Start exploring', accent)}
         `;
 
-        const mailOptions = {
-            from: `"SkillSwap" <${process.env.EMAIL_USER}>`,
+        const info = await dispatch({
             to: userEmail,
+            fromName: 'SkillSwap',
             subject: `✨ Welcome to SkillSwap, ${userName}!`,
             html: emailShell({
                 accent,
@@ -163,12 +190,10 @@ exports.sendRegistrationNotification = async (userEmail, userName) => {
                 badge: 'Welcome Aboard',
                 bodyHtml
             })
-        };
-
-        const info = await transporter.sendMail(mailOptions);
+        });
         console.log("Registration notification sent: %s", info.messageId);
     } catch (error) {
-        console.error("Error sending registration notification:", error);
+        console.error("Error sending registration notification:", error.message || error);
     }
 };
 
@@ -177,13 +202,7 @@ exports.sendRegistrationNotification = async (userEmail, userName) => {
 // in its own try/catch). This was the missing export that made the
 // "forgot password" email silently never send.
 exports.sendEmail = async ({ to, subject, html }) => {
-    const mailOptions = {
-        from: `"SkillSwap" <${process.env.EMAIL_USER}>`,
-        to,
-        subject,
-        html
-    };
-    const info = await transporter.sendMail(mailOptions);
+    const info = await dispatch({ to, subject, html });
     console.log("Email sent: %s", info.messageId);
     return info;
 };
@@ -210,9 +229,9 @@ exports.sendPasswordResetEmail = async ({ to, name, resetUrl }) => {
         </p>
     `;
 
-    const mailOptions = {
-        from: `"SkillSwap" <${process.env.EMAIL_USER}>`,
+    const info = await dispatch({
         to,
+        fromName: 'SkillSwap',
         subject: '🔑 Reset your SkillSwap password',
         html: emailShell({
             accent,
@@ -221,9 +240,7 @@ exports.sendPasswordResetEmail = async ({ to, name, resetUrl }) => {
             badge: 'Password Reset',
             bodyHtml
         })
-    };
-
-    const info = await transporter.sendMail(mailOptions);
+    });
     console.log("Password reset email sent: %s", info.messageId);
     return info;
 };
