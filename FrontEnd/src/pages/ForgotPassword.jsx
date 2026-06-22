@@ -28,8 +28,8 @@ const ForgotPassword = () => {
   return (
     <>
       <Helmet>
-        <title>Forgot Password | SkillSwap</title>
-        <meta name="description" content="Reset your SkillSwap password." />
+        <title>Forgot Password | Orbit</title>
+        <meta name="description" content="Reset your Orbit password." />
       </Helmet>
       <div className="min-h-screen flex items-center justify-center p-4 relative">
         <div className="absolute inset-0 pointer-events-none"
@@ -56,7 +56,7 @@ const ForgotPassword = () => {
             <h1 className="text-2xl font-display font-bold mb-1"
               style={{ background: 'linear-gradient(135deg, #00c6ff, #a855f7, #ff0076)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}
             >
-              SkillSwap
+              Orbit
             </h1>
           </div>
 

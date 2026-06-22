@@ -101,7 +101,7 @@ function ThemeColumn({ mode, label }) {
 export default function BadgeGallery() {
   return (
     <>
-      <Helmet><title>Cosmic Badge Gallery · SkillSwap</title></Helmet>
+      <Helmet><title>Cosmic Badge Gallery · Orbit</title></Helmet>
       <div style={{ padding: '24px', maxWidth: 1400, margin: '0 auto' }}>
         <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 6 }}>🛰️ Cosmic Badge Gallery</h1>
         <p style={{ fontSize: 13, opacity: 0.7, marginBottom: 24 }}>

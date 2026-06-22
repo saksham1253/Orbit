@@ -58,7 +58,7 @@ router.post("/create-room", auth, async (req, res) => {
                 roomName,
                 caller: {
                     id: currentUserId,
-                    name: currentUser?.name || "SkillSwap User"
+                    name: currentUser?.name || "Orbit User"
                 },
                 jitsiDomain: "jitsi.riot.im"
             });
@@ -74,7 +74,7 @@ router.post("/create-room", auth, async (req, res) => {
             },
             currentUser: {
                 id: currentUserId,
-                name: currentUser?.name || "SkillSwap User"
+                name: currentUser?.name || "Orbit User"
             }
         });
     } catch (err) {

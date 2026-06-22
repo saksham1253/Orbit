@@ -80,7 +80,7 @@ export default function TierAtlas() {
 
   return (
     <>
-      <Helmet><title>Cosmic Tier Atlas · SkillSwap</title></Helmet>
+      <Helmet><title>Cosmic Tier Atlas · Orbit</title></Helmet>
       <div className="max-w-3xl mx-auto px-4 py-6">
         <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-xs text-text-muted hover:text-text-primary mb-3">
           <ArrowLeft size={13} /> Back

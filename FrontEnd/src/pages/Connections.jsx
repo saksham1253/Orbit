@@ -97,10 +97,10 @@ const Connections = () => {
   return (
     <div className="space-y-6">
       <Helmet>
-        <title>Connections | SkillSwap</title>
-        <meta name="description" content="Manage your SkillSwap connections and connection requests." />
-        <meta property="og:title" content="Connections | SkillSwap" />
-        <meta property="og:description" content="Manage your network and connection requests on SkillSwap." />
+        <title>Connections | Orbit</title>
+        <meta name="description" content="Manage your Orbit connections and connection requests." />
+        <meta property="og:title" content="Connections | Orbit" />
+        <meta property="og:description" content="Manage your network and connection requests on Orbit." />
         <meta property="og:image" content="https://react-skill-swap-fully-fledged.vercel.app/og-image.png" />
         <meta property="og:url" content="https://react-skill-swap-fully-fledged.vercel.app/connections" />
         <link rel="canonical" href="https://react-skill-swap-fully-fledged.vercel.app/connections" />

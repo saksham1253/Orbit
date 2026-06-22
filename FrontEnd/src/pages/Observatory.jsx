@@ -88,7 +88,7 @@ export default function Observatory() {
 
   return (
     <>
-      <Helmet><title>The Observatory · SkillSwap</title></Helmet>
+      <Helmet><title>The Observatory · Orbit</title></Helmet>
       <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex items-center gap-3 mb-4">
@@ -119,7 +119,7 @@ export default function Observatory() {
           style={{ background: 'var(--surface)', border: '1px solid var(--border-subtle)' }}>
           <Info size={14} className="mt-0.5 flex-none text-accent" />
           <p>
-            <strong className="text-text-primary">The Observatory</strong> is SkillSwap’s hall of fame — a living star
+            <strong className="text-text-primary">The Observatory</strong> is Orbit’s hall of fame — a living star
             map of your city’s greatest mentors. The current #1 shines as the <strong>North Star</strong>, the month’s
             biggest climber earns a <strong>Supernova spotlight</strong>, and retired champions become permanent
             <strong> Quasar legends</strong> in the archive.

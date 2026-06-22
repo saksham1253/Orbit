@@ -52,12 +52,12 @@ const Login = () => {
   return (
     <>
     <Helmet>
-      <title>Sign In | SkillSwap</title>
-      <meta name="description" content="Sign in to your SkillSwap account to start exchanging skills with peers worldwide." />
-      <meta property="og:title" content="Sign In | SkillSwap" />
-      <meta property="og:description" content="Sign in to your SkillSwap account." />
+      <title>Sign In | Orbit</title>
+      <meta name="description" content="Sign in to your Orbit account to start exchanging skills with peers worldwide." />
+      <meta property="og:title" content="Sign In | Orbit" />
+      <meta property="og:description" content="Sign in to your Orbit account." />
       <meta property="og:url" content="https://react-skill-swap-fully-fledged.vercel.app/login" />
-      <meta name="twitter:title" content="Sign In | SkillSwap" />
+      <meta name="twitter:title" content="Sign In | Orbit" />
       <link rel="canonical" href="https://react-skill-swap-fully-fledged.vercel.app/login" />
     </Helmet>
     <div className="min-h-screen w-full flex items-center justify-center px-4 py-10 relative z-10">
@@ -100,9 +100,9 @@ const Login = () => {
               backgroundClip: 'text',
             }}
           >
-            SkillSwap
+            Orbit
           </h1>
-          <p className="text-text-muted text-sm">Exchange skills. Build expertise. Grow together.</p>
+          <p className="text-text-muted text-sm">Exchange skills. Build expertise. Rise together.</p>
         </div>
 
         {/* Tab switcher */}

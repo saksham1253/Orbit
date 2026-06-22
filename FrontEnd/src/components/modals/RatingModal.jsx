@@ -193,7 +193,7 @@ const RatingModal = ({ isOpen, onClose, otherUser, callDuration }) => {
 
         {/* Required Notice */}
         <p className="text-center text-xs text-white/25 mt-2">
-          Rating helps improve the SkillSwap community
+          Rating helps improve the Orbit community
         </p>
       </motion.div>
     </div>

@@ -51,8 +51,8 @@ const PublicProfile = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-7">
       <Helmet>
-        <title>{user.name}'s Profile | SkillSwap</title>
-        <meta name="description" content={`Check out ${user.name}'s profile on SkillSwap.`} />
+        <title>{user.name}'s Profile | Orbit</title>
+        <meta name="description" content={`Check out ${user.name}'s profile on Orbit.`} />
       </Helmet>
 
       {/* Header Profile Card */}

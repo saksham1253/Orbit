@@ -168,10 +168,10 @@ const Profile = () => {
   return (
     <div className="max-w-2xl mx-auto space-y-7">
       <Helmet>
-        <title>Your Profile | SkillSwap</title>
-        <meta name="description" content="Manage your SkillSwap profile, avatar, and personal details." />
-        <meta property="og:title" content="Your Profile | SkillSwap" />
-        <meta property="og:description" content="Customize your SkillSwap profile and connect with learners worldwide." />
+        <title>Your Profile | Orbit</title>
+        <meta name="description" content="Manage your Orbit profile, avatar, and personal details." />
+        <meta property="og:title" content="Your Profile | Orbit" />
+        <meta property="og:description" content="Customize your Orbit profile and connect with learners worldwide." />
         <meta property="og:image" content="https://react-skill-swap-fully-fledged.vercel.app/og-image.png" />
         <meta property="og:url" content="https://react-skill-swap-fully-fledged.vercel.app/profile" />
         <link rel="canonical" href="https://react-skill-swap-fully-fledged.vercel.app/profile" />
@@ -182,7 +182,7 @@ const Profile = () => {
           style={{ background: 'linear-gradient(135deg,#ffb800,#ff0076)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
           Profile Settings
         </h1>
-        <p className="text-text-muted mt-1 text-sm">Your public persona on SkillSwap.</p>
+        <p className="text-text-muted mt-1 text-sm">Your public persona on Orbit.</p>
       </div>
 
       {/* Avatar + meta card */}

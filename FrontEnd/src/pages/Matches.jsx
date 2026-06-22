@@ -27,9 +27,9 @@ const Matches = () => {
   return (
     <div className="space-y-7">
       <Helmet>
-        <title>Your Matches | SkillSwap</title>
+        <title>Your Matches | Orbit</title>
         <meta name="description" content="See your perfect skill-swap matches — people who teach what you want and want what you teach." />
-        <meta property="og:title" content="Your Matches | SkillSwap" />
+        <meta property="og:title" content="Your Matches | Orbit" />
         <meta property="og:url" content="https://react-skill-swap-fully-fledged.vercel.app/matches" />
         <link rel="canonical" href="https://react-skill-swap-fully-fledged.vercel.app/matches" />
       </Helmet>

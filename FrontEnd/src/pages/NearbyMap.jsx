@@ -75,7 +75,7 @@ const NearbyMap = () => {
         const { latitude: lat, longitude: lng } = pos.coords;
         // Reverse geocode to get city name
         try {
-          const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`, { headers: { 'User-Agent': 'SkillSwap/1.0' } });
+          const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`, { headers: { 'User-Agent': 'Orbit/1.0' } });
           const d = await r.json();
           const city = d.address?.city || d.address?.town || d.address?.village || `${lat.toFixed(2)},${lng.toFixed(2)}`;
           setLocationInput(city);
@@ -114,9 +114,9 @@ const NearbyMap = () => {
   return (
     <div className="space-y-6">
       <Helmet>
-        <title>Nearby Skill Swappers | SkillSwap</title>
+        <title>Nearby Skill Swappers | Orbit</title>
         <meta name="description" content="Find peers nearby to exchange skills in person. Check the map for local connections." />
-        <meta property="og:title" content="Nearby Skill Swappers | SkillSwap" />
+        <meta property="og:title" content="Nearby Skill Swappers | Orbit" />
         <meta property="og:url" content="https://react-skill-swap-fully-fledged.vercel.app/nearby" />
         <link rel="canonical" href="https://react-skill-swap-fully-fledged.vercel.app/nearby" />
       </Helmet>
@@ -127,7 +127,7 @@ const NearbyMap = () => {
           <MapPin size={26} style={{ color: '#00e5a0', WebkitTextFillColor: '#00e5a0' }} />
           Nearby Skills
         </h1>
-        <p className="text-text-muted mt-1 text-sm">Discover SkillSwap members in your area for local learning.</p>
+        <p className="text-text-muted mt-1 text-sm">Discover Orbit members in your area for local learning.</p>
       </div>
 
       {/* Controls */}

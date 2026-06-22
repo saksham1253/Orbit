@@ -8,7 +8,7 @@ const Footer = () => {
           {/* Brand */}
           <div className="text-center md:text-left mb-6 md:mb-0">
             <h2 className="text-lg font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-accent to-purple mb-1">
-              SkillSwap
+              Orbit
             </h2>
             <p className="text-xs text-text-muted">
               Peer-to-peer learning community.
@@ -44,7 +44,7 @@ const Footer = () => {
             <p className="flex items-center gap-1.5 justify-center md:justify-end mb-1">
               Built with <Heart size={11} className="text-accent" fill="currentColor" /> for the community
             </p>
-            <p>&copy; {new Date().getFullYear()} SkillSwap. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} Orbit. All rights reserved.</p>
           </div>
         </div>
       </div>

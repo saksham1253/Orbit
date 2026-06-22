@@ -138,8 +138,8 @@ export default function LiftoffOverlay() {
     try {
       const url = buildShareCard({ tierId: event.toTierId, score: event.score, city: event.city });
       await shareOrDownload(url, {
-        filename: `skillswap-${event.toTierId}.png`,
-        text: `${tier.displayName} — ${copy?.support} on SkillSwap 🛰️`,
+        filename: `orbit-${event.toTierId}.png`,
+        text: `${tier.displayName} — ${copy?.support} on Orbit`,
       });
     } finally {
       setSharing(false);

@@ -141,13 +141,11 @@ const Navbar = () => {
           >
             {/* ── Brand ── */}
             <NavLink to="/" className="flex items-center gap-2 flex-shrink-0 mr-2">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center font-display font-bold text-xs text-white flex-shrink-0"
-                style={{ background: 'linear-gradient(135deg, var(--accent-1), var(--accent-3), var(--accent-2))', boxShadow: '0 0 14px var(--border-glow)' }}>
-                S
-              </div>
+              <img src="/favicon.svg" alt="Orbit" width="28" height="28" className="w-7 h-7 rounded-lg flex-shrink-0"
+                style={{ boxShadow: '0 0 14px var(--border-glow)' }} />
               <span className="text-base font-display font-bold hidden sm:block"
                 style={{ background: 'linear-gradient(135deg, var(--accent-1), var(--accent-3), var(--accent-2))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-                SkillSwap
+                Orbit
               </span>
             </NavLink>
 

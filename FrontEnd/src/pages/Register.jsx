@@ -69,12 +69,12 @@ const registerSchema = z.object({
   return (
     <>
     <Helmet>
-      <title>Create Account | SkillSwap</title>
-      <meta name="description" content="Join SkillSwap and start exchanging skills with peers around the world." />
-      <meta property="og:title" content="Create Account | SkillSwap" />
-      <meta property="og:description" content="Join SkillSwap — peer-to-peer skill exchange platform." />
+      <title>Create Account | Orbit</title>
+      <meta name="description" content="Join Orbit and start exchanging skills with peers around the world." />
+      <meta property="og:title" content="Create Account | Orbit" />
+      <meta property="og:description" content="Join Orbit — peer-to-peer skill exchange platform." />
       <meta property="og:url" content="https://react-skill-swap-fully-fledged.vercel.app/register" />
-      <meta name="twitter:title" content="Create Account | SkillSwap" />
+      <meta name="twitter:title" content="Create Account | Orbit" />
       <link rel="canonical" href="https://react-skill-swap-fully-fledged.vercel.app/register" />
     </Helmet>
     <div className="min-h-screen w-full flex items-center justify-center px-4 py-10 relative z-10">

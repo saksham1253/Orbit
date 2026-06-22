@@ -68,9 +68,9 @@ const Settings = () => {
   return (
     <div className="max-w-3xl mx-auto space-y-7">
       <Helmet>
-        <title>Settings | SkillSwap</title>
-        <meta name="description" content="Manage your SkillSwap account settings, notifications, and security." />
-        <meta property="og:title" content="Settings | SkillSwap" />
+        <title>Settings | Orbit</title>
+        <meta name="description" content="Manage your Orbit account settings, notifications, and security." />
+        <meta property="og:title" content="Settings | Orbit" />
         <meta property="og:url" content="https://react-skill-swap-fully-fledged.vercel.app/settings" />
         <link rel="canonical" href="https://react-skill-swap-fully-fledged.vercel.app/settings" />
       </Helmet>
@@ -82,7 +82,7 @@ const Settings = () => {
           Appearance Settings
         </h1>
         <p className="text-slate-400 mt-1 text-sm">
-          Customize your SkillSwap visual experience
+          Customize your Orbit visual experience
         </p>
       </div>
 

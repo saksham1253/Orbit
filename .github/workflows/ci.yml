@@ -1,4 +1,4 @@
-name: SkillSwap CI Pipeline
+name: Orbit CI Pipeline
 
 on:
   push:

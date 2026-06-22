@@ -119,7 +119,7 @@ export default function Leaderboard() {
 
   return (
     <>
-      <Helmet><title>Cosmic Leaderboard · SkillSwap</title></Helmet>
+      <Helmet><title>Cosmic Leaderboard · Orbit</title></Helmet>
       <div className="max-w-3xl mx-auto px-4 py-6">
         {/* Header — stacks on mobile so the title never collides with the
             actions; the actions scroll horizontally rather than clipping (v5 §4). */}

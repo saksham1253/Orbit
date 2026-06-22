@@ -22,13 +22,13 @@ console.log('--------------------\n');
     try {
         const info = await sendEmail({
             to,
-            subject: 'SkillSwap Brevo test ✅',
-            html: '<p>If you can read this, Brevo is working. 🎉</p>',
+            subject: 'Orbit Brevo test',
+            html: '<p>If you can read this, Brevo is working.</p>',
         });
-        console.log('✅ Sent. messageId:', info.messageId);
+        console.log('Sent. messageId:', info.messageId);
         console.log('Check the inbox (and Spam). Also see Brevo dashboard → Transactional → Logs.');
     } catch (err) {
-        console.error('❌ FAILED:', err.message || err);
+        console.error('FAILED:', err.message || err);
         console.error('\nCommon meanings:');
         console.error('  401 / unauthorized        → BREVO_API_KEY wrong/missing.');
         console.error('  400 sender not valid       → BREVO_SENDER_EMAIL is not a VERIFIED sender in Brevo.');

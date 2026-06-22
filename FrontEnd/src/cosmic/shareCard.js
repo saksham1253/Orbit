@@ -66,7 +66,7 @@ export function buildShareCard({ tierId, score = null, city = '' }) {
   // Branding.
   ctx.fillStyle = 'rgba(232,226,245,0.55)';
   ctx.font = '600 22px system-ui, sans-serif';
-  ctx.fillText('🛰️  SkillSwap · Cosmic Leaderboard', cx, H * 0.9);
+  ctx.fillText('Orbit · Cosmic Leaderboard', cx, H * 0.9);
 
   return canvas.toDataURL('image/png');
 }

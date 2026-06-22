@@ -6,7 +6,7 @@ import { Home, Compass } from 'lucide-react';
 const NotFound = () => (
   <>
     <Helmet>
-      <title>404 — Page Not Found | SkillSwap</title>
+      <title>404 — Page Not Found | Orbit</title>
       <meta name="robots" content="noindex" />
     </Helmet>
 

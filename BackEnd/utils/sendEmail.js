@@ -10,7 +10,7 @@ const APP_URL = process.env.FRONTEND_URL || 'https://react-skill-swap-fully-fled
  * Low-level send via Brevo. Returns { messageId } on success; throws on failure
  * so callers can log the real reason. Uses native fetch (Node 18+).
  */
-async function dispatch({ to, subject, html, fromName = 'SkillSwap' }) {
+async function dispatch({ to, subject, html, fromName = 'Orbit' }) {
     if (!BREVO_API_KEY) {
         throw new Error('BREVO_API_KEY is not set — cannot send email. Add it on the host and redeploy.');
     }
@@ -45,7 +45,7 @@ async function dispatch({ to, subject, html, fromName = 'SkillSwap' }) {
  * Shared, email-client-safe shell (table layout + inline styles so Gmail /
  * Outlook / Apple Mail all render it consistently). `accent` tints the header
  * glow + button per email type. Renders on a soft page background with a dark
- * cosmic card — on-brand with the SkillSwap app.
+ * cosmic card — on-brand with the Orbit app.
  */
 const emailShell = ({ accent = '#00c6ff', preheader = '', title, badge, bodyHtml }) => `
 <!DOCTYPE html>
@@ -68,8 +68,8 @@ const emailShell = ({ accent = '#00c6ff', preheader = '', title, badge, bodyHtml
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg, ${accent}26, transparent 65%);">
                 <tr>
                   <td align="center" style="padding:40px 40px 8px 40px;">
-                    <div style="display:inline-block; width:56px; height:56px; line-height:56px; border-radius:16px; background:linear-gradient(135deg, ${accent}, #ff0076); color:#ffffff; font-size:26px; font-weight:800; box-shadow:0 0 24px ${accent}66;">S</div>
-                    <h1 style="margin:18px 0 0 0; font-size:26px; font-weight:800; letter-spacing:-0.5px; background:linear-gradient(135deg,#ffffff,${accent}); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:#ffffff;">SkillSwap</h1>
+                    <div style="display:inline-block; width:56px; height:56px; line-height:56px; border-radius:16px; background:linear-gradient(135deg, ${accent}, #ff0076); color:#ffffff; font-size:26px; font-weight:800; box-shadow:0 0 24px ${accent}66;">O</div>
+                    <h1 style="margin:18px 0 0 0; font-size:26px; font-weight:800; letter-spacing:-0.5px; background:linear-gradient(135deg,#ffffff,${accent}); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:#ffffff;">Orbit</h1>
                     ${badge ? `<div style="margin-top:14px;"><span style="display:inline-block; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:${accent}; background:${accent}1f; border:1px solid ${accent}40; padding:6px 14px; border-radius:999px;">${badge}</span></div>` : ''}
                   </td>
                 </tr>
@@ -86,9 +86,9 @@ const emailShell = ({ accent = '#00c6ff', preheader = '', title, badge, bodyHtml
           <tr>
             <td style="padding:28px 40px 40px 40px;">
               <div style="border-top:1px solid rgba(255,255,255,0.08); padding-top:24px; text-align:center;">
-                <p style="margin:0 0 10px 0; font-size:13px; color:#8a86a0; line-height:1.6;">Learn anything. Teach everything. Together.</p>
-                <a href="${APP_URL}" style="color:${accent}; font-size:13px; font-weight:600; text-decoration:none;">Open SkillSwap →</a>
-                <p style="margin:18px 0 0 0; font-size:11px; color:#5a5670;">You're receiving this because you have a SkillSwap account.<br/>© SkillSwap · A peer-to-peer learning universe.</p>
+                <p style="margin:0 0 10px 0; font-size:13px; color:#8a86a0; line-height:1.6;">Learn in each other's orbit.</p>
+                <a href="${APP_URL}" style="color:${accent}; font-size:13px; font-weight:600; text-decoration:none;">Open Orbit →</a>
+                <p style="margin:18px 0 0 0; font-size:11px; color:#5a5670;">You're receiving this because you have an Orbit account.<br/>© Orbit · A peer-to-peer learning universe.</p>
               </div>
             </td>
           </tr>
@@ -113,9 +113,9 @@ exports.sendLoginNotification = async (userEmail, userName) => {
         const accent = '#00c6ff';
         const when = new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' });
         const bodyHtml = `
-            <p style="margin:0 0 16px 0; font-size:18px; font-weight:700; color:#ffffff;">Welcome back, ${userName} 👋</p>
+            <p style="margin:0 0 16px 0; font-size:18px; font-weight:700; color:#ffffff;">Welcome back, ${userName}</p>
             <p style="margin:0 0 22px 0; font-size:15px; line-height:1.7; color:#c7c4d6;">
-                A new sign-in to your SkillSwap account was just detected. If this was you, you're all set — the universe of learning awaits.
+                A new sign-in to your Orbit account was just detected. If this was you, you're all set — the universe of learning awaits.
             </p>
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px 0; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px;">
                 <tr>
@@ -126,19 +126,19 @@ exports.sendLoginNotification = async (userEmail, userName) => {
                 </tr>
             </table>
             <p style="margin:0 0 22px 0; font-size:14px; line-height:1.7; color:#a7a3ba;">
-                🔒 <strong style="color:#ffffff;">Wasn't you?</strong> Secure your account right away by resetting your password — and consider enabling a stronger password.
+                <strong style="color:#ffffff;">Wasn't you?</strong> Secure your account right away by resetting your password — and consider enabling a stronger password.
             </p>
             ${ctaButton(`${APP_URL}/dashboard`, 'Go to my dashboard', accent)}
         `;
 
         const info = await dispatch({
             to: userEmail,
-            fromName: 'SkillSwap Security',
-            subject: '🛰️ New sign-in to your SkillSwap account',
+            fromName: 'Orbit Security',
+            subject: 'New sign-in to your Orbit account',
             html: emailShell({
                 accent,
                 preheader: `New sign-in detected on ${when}.`,
-                title: 'New sign-in to SkillSwap',
+                title: 'New sign-in to Orbit',
                 badge: 'Security Alert',
                 bodyHtml
             })
@@ -152,11 +152,10 @@ exports.sendLoginNotification = async (userEmail, userName) => {
 exports.sendRegistrationNotification = async (userEmail, userName) => {
     try {
         const accent = '#9B6BFF';
-        const feature = (emoji, title, text) => `
+        const feature = (title, text) => `
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 12px 0; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:12px;">
                 <tr>
-                    <td width="48" valign="top" style="padding:16px 0 16px 16px; font-size:22px;">${emoji}</td>
-                    <td style="padding:16px 16px 16px 12px;">
+                    <td style="padding:16px 18px; border-left:3px solid ${accent};">
                         <p style="margin:0; font-size:15px; font-weight:700; color:#ffffff;">${title}</p>
                         <p style="margin:4px 0 0 0; font-size:13px; line-height:1.6; color:#a7a3ba;">${text}</p>
                     </td>
@@ -164,29 +163,29 @@ exports.sendRegistrationNotification = async (userEmail, userName) => {
             </table>`;
 
         const bodyHtml = `
-            <p style="margin:0 0 16px 0; font-size:22px; font-weight:800; color:#ffffff;">Welcome aboard, ${userName}! 🚀</p>
+            <p style="margin:0 0 16px 0; font-size:22px; font-weight:800; color:#ffffff;">Welcome aboard, ${userName}!</p>
             <p style="margin:0 0 26px 0; font-size:15px; line-height:1.7; color:#c7c4d6;">
                 You've just joined a universe where <strong style="color:#ffffff;">every person is both a student and a teacher</strong>.
                 We are absolutely thrilled to have you. Here's a glimpse of what's waiting for you:
             </p>
-            ${feature('🔭', 'Discover your constellation', 'Browse skills near you and find perfect mutual matches — people who can teach what you want, and want what you teach.')}
-            ${feature('🤝', 'Connect & exchange', 'Message, video-call, and swap skills in real time with brilliant people from around the world.')}
-            ${feature('🌟', 'Rise through the cosmos', 'Earn reviews, climb from Stardust to Supernova, and shine on your city’s Observatory leaderboard.')}
+            ${feature('Discover your constellation', 'Browse skills near you and find perfect mutual matches — people who can teach what you want, and want what you teach.')}
+            ${feature('Connect & exchange', 'Message, video-call, and swap skills in real time with brilliant people from around the world.')}
+            ${feature('Rise through the cosmos', 'Earn reviews, climb from Stardust to Supernova, and shine on your city’s Observatory leaderboard.')}
             <div style="height:8px;"></div>
             <p style="margin:0 0 18px 0; font-size:15px; line-height:1.7; color:#c7c4d6;">
-                Your journey starts now. Add your first skill and watch the universe respond. ✨
+                Your journey starts now. Add your first skill and watch the universe respond.
             </p>
             ${ctaButton(`${APP_URL}/dashboard`, 'Start exploring', accent)}
         `;
 
         const info = await dispatch({
             to: userEmail,
-            fromName: 'SkillSwap',
-            subject: `✨ Welcome to SkillSwap, ${userName}!`,
+            fromName: 'Orbit',
+            subject: `Welcome to Orbit, ${userName}`,
             html: emailShell({
                 accent,
                 preheader: 'Your peer-to-peer learning universe just got a new star — you.',
-                title: 'Welcome to SkillSwap',
+                title: 'Welcome to Orbit',
                 badge: 'Welcome Aboard',
                 bodyHtml
             })
@@ -212,9 +211,9 @@ exports.sendEmail = async ({ to, subject, html }) => {
 exports.sendPasswordResetEmail = async ({ to, name, resetUrl }) => {
     const accent = '#ff0076';
     const bodyHtml = `
-        <p style="margin:0 0 16px 0; font-size:18px; font-weight:700; color:#ffffff;">Reset your password 🔑</p>
+        <p style="margin:0 0 16px 0; font-size:18px; font-weight:700; color:#ffffff;">Reset your password</p>
         <p style="margin:0 0 22px 0; font-size:15px; line-height:1.7; color:#c7c4d6;">
-            Hello ${name || 'there'}, we received a request to reset the password for your SkillSwap account.
+            Hello ${name || 'there'}, we received a request to reset the password for your Orbit account.
             Click the button below to choose a new one. This link is valid for <strong style="color:#ffffff;">1 hour</strong>.
         </p>
         ${ctaButton(resetUrl, 'Reset my password', accent)}
@@ -225,18 +224,18 @@ exports.sendPasswordResetEmail = async ({ to, name, resetUrl }) => {
             <a href="${resetUrl}" style="color:${accent}; text-decoration:none;">${resetUrl}</a>
         </p>
         <p style="margin:0; font-size:13px; line-height:1.7; color:#a7a3ba;">
-            🛡️ Didn't request this? You can safely ignore this email — your password won't change.
+            Didn't request this? You can safely ignore this email — your password won't change.
         </p>
     `;
 
     const info = await dispatch({
         to,
-        fromName: 'SkillSwap',
-        subject: '🔑 Reset your SkillSwap password',
+        fromName: 'Orbit',
+        subject: 'Reset your Orbit password',
         html: emailShell({
             accent,
-            preheader: 'Reset your SkillSwap password — link valid for 1 hour.',
-            title: 'Reset your SkillSwap password',
+            preheader: 'Reset your Orbit password — link valid for 1 hour.',
+            title: 'Reset your Orbit password',
             badge: 'Password Reset',
             bodyHtml
         })

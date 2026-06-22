@@ -20,9 +20,9 @@ const MySkills = () => {
   return (
     <div className="space-y-7">
       <Helmet>
-        <title>My Skills | SkillSwap</title>
-        <meta name="description" content="Manage the skills you teach and want to learn on SkillSwap." />
-        <meta property="og:title" content="My Skills | SkillSwap" />
+        <title>My Skills | Orbit</title>
+        <meta name="description" content="Manage the skills you teach and want to learn on Orbit." />
+        <meta property="og:title" content="My Skills | Orbit" />
         <meta property="og:url" content="https://react-skill-swap-fully-fledged.vercel.app/dashboard" />
         <link rel="canonical" href="https://react-skill-swap-fully-fledged.vercel.app/dashboard" />
       </Helmet>

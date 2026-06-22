@@ -144,7 +144,7 @@ exports.triggerPasswordReset = async (req, res) => {
         try {
             const { sendEmail } = require("../utils/sendEmail");
             await sendEmail({
-                to: user.email, subject: "SkillSwap – Password Reset",
+                to: user.email, subject: "Orbit – Password Reset",
                 html: `<p>Hello ${user.name},</p><p>An administrator initiated a password reset. This link is valid for 1 hour:</p><a href="${resetUrl}">${resetUrl}</a>`,
             });
         } catch (mailErr) { console.error("[admin reset email]", mailErr.message); }

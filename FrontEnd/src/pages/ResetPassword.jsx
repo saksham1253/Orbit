@@ -56,8 +56,8 @@ const ResetPassword = () => {
   return (
     <>
       <Helmet>
-        <title>Reset Password | SkillSwap</title>
-        <meta name="description" content="Set a new password for your SkillSwap account." />
+        <title>Reset Password | Orbit</title>
+        <meta name="description" content="Set a new password for your Orbit account." />
       </Helmet>
       <div className="min-h-screen flex items-center justify-center p-4 relative">
         <div className="absolute inset-0 pointer-events-none"
@@ -84,7 +84,7 @@ const ResetPassword = () => {
             <h1 className="text-2xl font-display font-bold mb-1"
               style={{ background: 'linear-gradient(135deg, #00c6ff, #a855f7, #ff0076)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}
             >
-              SkillSwap
+              Orbit
             </h1>
           </div>
 

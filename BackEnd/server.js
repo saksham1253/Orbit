@@ -485,7 +485,7 @@ if (indexHtmlPath) {
 } else {
     // Separate deployment mode: Render only hosts the Backend API
     app.get("/", (req, res) => {
-        res.json({ message: "SkillSwap API Server is running successfully." });
+        res.json({ message: "Orbit API Server is running successfully." });
     });
     
     // API welcome/fallback routes

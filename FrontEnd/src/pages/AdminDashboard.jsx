@@ -63,7 +63,7 @@ const AdminDashboard = () => {
   if (!isUnlocked) {
     return (
       <div className="max-w-md mx-auto py-24 px-4">
-        <Helmet><title>Admin Unlock | SkillSwap</title></Helmet>
+        <Helmet><title>Admin Unlock | Orbit</title></Helmet>
         <motion.div
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           className="bg-surface border border-border-subtle rounded-2xl p-8 shadow-xl text-center"
@@ -102,7 +102,7 @@ const AdminDashboard = () => {
   // Dashboard
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <Helmet><title>System Dashboard | SkillSwap</title></Helmet>
+      <Helmet><title>System Dashboard | Orbit</title></Helmet>
       
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-border-subtle pb-6">

@@ -34,7 +34,7 @@ async function geocodeLocation(locationStr) {
     const response = await fetch(url, {
         headers: {
             // Nominatim requires a User-Agent
-            "User-Agent": "SkillSwap-App/1.0"
+            "User-Agent": "Orbit-App/1.0"
         }
     });
 

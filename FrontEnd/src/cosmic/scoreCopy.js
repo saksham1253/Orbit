@@ -42,7 +42,7 @@ export const COSMIC_SCORE_INFO = {
 export const TRUST_SCORE_INFO = {
   title: 'How Trust Score works',
   whatItIs:
-    'Your Trust Score (0–100) reflects how reliable and well-regarded you are as a SkillSwap member — your standing in the community, separate from your teaching performance on the leaderboard.',
+    'Your Trust Score (0–100) reflects how reliable and well-regarded you are as an Orbit member — your standing in the community, separate from your teaching performance on the leaderboard.',
   howToRaise: [
     'Earn strong ratings from the people you swap with — your average rating is the biggest factor.',
     'Build a track record — the more genuine reviews you receive, the more your reliability is established.',

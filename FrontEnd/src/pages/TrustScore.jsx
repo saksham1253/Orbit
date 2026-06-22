@@ -141,9 +141,9 @@ const TrustScore = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <Helmet>
-        <title>Trust & Reputation | SkillSwap</title>
-        <meta name="description" content="View your SkillSwap trust score, reputation metrics, and community feedback." />
-        <meta property="og:title" content="Trust & Reputation | SkillSwap" />
+        <title>Trust & Reputation | Orbit</title>
+        <meta name="description" content="View your Orbit trust score, reputation metrics, and community feedback." />
+        <meta property="og:title" content="Trust & Reputation | Orbit" />
         <meta property="og:url" content="https://react-skill-swap-fully-fledged.vercel.app/trust" />
         <link rel="canonical" href="https://react-skill-swap-fully-fledged.vercel.app/trust" />
       </Helmet>

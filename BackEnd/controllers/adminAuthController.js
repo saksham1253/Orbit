@@ -131,7 +131,7 @@ exports.enrollTotp = async (req, res) => {
     const { user } = p;
     if (user.admin.totpEnabled) return res.status(400).json({ message: "Already enrolled." });
     try {
-        const secret = speakeasy.generateSecret({ name: `SkillSwap Admin (${user.email})`, length: 20 });
+        const secret = speakeasy.generateSecret({ name: `Orbit Admin (${user.email})`, length: 20 });
         // Store the secret encrypted but NOT yet enabled — enabled only after the
         // first valid code is verified.
         await User.updateOne({ _id: user._id }, { $set: { "admin.totpSecretEnc": encrypt(secret.base32) } });

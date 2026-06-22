@@ -18,7 +18,7 @@ console.log('EMAIL_HOST:', process.env.EMAIL_HOST || '(missing)');
 console.log('EMAIL_PORT:', process.env.EMAIL_PORT || '(missing)');
 console.log('EMAIL_USER:', process.env.EMAIL_USER || '(missing)');
 console.log('EMAIL_PASS:', process.env.EMAIL_PASS
-    ? `set, length=${process.env.EMAIL_PASS.length}${/\s/.test(process.env.EMAIL_PASS) ? ' ⚠️ CONTAINS SPACES' : ''}`
+    ? `set, length=${process.env.EMAIL_PASS.length}${/\s/.test(process.env.EMAIL_PASS) ? ' CONTAINS SPACES' : ''}`
     : '(missing)');
 console.log('secure (true only for port 465):', Number(process.env.EMAIL_PORT) === 465);
 console.log('Sending test email to:', to);
@@ -35,20 +35,20 @@ const transporter = nodemailer.createTransport({
     try {
         console.log('1) Verifying connection + auth…');
         await transporter.verify();
-        console.log('   ✅ verify() passed — host reachable and credentials accepted.\n');
+        console.log('   verify() passed — host reachable and credentials accepted.\n');
 
         console.log('2) Sending a test email…');
         const info = await transporter.sendMail({
-            from: `"SkillSwap Test" <${process.env.EMAIL_USER}>`,
+            from: `"Orbit Test" <${process.env.EMAIL_USER}>`,
             to,
-            subject: 'SkillSwap SMTP test ✅',
-            html: '<p>If you can read this, SMTP is working. 🎉</p>',
+            subject: 'Orbit SMTP test',
+            html: '<p>If you can read this, SMTP is working.</p>',
         });
-        console.log('   ✅ sent. messageId:', info.messageId);
+        console.log('   sent. messageId:', info.messageId);
         console.log('   response:', info.response);
         console.log('\nAll good. If the inbox is empty, check Spam/Promotions.');
     } catch (err) {
-        console.error('\n❌ SMTP FAILED. Real error below:\n');
+        console.error('\nSMTP FAILED. Real error below:\n');
         console.error('  code:   ', err.code);
         console.error('  command:', err.command);
         console.error('  message:', err.message);

@@ -186,7 +186,7 @@ const IncomingCallOverlay = ({ call, onAccept, onDecline, onIgnore }) => {
               {call.callerName || 'Someone'}
             </h2>
             <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 36 }}>
-              is calling you for a SkillSwap video session
+              is calling you for an Orbit video session
             </p>
 
             {/* Action buttons */}

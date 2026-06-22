@@ -152,15 +152,15 @@ const Landing = () => {
     <MotionConfig reducedMotion="user">
     <div className="relative overflow-hidden">
       <Helmet>
-        <title>SkillSwap — Exchange Skills, Grow Together</title>
+        <title>Orbit — Exchange Skills, Rise Together</title>
         <meta name="description" content="Peer-to-peer skill exchange platform. Teach what you know, learn what you don't. Completely free." />
-        <meta property="og:title" content="SkillSwap — Exchange Skills, Grow Together" />
+        <meta property="og:title" content="Orbit — Exchange Skills, Rise Together" />
         <meta property="og:description" content="Join the world's most vibrant peer-to-peer skill exchange network. Share your expertise, unlock new skills, and build genuine connections — completely free." />
         <meta property="og:image" content="https://react-skill-swap-fully-fledged.vercel.app/og-image.png" />
         <meta property="og:url" content="https://react-skill-swap-fully-fledged.vercel.app/" />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="SkillSwap — Exchange Skills, Grow Together" />
+        <meta name="twitter:title" content="Orbit — Exchange Skills, Rise Together" />
         <meta name="twitter:description" content="Peer-to-peer skill exchange platform. Teach what you know, learn what you don't." />
         <meta name="twitter:image" content="https://react-skill-swap-fully-fledged.vercel.app/og-image.png" />
         <link rel="canonical" href="https://react-skill-swap-fully-fledged.vercel.app/" />
@@ -318,6 +318,25 @@ const Landing = () => {
               />
             </span>
           </motion.h1>
+
+          {/* Signature slogan */}
+          <motion.p
+            className="text-base sm:text-lg font-display font-semibold tracking-wide mb-6"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.22, duration: 0.6 }}
+          >
+            <span
+              style={{
+                background: 'linear-gradient(135deg, #00c6ff, #a855f7, #ff0076)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
+              Learn in each other's orbit.
+            </span>
+          </motion.p>
 
           {/* Subtitle with enhanced motivation */}
           <motion.p
