@@ -13,6 +13,7 @@ import { useUIStore } from '../store/uiStore';
 import { Search, Compass, SlidersHorizontal, X, ChevronDown } from 'lucide-react';
 import UserRatingsModal from '../components/modals/UserRatingsModal';
 import SwapRequestModal from '../components/modals/SwapRequestModal';
+import Spinner from '../components/common/Spinner';
 
 import { useRef } from 'react';
 
@@ -227,7 +228,7 @@ const BrowseSkills = () => {
           {/* Infinite Scroll Trigger */}
           {displayCount < filteredAndSorted.length && (
             <div ref={loadMoreRef} className="py-6 flex justify-center">
-              <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin"></div>
+              <Spinner variant="dual" size={24} label="Loading more skills" />
             </div>
           )}
         </>

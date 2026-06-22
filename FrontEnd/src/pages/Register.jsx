@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { Eye, EyeOff, ArrowRight, Sparkles } from 'lucide-react';
 import api from '../services/api';
+import Spinner from '../components/common/Spinner';
 import { useUIStore } from '../store/uiStore';
 import LanguageMultiSelect from '../components/common/LanguageMultiSelect';
 
@@ -299,7 +300,7 @@ const registerSchema = z.object({
             style={{ background: 'linear-gradient(90deg, #ec4899, #8b5cf6)', color: 'white' }}          >
             {registerMutation.isPending ? (
               <span className="flex items-center gap-2">
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <Spinner variant="arc" size={16} />
                 Creating Account…
               </span>
             ) : (

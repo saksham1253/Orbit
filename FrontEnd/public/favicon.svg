@@ -1,15 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
   <defs>
-    <linearGradient id="mo-g" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="ti" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#00c6ff"/><stop offset=".5" stop-color="#7c3aed"/><stop offset="1" stop-color="#ff0076"/>
     </linearGradient>
-    <filter id="mo-glow" x="-40%" y="-40%" width="180%" height="180%">
-      <feGaussianBlur stdDeviation="1.1" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    <radialGradient id="tic" cx=".42" cy=".4" r=".6">
+      <stop offset="0" stop-color="#fff"/><stop offset=".55" stop-color="#bfe0ff"/><stop offset="1" stop-color="#6aa8ff"/>
+    </radialGradient>
+    <filter id="tig" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="1.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
   <rect x="3" y="3" width="94" height="94" rx="26" fill="#0b0a20"/>
   <rect x="3.5" y="3.5" width="93" height="93" rx="25.5" fill="none" stroke="#fff" stroke-opacity=".06"/>
-  <!-- bold O ring with a gap; body sits in the gap -->
-  <path d="M68 22 A33 33 0 1 0 81 44" fill="none" stroke="url(#mo-g)" stroke-width="11" stroke-linecap="round" filter="url(#mo-glow)"/>
-  <circle cx="72" cy="30" r="8.5" fill="#fff" filter="url(#mo-glow)"/>
+  <!-- Tilted elliptical orbit + glowing core + orbiting body -->
+  <g transform="rotate(-26 50 50)">
+    <ellipse cx="50" cy="50" rx="34" ry="14" fill="none" stroke="url(#ti)" stroke-width="6" filter="url(#tig)"/>
+    <circle cx="84" cy="50" r="6" fill="#ff5fa2" filter="url(#tig)"/>
+  </g>
+  <circle cx="50" cy="50" r="11" fill="url(#tic)" filter="url(#tig)"/>
 </svg>

@@ -6,6 +6,7 @@ import { ArrowRight, Repeat2 } from 'lucide-react';
 import api from '../../services/api';
 import { useUIStore } from '../../store/uiStore';
 import Modal from '../common/Modal';
+import Spinner from '../common/Spinner';
 
 const schema = z.object({
   skillOffered:  z.string().min(2, 'Required'),
@@ -100,7 +101,7 @@ const SkillForm = ({ isOpen, onClose }) => {
           <button type="submit" disabled={mutation.isPending}
             className="btn-gradient flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-60">
             {mutation.isPending
-              ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ? <Spinner variant="arc" size={16} />
               : <><ArrowRight size={14} /> Add Skill</>}
           </button>
         </div>

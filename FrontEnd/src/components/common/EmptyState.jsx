@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import CometField from '../../cosmic/CometField';
 
 /**
  * EmptyState — rendered when a list/grid has no items.
@@ -26,12 +27,15 @@ const EmptyState = ({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className="flex flex-col items-center justify-center py-20 rounded-2xl text-center"
+      className="relative overflow-hidden flex flex-col items-center justify-center py-20 rounded-2xl text-center"
       style={{
         background: 'rgba(255,255,255,0.02)',
         border: `1px dashed ${borderRgba}`,
       }}
     >
+      {/* Ambient comet drifting behind the card — turns dead space into intentional space. */}
+      <CometField variant="ambient" />
+
       {/* Icon badge */}
       {icon && (
         <div

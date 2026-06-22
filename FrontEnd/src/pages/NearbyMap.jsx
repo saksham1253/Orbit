@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import api from '../services/api';
 import { NearbyListSkeleton } from '../components/skeletons';
+import Spinner from '../components/common/Spinner';
 import { useUIStore } from '../store/uiStore';
 import { MapPin, Search, Navigation, Users, Sliders } from 'lucide-react';
 import RadiusDial from '../components/nearby/RadiusDial';
@@ -152,7 +153,7 @@ const NearbyMap = () => {
               disabled={setLocationMutation.isPending || !locationInput.trim()}
               className="btn-gradient px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 flex-shrink-0 disabled:opacity-50"
             >
-              {setLocationMutation.isPending ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Search size={14} />}
+              {setLocationMutation.isPending ? <Spinner variant="arc" size={16} /> : <Search size={14} />}
               Set
             </button>
           </div>

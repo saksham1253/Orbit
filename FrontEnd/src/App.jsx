@@ -11,6 +11,7 @@ import NotificationSystem from './components/notifications/NotificationSystem';
 import RatingModal from './components/modals/RatingModal';
 import IncomingCallOverlay from './components/modals/IncomingCallOverlay';
 import NotFound from './pages/NotFound';
+import Spinner from './components/common/Spinner';
 import { connectSocket } from './services/socket';
 import { Toaster } from 'react-hot-toast';
 import BadgeDefsSprite from './cosmic/BadgeDefsSprite';
@@ -52,12 +53,7 @@ const AdminGate = lazy(() => import('./admin/AdminGate'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center py-24">
-    <div className="relative">
-      <div className="w-12 h-12 rounded-full border-2 border-border-subtle border-t-accent animate-spin" />
-      <div className="absolute inset-0 rounded-full border-2 border-transparent border-b-secondary animate-spin"
-        style={{ animationDirection: 'reverse', animationDuration: '0.8s' }}
-      />
-    </div>
+    <Spinner variant="orbit" size={48} label="Loading page" />
   </div>
 );
 

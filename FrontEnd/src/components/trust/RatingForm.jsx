@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Star, Send } from 'lucide-react';
 import api from '../../services/api';
 import { useUIStore } from '../../store/uiStore';
+import Spinner from '../common/Spinner';
 
 const LABELS = ['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent'];
 
@@ -73,7 +74,7 @@ const RatingForm = ({ targetUserId, onClose }) => {
         <button type="submit" disabled={mutation.isPending}
           className="btn-gradient flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-60">
           {mutation.isPending
-            ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ? <Spinner variant="arc" size={16} />
             : <><Send size={14} /> Submit Review</>}
         </button>
       </div>

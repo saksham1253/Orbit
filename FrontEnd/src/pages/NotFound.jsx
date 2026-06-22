@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { Home, Compass } from 'lucide-react';
+import CometField from '../cosmic/CometField';
 
 const NotFound = () => (
   <>
@@ -19,6 +20,9 @@ const NotFound = () => (
             'radial-gradient(ellipse 50% 50% at 50% 40%, rgba(124,58,237,0.08) 0%, transparent 70%)',
         }}
       />
+
+      {/* Ambient "lost in space" comet drifting behind the content (quiet, prominent). */}
+      <CometField variant="drift" />
 
       <motion.div
         initial={{ opacity: 0, y: 24 }}

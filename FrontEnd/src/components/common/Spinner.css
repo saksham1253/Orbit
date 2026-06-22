@@ -1,0 +1,74 @@
+/*
+ * Spinner — the inline Orbit loading mark, three variants. Sizing is driven by
+ * CSS vars set inline (--sp-size, --sp-bw) so one rule set serves every size.
+ * Colours read the active theme's --accent-1 / --accent-2; the arc variant uses
+ * currentColor so it stays white on gradient buttons and themed elsewhere.
+ */
+.spinner {
+  box-sizing: border-box;
+  display: inline-block;
+  position: relative;
+  width: var(--sp-size, 16px);
+  height: var(--sp-size, 16px);
+  flex-shrink: 0;
+}
+
+@keyframes spinnerRotate { to { transform: rotate(360deg); } }
+
+/* ── arc: monochrome sweep, inherits currentColor (buttons, inline) ── */
+.spinner--arc {
+  border: var(--sp-bw, 2px) solid color-mix(in srgb, currentColor 22%, transparent);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spinnerRotate 0.8s linear infinite;
+}
+
+/* ── orbit: faint ring + one bright orbiting body (page / route loaders) ── */
+.spinner--orbit {
+  border: var(--sp-bw, 2px) solid rgba(148, 163, 210, 0.18);
+  border-radius: 50%;
+  animation: spinnerRotate 1.1s linear infinite;
+}
+.spinner--orbit::after {
+  content: "";
+  position: absolute;
+  top: calc(var(--sp-bw, 2px) * -1 - 1px);
+  left: 50%;
+  width: 26%;
+  height: 26%;
+  margin-left: -13%;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff, var(--accent-1, #00c6ff));
+  box-shadow: 0 0 6px var(--accent-1, #00c6ff);
+}
+
+/* ── dual: two bodies chasing on one orbit = "the swap" (browse / match) ── */
+.spinner--dual {
+  border: var(--sp-bw, 2px) solid rgba(148, 163, 210, 0.14);
+  border-radius: 50%;
+  animation: spinnerRotate 1.2s linear infinite;
+}
+.spinner--dual::before,
+.spinner--dual::after {
+  content: "";
+  position: absolute;
+  width: 28%;
+  height: 28%;
+  left: 36%;
+  border-radius: 50%;
+}
+.spinner--dual::before {
+  top: calc(var(--sp-bw, 2px) * -1 - 1px);
+  background: var(--accent-1, #00c6ff);
+  box-shadow: 0 0 6px var(--accent-1, #00c6ff);
+}
+.spinner--dual::after {
+  bottom: calc(var(--sp-bw, 2px) * -1 - 1px);
+  background: var(--accent-2, #ff0076);
+  box-shadow: 0 0 6px var(--accent-2, #ff0076);
+}
+
+/* Essential feedback must keep moving, but ease off hard for reduced-motion. */
+@media (prefers-reduced-motion: reduce) {
+  .spinner--arc, .spinner--orbit, .spinner--dual { animation-duration: 2.4s; }
+}

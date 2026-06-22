@@ -6,6 +6,7 @@ import { Helmet } from 'react-helmet-async';
 import { Eye, EyeOff, CheckCircle, Sparkles, ArrowLeft } from 'lucide-react';
 import api from '../services/api';
 import { useUIStore } from '../store/uiStore';
+import Spinner from '../components/common/Spinner';
 
 const ResetPassword = () => {
   const { token } = useParams();
@@ -209,7 +210,7 @@ const ResetPassword = () => {
                   className="btn-gradient w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-sm mt-2 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {mutation.isPending ? (
-                    <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Resetting…</>
+                    <><Spinner variant="arc" size={16} /> Resetting…</>
                   ) : 'Reset Password'}
                 </button>
               </form>

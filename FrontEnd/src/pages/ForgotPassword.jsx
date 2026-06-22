@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { Mail, ArrowLeft, CheckCircle, Sparkles, RotateCw } from 'lucide-react';
 import api from '../services/api';
+import Spinner from '../components/common/Spinner';
 
 const RESEND_COOLDOWN = 30; // seconds
 
@@ -86,7 +87,7 @@ const ForgotPassword = () => {
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-accent bg-accent/10 border border-accent/30 hover:bg-accent/20 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {mutation.isPending
-                  ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Resending…</>
+                  ? <><Spinner variant="arc" size={16} /> Resending…</>
                   : <><RotateCw size={14} /> {cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend email'}</>}
               </button>
 
@@ -135,7 +136,7 @@ const ForgotPassword = () => {
                   className="btn-gradient w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-sm disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {mutation.isPending ? (
-                    <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Sending…</>
+                    <><Spinner variant="arc" size={16} /> Sending…</>
                   ) : 'Send Reset Link'}
                 </button>
               </form>

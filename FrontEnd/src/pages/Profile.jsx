@@ -8,6 +8,7 @@ import api from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
 import Avatar from '../components/common/Avatar';
+import Spinner from '../components/common/Spinner';
 import Modal from '../components/common/Modal';
 import { ProfileHeaderSkeleton } from '../components/skeletons';
 import CosmicProfileCard from '../cosmic/CosmicProfileCard';
@@ -308,7 +309,7 @@ const Profile = () => {
         <button type="submit" disabled={updateMutation.isPending}
           className="btn-gradient w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-sm disabled:opacity-60">
           {updateMutation.isPending
-            ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Saving…</>
+            ? <><Spinner variant="arc" size={16} /> Saving…</>
             : <><Save size={15} /> Save Changes</>}
         </button>
       </form>
@@ -355,7 +356,7 @@ const Profile = () => {
               >
                 {uploading ? (
                   <>
-                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <Spinner variant="arc" size={16} />
                     Uploading...
                   </>
                 ) : (

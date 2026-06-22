@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { Eye, EyeOff, ArrowRight, Sparkles } from 'lucide-react';
 import api from '../services/api';
+import Spinner from '../components/common/Spinner';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
 
@@ -182,7 +183,7 @@ const Login = () => {
             style={{ background: 'linear-gradient(90deg, #06b6d4, #3b82f6)', color: 'white' }}          >
             {loginMutation.isPending ? (
               <span className="flex items-center gap-2">
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <Spinner variant="arc" size={16} />
                 Signing in…
               </span>
             ) : (
