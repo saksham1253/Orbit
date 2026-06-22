@@ -19,6 +19,12 @@
  */
 
 const PALETTE = {
+  // The Descent (dim, lesser) — their own muted palettes so they no longer
+  // borrow Star's bright blue. Stardust is the faintest; meteor burns warm;
+  // asteroid is cold stone.
+  stardust:  ['#DCE6F2', '#9FB3C8', '#6E7E92', '#4A5568'],
+  meteor:    ['#FFF1D6', '#FFC078', '#E8853C', '#A8521E'],
+  asteroid:  ['#D8D2C6', '#A89E8E', '#7C7264', '#534B40'],
   moon:      ['#EDE6DA', '#C9C0B2', '#A8A096', '#8D8478'],
   planet:    ['#FFE9D6', '#E8C09B', '#D8A47F', '#9E4A33'],
   star:      ['#FFFFFF', '#E8F2FF', '#A9D6FF', '#7FB2FF'],
@@ -28,17 +34,39 @@ const PALETTE = {
   quasar:    ['#FFFFFF', '#CFE6FF', '#8EC5FF'],
 };
 
+/* Flash "drama" per category — the energy of the implosion + ignition flash
+   scales with where the tier sits on the ladder. Stardust is a small, basic
+   spark; each step up makes the flash bigger, brighter, and busier, peaking at
+   the Quasar. Used to scale streak counts, bloom alpha, burst size/speed. */
+const INTENSITY = {
+  stardust: 0.30, meteor: 0.42, asteroid: 0.38,
+  moon: 0.55, planet: 0.72, star: 0.95, pulsar: 1.08,
+  supernova: 1.3, galaxy: 1.18, quasar: 1.55,
+};
+
 const pick = (arr) => arr[(Math.random() * arr.length) | 0];
+const hexToRgb = (h) => {
+  const n = parseInt(h.slice(1), 16);
+  return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`;
+};
 
 export class LiftoffEngine {
-  constructor(canvas, { category, promotion = true, speed = 1, onReveal, onDone }) {
+  constructor(canvas, { category, promotion = true, descent = false, speed = 1, onReveal, onDone }) {
     if (!canvas) throw new Error('LiftoffEngine: canvas not ready');
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     if (!this.ctx) throw new Error('LiftoffEngine: 2d context unavailable');
     this.category = PALETTE[category] ? category : 'star';
     this.colors = PALETTE[this.category];
+    this.intensity = INTENSITY[this.category] ?? 0.9;
+    // tint for the ignition bloom — the flash glows in the tier's own colour,
+    // not a generic white, so each category's flash reads differently.
+    this.tint = hexToRgb(this.colors[1] || this.colors[0]);
     this.promotion = promotion;
+    // Rank-DOWN gets its own calm "cooling / settling" choreography (v4 §5):
+    // never explosive — embers sink, the glow dims. Takes precedence over the
+    // promotion/within-tier flows.
+    this.descent = descent;
     this.speed = Math.max(0.4, speed || 1);
     this.onReveal = onReveal || (() => {});
     this.onDone = onDone || (() => {});
@@ -141,7 +169,8 @@ export class LiftoffEngine {
     }
     ctx.globalAlpha = 1;
 
-    if (this.promotion) this._runPromotion(ctx, t, dt);
+    if (this.descent) this._runDescent(ctx, t, dt);
+    else if (this.promotion) this._runPromotion(ctx, t, dt);
     else this._runWithinTier(ctx, t, dt);
 
     // Integrate + draw particles.
@@ -150,7 +179,7 @@ export class LiftoffEngine {
     ctx.globalCompositeOperation = 'source-over';
     ctx.globalAlpha = 1;
 
-    const total = this.promotion ? 3.2 : 1.7;
+    const total = this.descent ? 2.9 : (this.promotion ? 3.2 : 1.7);
     if (t < total + 0.4) {
       this._raf = requestAnimationFrame(this._frame);
     } else {
@@ -162,9 +191,12 @@ export class LiftoffEngine {
   _runPromotion(ctx, t, dt) {
     const T = { implode: 0.7, flash: 1.05, burst: 3.0 };
 
-    // IMPLOSION — stardust streaks rush inward; a seed brightens at center.
+    // IMPLOSION — streaks rush inward; a seed brightens at center. The number of
+    // streaks (and the seed glow) scale with the tier's drama, so a Stardust
+    // implosion is a thin trickle while a Quasar implosion is a dense storm.
     if (t < T.implode) {
-      for (let i = 0; i < 5; i++) {
+      const streaks = Math.round(2 + this.intensity * 5);
+      for (let i = 0; i < streaks; i++) {
         const a = Math.random() * Math.PI * 2;
         const r = this.maxR * (0.7 + Math.random() * 0.5);
         const x = this.cx + Math.cos(a) * r, y = this.cy + Math.sin(a) * r;
@@ -176,20 +208,27 @@ export class LiftoffEngine {
         });
       }
       const seed = (t / T.implode);
-      this._glow(ctx, this.cx, this.cy, 6 + seed * 26, `rgba(255,255,255,${0.2 + seed * 0.5})`);
+      const sa = (0.18 + seed * 0.42) * (0.5 + this.intensity * 0.5);
+      this._glow(ctx, this.cx, this.cy, (6 + seed * 26) * (0.6 + this.intensity * 0.4), `rgba(255,255,255,${sa})`);
     }
 
-    // IGNITION FLASH — white bloom + the outward burst.
+    // IGNITION FLASH — a bloom in the tier's own colour + the outward burst.
+    // Burst size, speed and bloom brightness all scale with intensity, so the
+    // flash visibly escalates from Stardust → Quasar.
     if (t >= T.implode && !this._revealed && t >= 1.0) { this._revealed = true; this.onReveal(); }
     if (t >= T.implode && !this._burst) {
       this._burst = true;
       this.particles.length = 0; // clear inward streaks
-      const n = Math.min(320, Math.floor((this.W * this.H) / 7000));
-      this._emitBurst(n, 2, 11, 0.9, 2.0);
+      const n = Math.min(360, Math.floor((this.W * this.H) / 7000 * this.intensity));
+      this._emitBurst(n, 1.5 + this.intensity, 6 + this.intensity * 7, 0.9, 2.0);
     }
     if (t >= T.implode && t < T.flash) {
       const f = 1 - (t - T.implode) / (T.flash - T.implode);
-      this._glow(ctx, this.cx, this.cy, this.maxR * (0.4 + (1 - f) * 0.7), `rgba(255,255,255,${f * 0.85})`);
+      // coloured outer halo (tier tint) under a white-hot core.
+      this._glow(ctx, this.cx, this.cy, this.maxR * (0.45 + (1 - f) * 0.85) * (0.55 + this.intensity * 0.45),
+        `rgba(${this.tint},${f * 0.4 * this.intensity})`);
+      this._glow(ctx, this.cx, this.cy, this.maxR * (0.32 + (1 - f) * 0.5),
+        `rgba(255,255,255,${f * (0.35 + this.intensity * 0.45)})`);
       // lens streak for the brightest categories
       if (this.category === 'star' || this.category === 'quasar' || this.category === 'supernova') {
         this._lensStreak(ctx, f);
@@ -215,9 +254,54 @@ export class LiftoffEngine {
     this._drawRings(ctx, dt);
   }
 
+  // ── Choreography: rank-DOWN (calm "cooling / settling") ───────────────────
+  _runDescent(ctx, t) {
+    // Cool embers sink and fade while a soft halo gently CONTRACTS inward and
+    // dims — the opposite gesture to the rank-up's outward blast. Tinted by the
+    // destination tier, but deliberately quiet: a demotion reads as dignified
+    // cooling, never a failure or an explosion (v4 §5).
+    if (!this._revealed && t >= 0.25) { this._revealed = true; this.onReveal(); }
+
+    // One gentle fall of slow embers drifting down from above the badge.
+    if (!this._burst && t >= 0.08) {
+      this._burst = true;
+      const n = Math.min(90, Math.floor((this.W * this.H) / 18000));
+      for (let i = 0; i < n; i++) {
+        this._spawn({
+          x: this.cx + (Math.random() - 0.5) * this.W * 0.7,
+          y: this.cy - this.H * 0.18 - Math.random() * this.H * 0.25,
+          vx: (Math.random() - 0.5) * 0.4,
+          vy: 0.25 + Math.random() * 0.6,
+          life: 0, max: 1.8 + Math.random() * 1.6,
+          size: Math.random() * 1.7 + 0.5,
+          color: pick(this.colors), drag: 0.997, grav: 0.01,
+        });
+      }
+    }
+
+    // Soft halo that contracts inward and dims as everything settles.
+    const k = Math.min(1, t / 2.2);
+    const dim = Math.max(0, 1 - t / 2.6);
+    const r = (this.maxR * 0.5) * (1 - k * 0.7);
+    ctx.globalCompositeOperation = 'lighter';
+    const g = ctx.createRadialGradient(this.cx, this.cy, r * 0.4, this.cx, this.cy, r);
+    g.addColorStop(0, 'rgba(0,0,0,0)');
+    g.addColorStop(0.8, `rgba(${this.tint},${0.10 * dim})`);
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(this.cx, this.cy, r, 0, Math.PI * 2); ctx.fill();
+
+    // Central glow cooling out under the badge.
+    this._glow(ctx, this.cx, this.cy, (26 - t * 5) * (0.5 + 0.5 * dim), `rgba(${this.tint},${0.32 * dim})`);
+  }
+
   // ── Category signatures ───────────────────────────────────────────────────
   _signature(ctx, st, dt) {
     switch (this.category) {
+      case 'stardust':  return this._sigStardust(ctx, st);
+      case 'meteor':    return this._sigMeteor(ctx, st);
+      case 'asteroid':  return this._sigAsteroid(ctx, st);
+      case 'moon':      return this._sigMoon(ctx, st);
       case 'planet':    return this._sigPlanet(ctx, st);
       case 'star':      return this._sigStar(ctx, st);
       case 'pulsar':    return this._sigPulsar(ctx, st);
@@ -226,6 +310,77 @@ export class LiftoffEngine {
       case 'quasar':    return this._sigQuasar(ctx, st);
       default:          return this._sigStar(ctx, st);
     }
+  }
+
+  // ── The Descent signatures (deliberately humble — they must NOT look like a
+  //    Star). Stardust is the most basic flash of all; meteor streaks; asteroid
+  //    tumbles cold debris. These play in the admin preview; live demotions stay
+  //    a calm crossfade with no canvas (v4 §5). ───────────────────────────────
+  _sigStardust(ctx, st) {
+    // The simplest flash: a soft puff of slow drifting motes + a gentle pulse.
+    ctx.globalCompositeOperation = 'lighter';
+    const motes = 26;
+    for (let i = 0; i < motes; i++) {
+      const a = (i / motes) * Math.PI * 2 + st * 0.4;
+      const rr = (28 + (i % 5) * 14) * Math.min(1, 0.3 + st * 0.6);
+      const x = this.cx + Math.cos(a) * rr;
+      const y = this.cy + Math.sin(a) * rr * 0.9;
+      ctx.globalAlpha = 0.35 + 0.3 * (Math.sin(st * 3 + i) + 1) / 2;
+      ctx.fillStyle = this.colors[i % this.colors.length];
+      ctx.beginPath(); ctx.arc(x, y, 1.3, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    this._glow(ctx, this.cx, this.cy, 10 + Math.sin(st * 2) * 3, `rgba(${this.tint},0.45)`);
+  }
+
+  _sigMeteor(ctx, st) {
+    // A handful of bright streaks shoot diagonally across, leaving warm trails.
+    ctx.globalCompositeOperation = 'lighter';
+    const streaks = 5;
+    for (let k = 0; k < streaks; k++) {
+      const ph = (st * 0.6 + k / streaks) % 1;          // 0→1 sweep, staggered
+      const ang = -0.5 + k * 0.16;
+      const span = this.maxR * 2.0;
+      const hx = this.cx - Math.cos(ang) * span * 0.5;
+      const hy = this.cy - Math.sin(ang) * span * 0.5;
+      const x = hx + Math.cos(ang) * span * ph;
+      const y = hy + Math.sin(ang) * span * ph;
+      const tx = x - Math.cos(ang) * 90, ty = y - Math.sin(ang) * 90;
+      const grad = ctx.createLinearGradient(tx, ty, x, y);
+      grad.addColorStop(0, 'rgba(255,193,120,0)');
+      grad.addColorStop(1, 'rgba(255,224,170,0.85)');
+      ctx.strokeStyle = grad; ctx.lineWidth = 2.4; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(x, y); ctx.stroke();
+      this._glow(ctx, x, y, 6, 'rgba(255,224,170,0.7)');
+    }
+    ctx.lineCap = 'butt';
+  }
+
+  _sigAsteroid(ctx, st) {
+    // Cold rocky debris tumbles outward + one slow dusty shock ring.
+    if (st < 0.05) this.rings.push({ r: 18, t: 0, color: this.colors[1], max: 1.6, w: 2 });
+    this._drawRings(ctx, 1 / 60);
+    ctx.globalCompositeOperation = 'lighter';
+    const chunks = 14;
+    for (let i = 0; i < chunks; i++) {
+      const a = (i / chunks) * Math.PI * 2 + i;
+      const rr = 20 + st * 70 + (i % 3) * 10;
+      const x = this.cx + Math.cos(a) * rr;
+      const y = this.cy + Math.sin(a) * rr * 0.85;
+      ctx.globalAlpha = Math.max(0, 0.7 - st * 0.4);
+      ctx.fillStyle = this.colors[i % this.colors.length];
+      const sz = 2.2 + (i % 3);
+      ctx.beginPath(); ctx.arc(x, y, sz, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    this._glow(ctx, this.cx, this.cy, 12, `rgba(${this.tint},0.4)`);
+  }
+
+  _sigMoon(ctx, st) {
+    // A soft pearly halo ring blooms once and a calm glow settles.
+    if (st < 0.05) this.rings.push({ r: 26, t: 0, color: this.colors[0], max: 1.5, w: 3 });
+    this._drawRings(ctx, 1 / 60);
+    this._glow(ctx, this.cx, this.cy, 16 * Math.max(0, 1 - st / 1.8), `rgba(${this.tint},0.5)`);
   }
 
   _sigPlanet(ctx, st) {
@@ -322,20 +477,42 @@ export class LiftoffEngine {
   }
 
   _sigQuasar(ctx, st) {
-    // Blackout, then one blinding vertical axial jet erupts with lateral flare.
+    // Blackout, then one blinding vertical axial jet erupts — a thin blade that
+    // keeps BROADENING into a wide column, growing more translucent as it widens
+    // (energy spreading out), with a hot bright core blade riding the centre.
     ctx.globalCompositeOperation = 'source-over';
     ctx.fillStyle = `rgba(2,1,8,${Math.max(0, 0.7 - st * 0.6)})`;
     ctx.fillRect(0, 0, this.W, this.H);
     ctx.globalCompositeOperation = 'lighter';
-    const w = (8 + Math.sin(st * 8) * 3) * Math.min(1, st * 3);
-    const jet = ctx.createLinearGradient(this.cx, 0, this.cx, this.H);
-    jet.addColorStop(0, 'rgba(142,197,255,0)');
-    jet.addColorStop(0.42, 'rgba(255,255,255,0.95)');
-    jet.addColorStop(0.5, 'rgba(255,255,255,1)');
-    jet.addColorStop(0.58, 'rgba(255,255,255,0.95)');
-    jet.addColorStop(1, 'rgba(142,197,255,0)');
-    ctx.fillStyle = jet;
-    ctx.fillRect(this.cx - w, 0, w * 2, this.H);
+
+    // Half-width grows from a sliver to a broad column over ~2.6s and keeps
+    // expanding; opacity falls off as it broadens so the wide column reads soft.
+    const grow = Math.min(1, st / 2.6);
+    const ease = 1 - Math.pow(1 - grow, 2);            // fast then easing out
+    const halfW = (6 + ease * (this.W * 0.32)) + Math.sin(st * 6) * 4;
+    const spread = Math.max(0, 1 - st / 3.4);          // overall fade as it widens
+
+    // Wide translucent envelope — gets fainter the broader it gets.
+    const env = ctx.createLinearGradient(this.cx, 0, this.cx, this.H);
+    const ea = 0.5 * spread * (1 - ease * 0.55);
+    env.addColorStop(0, 'rgba(142,197,255,0)');
+    env.addColorStop(0.5, `rgba(170,210,255,${ea})`);
+    env.addColorStop(1, 'rgba(142,197,255,0)');
+    ctx.fillStyle = env;
+    ctx.fillRect(this.cx - halfW, 0, halfW * 2, this.H);
+
+    // Hot bright core blade — stays narrow & bright, fades a touch slower.
+    const coreW = (5 + Math.sin(st * 8) * 2) * Math.min(1, st * 3);
+    const core = ctx.createLinearGradient(this.cx, 0, this.cx, this.H);
+    const ca = Math.max(0, 1 - st / 2.6);
+    core.addColorStop(0, 'rgba(207,230,255,0)');
+    core.addColorStop(0.42, `rgba(255,255,255,${0.9 * ca})`);
+    core.addColorStop(0.5, `rgba(255,255,255,${ca})`);
+    core.addColorStop(0.58, `rgba(255,255,255,${0.9 * ca})`);
+    core.addColorStop(1, 'rgba(207,230,255,0)');
+    ctx.fillStyle = core;
+    ctx.fillRect(this.cx - coreW, 0, coreW * 2, this.H);
+
     this._lensStreak(ctx, Math.max(0, 1 - st / 2));
     this._glow(ctx, this.cx, this.cy, 22, 'rgba(207,230,255,0.9)');
   }

@@ -139,6 +139,19 @@ const BadgeDefsSprite = memo(function BadgeDefsSprite() {
           <stop offset="50%" stopColor="#FFFFFF" stopOpacity="0.95" />
           <stop offset="100%" stopColor="#8EC5FF" stopOpacity="0" />
         </linearGradient>
+        {/* Tapered relativistic jets: brightest at the CORE end, fading out to
+           the tip — so the beam emerges from the centre instead of crossing it
+           as a hard bar. "up" = bright at bottom (core); "dn" = bright at top. */}
+        <linearGradient id="cb-quasar-jet-up" x1="50%" y1="0%" x2="50%" y2="100%">
+          <stop offset="0%" stopColor="#8EC5FF" stopOpacity="0" />
+          <stop offset="55%" stopColor="#CFE6FF" stopOpacity="0.5" />
+          <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.95" />
+        </linearGradient>
+        <linearGradient id="cb-quasar-jet-dn" x1="50%" y1="0%" x2="50%" y2="100%">
+          <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.95" />
+          <stop offset="45%" stopColor="#CFE6FF" stopOpacity="0.5" />
+          <stop offset="100%" stopColor="#8EC5FF" stopOpacity="0" />
+        </linearGradient>
         <radialGradient id="cb-quasar-core" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="#FFFFFF" /><stop offset="60%" stopColor="#CFE6FF" /><stop offset="100%" stopColor="#8EC5FF" />
         </radialGradient>

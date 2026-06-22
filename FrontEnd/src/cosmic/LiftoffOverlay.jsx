@@ -48,8 +48,13 @@ export default function LiftoffOverlay() {
     []
   );
   const speed = getSpeed ? getSpeed() : 1;
-  // Rank-DOWN is always a calm crossfade (no explosive canvas), per v4 §5.
-  const stillMode = reduced || speed === 0 || isDown; // crossfade instead of canvas storm
+  // Rank-DOWN now plays its own calm "cooling / settling" canvas (v4 §5) — still
+  // dignified, never explosive. Only reduced-motion / Animation-Speed 0 fall
+  // back to the plain crossfade.
+  const stillMode = reduced || speed === 0; // crossfade instead of canvas storm
+  // The card itself reveals calmly on a descent (gentle fade, no celebratory
+  // spring pop) even while the cooling canvas plays behind it.
+  const cardStill = stillMode || isDown;
 
   const copy = event
     ? momentCopy({ variant, tierId: event.toTierId, fromTierId: event.fromTierId, pointsToRecover: event.pointsToRecover, city: event.city })
@@ -93,6 +98,7 @@ export default function LiftoffOverlay() {
       engine = new LiftoffEngine(canvasRef.current, {
         category: getTier(event.toTierId).category,
         promotion,
+        descent: isDown,
         speed: speed || 1,
         onReveal: () => setRevealed(true),
         onDone: () => {},
@@ -172,7 +178,7 @@ export default function LiftoffOverlay() {
             pointsToRecover={event.pointsToRecover}
             city={event.city}
             revealed={revealed}
-            stillMode={stillMode}
+            stillMode={cardStill}
             sharing={sharing}
             onShare={handleShare}
             onContinue={clear}

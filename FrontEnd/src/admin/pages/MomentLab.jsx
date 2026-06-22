@@ -65,15 +65,20 @@ export default function MomentLab() {
 
   const open = useCallback((opts) => {
     if (revealTimer.current) clearTimeout(revealTimer.current);
-    const still = !forceMotion && opts.variant === 'down';
+    // Card reveals calmly on a descent (and whenever full motion is off); the
+    // cooling canvas still plays behind it when motion is on.
+    const still = opts.variant === 'down' || !forceMotion;
     lastRef.current = opts;
     setHasPlayed(true);
     setPreview({ ...opts, revealed: false, still });
     setPlayId((n) => n + 1);   // (re)start the cinematic canvas for this play
-    // Reveal a beat later so the badge spring + text fade read as a "moment".
+    // Reveal timing MUST match the live overlay: when the canvas runs, the badge
+    // appears at the engine's ignition flash (engine.onReveal, wired below), with
+    // this timer as the safety backstop (mirrors LiftoffOverlay's 1.2s reveal).
+    // Still mode (no canvas) reveals immediately.
     revealTimer.current = setTimeout(() => {
       setPreview((p) => (p ? { ...p, revealed: true } : p));
-    }, still ? 60 : 220);
+    }, still ? 60 : 1300);
     playMomentSound(opts.variant, opts.fromTierId, opts.tierId);
   }, [forceMotion]);
 
@@ -99,19 +104,26 @@ export default function MomentLab() {
     setPreview(null);
   }, [stopCycle]);
 
-  // Run the REAL canvas cinematics (per-tier flashes/bursts) for each play, so
-  // the admin preview is exactly what users see (v7 §7). Rank-down stays calm
-  // (no burst); honours the "Force full animation" toggle.
+  // Run the REAL canvas cinematics for each play, so the admin preview is
+  // exactly what users see (v7 §7): rank-up bursts, and rank-down plays the calm
+  // "cooling / settling" descent. Honours the "Force full animation" toggle.
   useEffect(() => {
     if (!playId) return undefined;
     const opts = lastRef.current;
     if (!opts || !canvasRef.current) return undefined;
-    if (!forceMotion || opts.variant === 'down') return undefined;
+    if (!forceMotion) return undefined;
     const category = opts.variant === 'quasar' ? 'quasar' : getTier(opts.tierId).category;
+    const descent = opts.variant === 'down';
     const promotion = opts.variant === 'quasar' ? true : isPromotion(opts.fromTierId, opts.tierId);
     let engine = null;
     try {
-      engine = new LiftoffEngine(canvasRef.current, { category, promotion, speed: 1, onReveal: () => {}, onDone: () => {} });
+      engine = new LiftoffEngine(canvasRef.current, {
+        category, promotion, descent, speed: 1,
+        // Reveal the badge exactly when the engine flashes — same as the live
+        // overlay — instead of on a fixed timer, so the preview can't drift.
+        onReveal: () => setPreview((p) => (p ? { ...p, revealed: true } : p)),
+        onDone: () => {},
+      });
       engineRef.current = engine;
       engine.start();
     } catch { /* canvas best-effort — the card still shows */ }
@@ -213,7 +225,7 @@ export default function MomentLab() {
         {/* Motion + sound overrides */}
         <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }} className="ssctl-muted">
           <input type="checkbox" checked={forceMotion} onChange={(e) => setForceMotion(e.target.checked)} />
-          Force full animation (override reduced-motion / Descent crossfade)
+          Force full animation (rank-up burst + descent cooling canvas; off = calm crossfade)
         </label>
         <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }} className="ssctl-muted">
           <input type="checkbox" checked={soundsOn} onChange={toggleSounds} />
@@ -252,7 +264,7 @@ export default function MomentLab() {
       {preview && createPortal(
         <div className={`liftoff-overlay liftoff-cat-${getTier(preview.tierId).category} ${preview.variant === 'down' ? 'liftoff-down' : ''}`} onClick={close}
           role="dialog" aria-modal="true" aria-label={`Preview: ${tierLabel(preview.tierId)}`}>
-          {forceMotion && preview.variant !== 'down' && (
+          {forceMotion && (
             <canvas ref={canvasRef} className="liftoff-canvas" aria-hidden="true" />
           )}
           <button className="liftoff-close" onClick={close} aria-label="Close preview"><X size={20} /></button>

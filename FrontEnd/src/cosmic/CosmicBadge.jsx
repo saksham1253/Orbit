@@ -290,12 +290,19 @@ function QuasarArt({ anim }) {
       <circle cx="50" cy="50" r="28" fill="none" stroke="#C9B8FF" strokeWidth="2"
         className={anim ? 'cb-nova-shock' : ''}
         style={{ transformBox: 'fill-box', transformOrigin: 'center' }} />
-      {/* twin relativistic jets (bidirectional) */}
-      <rect x="47.5" y="2" width="5" height="96" fill="url(#cb-quasar-jet)"
-        className={anim ? 'cb-jet' : ''} />
-      {/* blazing accretion disk — tilted glowing ring that spins */}
+      {/* twin relativistic jets (bidirectional) — tapered: pinched at the core
+          and flaring out to a soft tip, so they erupt FROM the centre rather
+          than crossing it as a hard bar. */}
+      <g className={anim ? 'cb-jet' : ''}>
+        <path d="M50 50 L46.4 6 Q50 2 53.6 6 Z" fill="url(#cb-quasar-jet-up)" />
+        <path d="M50 50 L46.4 94 Q50 98 53.6 94 Z" fill="url(#cb-quasar-jet-dn)" />
+      </g>
+      {/* blazing accretion disk — tilted glowing ring that spins. Drawn over the
+          jet base so the disk crosses cleanly in front of the core. */}
       <g transform="rotate(-22 50 50)" className={anim ? 'cb-spin' : ''}
         style={{ transformBox: 'fill-box', transformOrigin: 'center' }}>
+        {/* faint filled haze gives the ring body so its near edge reads in front */}
+        <ellipse cx="50" cy="50" rx="33" ry="11.5" fill="url(#cb-quasar-core)" opacity="0.12" />
         <ellipse cx="50" cy="50" rx="33" ry="11.5" fill="none" stroke="#A77BFF" strokeOpacity="0.85" strokeWidth="4.5" />
         <ellipse cx="50" cy="50" rx="33" ry="11.5" fill="none" stroke="#FFFFFF" strokeOpacity="0.55" strokeWidth="1.3" />
       </g>

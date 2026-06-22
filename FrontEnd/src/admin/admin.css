@@ -103,7 +103,44 @@
 .ssctl-spin { width: 34px; height: 34px; border: 3px solid var(--ss-border); border-top-color: var(--ss-accent); border-radius: 50%; animation: ssctlspin .8s linear infinite; }
 @keyframes ssctlspin { to { transform: rotate(360deg); } }
 
+/* ── Responsive: tablet / phone ──────────────────────────────────────────────
+   The admin was built desktop-first (fixed 2-col grids set inline, full-width
+   data tables). These rules make every section usable down to ~320px without
+   touching each page: the rail becomes a scrollable top strip, tables scroll
+   horizontally instead of overflowing the viewport, and the inline 2-col grids
+   are forced to stack. */
+@media (max-width: 920px) {
+  /* Data tables: let them scroll on their own instead of bursting the layout.
+     !important beats the per-page inline overflow on the wrapping card. */
+  .ssctl-table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 @media (max-width: 720px) {
   .ssctl-shell { grid-template-columns: 1fr; }
-  .ssctl-rail { flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--ss-border); }
+  .ssctl-rail {
+    flex-direction: row; overflow-x: auto; border-right: none;
+    border-bottom: 1px solid var(--ss-border);
+    -webkit-overflow-scrolling: touch;
+  }
+  .ssctl-navitem { white-space: nowrap; flex: 0 0 auto; }
+  .ssctl-brand { flex: 0 0 auto; padding: 8px 10px; }
+  .ssctl-content { padding: 16px; }
+  .ssctl-card { padding: 18px; }
+  .ssctl-topbar { padding: 0 14px; gap: 10px; }
+  /* Force the inline 2-col (and 1.4fr/1fr) grids to a single column. The high
+     specificity + !important is required because the columns are set inline. */
+  .ssctl-content .ssctl-grid { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 480px) {
+  .ssctl-content { padding: 12px; }
+  .ssctl-card { padding: 14px; border-radius: 12px; }
+  .ssctl-h1 { font-size: 18px; }
+  .ssctl-topbar { height: auto; min-height: 56px; flex-wrap: wrap; padding: 8px 12px; }
 }
