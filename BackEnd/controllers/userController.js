@@ -1,7 +1,7 @@
 const User = require("../models/user");
 const Skill = require("../models/skill");
 const Connection = require("../models/Connection");
-const { validateBio } = require("../utils/bannedKeywords");
+const { enforceContentPolicy } = require("../utils/contentModeration");
 
 // ================= GET PLATFORM STATS =================
 exports.getStats = async (req, res) => {
@@ -69,16 +69,13 @@ exports.updateProfile = async (req, res) => {
     try {
         const { name, bio, location, languages, socialLinks } = req.body || {};
 
-        // --- BIO CONTENT MODERATION ---
-        if (bio) {
-            const bioValidation = validateBio(bio);
-            if (!bioValidation.isValid) {
-                return res.status(400).json({
-                    message: `⚠️ ${bioValidation.message}`,
-                    violationType: 'content_policy',
-                    showLargeWarning: true
-                });
-            }
+        // --- CONTENT MODERATION (same escalating warning/ban as skills) ---
+        // Scan the free-text fields a user can put words into (name + bio). A
+        // violation is a strike; 3 strikes → a temporary ban, and the profile
+        // is NOT saved.
+        if (name || bio) {
+            const mod = await enforceContentPolicy(req.user.id, [name, bio], { context: 'profile' });
+            if (!mod.ok) return res.status(mod.status).json(mod.body);
         }
         // --------------------
 

@@ -3,7 +3,7 @@ const User = require("../models/user");
 const Connection = require("../models/Connection");
 const MatchNotification = require("../models/matchNotification");
 const mongoose = require("mongoose");
-const { validateSkillContent } = require("../utils/bannedKeywords");
+const { enforceContentPolicy } = require("../utils/contentModeration");
 const { tierObjectFor } = require("../services/cosmicTier");
 
 // Lean cosmic standing for list cards (Browse/Matches). Computed in-memory from
@@ -28,41 +28,13 @@ exports.addSkill = async (req, res) => {
             });
         }
 
-        // --- COMPREHENSIVE CONTENT MODERATION ---
-        const contentValidation = validateSkillContent(
-            `${skillOffered} ${skillWanted}`, 
-            description || ''
+        // --- CONTENT MODERATION (shared escalating warning/ban) ---
+        const mod = await enforceContentPolicy(
+            req.user.id,
+            [skillOffered, skillWanted, description],
+            { context: 'skill' }
         );
-        
-        if (!contentValidation.isValid) {
-            const user = await User.findById(req.user.id);
-            user.warningCount += 1;
-            
-            if (user.warningCount >= 3) {
-                const banHours = 10 + (user.banCount * 5);
-                user.bannedUntil = new Date(Date.now() + banHours * 60 * 60 * 1000);
-                user.banCount += 1;
-                user.warningCount = 0;
-                await user.save();
-                
-                return res.status(403).json({
-                    message: `Account temporarily suspended for ${banHours} hours due to repeated community guideline violations.`,
-                    banned: true,
-                    timeRemaining: banHours,
-                    violationType: 'content_policy',
-                    showLargeWarning: true
-                });
-            } else {
-                await user.save();
-                return res.status(400).json({
-                    message: `⚠️ WARNING ${user.warningCount}/3: ${contentValidation.message}`,
-                    warningCount: user.warningCount,
-                    remainingWarnings: 3 - user.warningCount,
-                    violationType: 'content_policy',
-                    showLargeWarning: true
-                });
-            }
-        }
+        if (!mod.ok) return res.status(mod.status).json(mod.body);
         // --------------------
 
         const skill = new Skill({
@@ -239,41 +211,17 @@ exports.updateSkill = async (req, res) => {
             return res.status(404).json({ message: "Skill not found or unauthorized" });
         }
 
-        // --- COMPREHENSIVE CONTENT MODERATION ---
-        const contentValidation = validateSkillContent(
-            `${skillOffered || skill.skillOffered} ${skillWanted || skill.skillWanted}`, 
-            description !== undefined ? description : skill.description || ''
+        // --- CONTENT MODERATION (shared escalating warning/ban) ---
+        const mod = await enforceContentPolicy(
+            req.user.id,
+            [
+                skillOffered || skill.skillOffered,
+                skillWanted || skill.skillWanted,
+                description !== undefined ? description : skill.description,
+            ],
+            { context: 'skill' }
         );
-        
-        if (!contentValidation.isValid) {
-            const user = await User.findById(req.user.id);
-            user.warningCount += 1;
-            
-            if (user.warningCount >= 3) {
-                const banHours = 10 + (user.banCount * 5);
-                user.bannedUntil = new Date(Date.now() + banHours * 60 * 60 * 1000);
-                user.banCount += 1;
-                user.warningCount = 0;
-                await user.save();
-                
-                return res.status(403).json({
-                    message: `Account temporarily suspended for ${banHours} hours due to repeated community guideline violations.`,
-                    banned: true,
-                    timeRemaining: banHours,
-                    violationType: 'content_policy',
-                    showLargeWarning: true
-                });
-            } else {
-                await user.save();
-                return res.status(400).json({
-                    message: `⚠️ WARNING ${user.warningCount}/3: ${contentValidation.message}`,
-                    warningCount: user.warningCount,
-                    remainingWarnings: 3 - user.warningCount,
-                    violationType: 'content_policy',
-                    showLargeWarning: true
-                });
-            }
-        }
+        if (!mod.ok) return res.status(mod.status).json(mod.body);
         // --------------------
 
         if (skillOffered) skill.skillOffered = skillOffered;

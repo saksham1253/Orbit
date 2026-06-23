@@ -156,23 +156,32 @@ ConstellationCanvas.displayName = 'ConstellationCanvas';
 /* ─────────────────────────────────────────────────────
    Mesh: Animated blob mesh
 ───────────────────────────────────────────────────── */
-const MeshBackground = memo(({ colors, speedMultiplier }) => {
+const MeshBackground = memo(({ colors, speedMultiplier, mode = 'dark' }) => {
   // if (speedMultiplier === 0) return null; // Canvas unmounting disabled to fix desktop layout collapse
+  const isLight = mode === 'light';
+  // Guard against speed 0 (reduced-motion / hidden tab): 20/0 = Infinity which
+  // produces an invalid `animation` value; fall back to a static (paused) blob.
+  const duration = speedMultiplier > 0 ? 20 / speedMultiplier : 0;
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
       {colors.map((color, i) => (
         <div
           key={i}
-          className="absolute rounded-full blur-[120px] opacity-20"
+          className="absolute rounded-full"
           style={{
-            width: '40vw',
-            height: '40vw',
+            width: '48vw',
+            height: '48vw',
             background: color,
-            top: `${20 + i * 30}%`,
-            left: `${10 + i * 35}%`,
-            animation: `float ${20 / speedMultiplier}s ease-in-out infinite`,
+            // Bumped from opacity-20 + blur-120 so the mesh is clearly visible
+            // when selected (it was nearly invisible before).
+            opacity: isLight ? 0.3 : 0.5,
+            filter: 'blur(100px)',
+            top: `${12 + i * 26}%`,
+            left: `${4 + i * 30}%`,
+            animation: duration ? `float ${duration}s ease-in-out infinite` : 'none',
             animationDelay: `${i * 2}s`,
+            willChange: 'transform',
           }}
         />
       ))}
@@ -869,6 +878,32 @@ const BackgroundEffects = memo(() => {
 
   const minimalBg = 'var(--bg-app)';
 
+  // The dedicated "Gradient" style. The ambient wash above is intentionally
+  // faint (~8%) because every style layers on top of it — so on its own the
+  // Gradient option looked like nothing. This is a deliberately BOLD, clearly
+  // visible multi-stop gradient of the three theme colors so the choice reads.
+  const darkGradientStyleBg = `
+    radial-gradient(ellipse 90% 70% at 12% 8%, ${colors[0]}4d 0%, transparent 55%),
+    radial-gradient(ellipse 85% 65% at 88% 18%, ${colors[1]}45 0%, transparent 55%),
+    radial-gradient(ellipse 100% 80% at 50% 105%, ${colors[2]}4d 0%, transparent 60%),
+    linear-gradient(135deg, ${colors[0]}22 0%, ${colors[1]}1a 50%, ${colors[2]}22 100%),
+    var(--bg-app)
+  `;
+
+  const lightGradientStyleBg = `
+    radial-gradient(ellipse 95% 70% at 12% 5%, ${colors[0]}40 0%, transparent 55%),
+    radial-gradient(ellipse 85% 65% at 90% 18%, ${colors[1]}38 0%, transparent 55%),
+    radial-gradient(ellipse 100% 80% at 50% 105%, ${colors[2]}40 0%, transparent 60%),
+    linear-gradient(135deg, ${colors[0]}1f 0%, ${colors[1]}14 50%, ${colors[2]}1f 100%),
+    var(--bg-app)
+  `;
+
+  const baseBg = backgroundStyle === 'minimal'
+    ? minimalBg
+    : backgroundStyle === 'gradient'
+      ? (effectiveIsDark ? darkGradientStyleBg : lightGradientStyleBg)
+      : (effectiveIsDark ? darkGradientBg : lightGradientBg);
+
   return (
     <>
       {/* Base gradient or solid */}
@@ -876,7 +911,7 @@ const BackgroundEffects = memo(() => {
         className="fixed inset-0 pointer-events-none"
         style={{
           zIndex: -1,
-          background: backgroundStyle === 'minimal' ? minimalBg : (effectiveIsDark ? darkGradientBg : lightGradientBg),
+          background: baseBg,
         }}
       />
 
@@ -933,7 +968,7 @@ const BackgroundEffects = memo(() => {
             <ConstellationCanvas colors={colors} speedMultiplier={effectiveSpeed} mode="light" />
           )}
           {backgroundStyle === 'mesh' && (
-            <MeshBackground colors={colors} speedMultiplier={effectiveSpeed} />
+            <MeshBackground colors={colors} speedMultiplier={effectiveSpeed} mode="light" />
           )}
           {backgroundStyle === 'particles' && (
             <ParticlesCanvas colors={colors} speedMultiplier={effectiveSpeed} mode="light" />
