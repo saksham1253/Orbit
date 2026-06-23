@@ -146,7 +146,7 @@ const ResetPassword = () => {
                         <div className="flex gap-1 flex-1">
                           {[1, 2, 3].map((i) => (
                             <div key={i} className="h-1 flex-1 rounded-full transition-all duration-300"
-                              style={{ background: strength >= i ? strengthColor : 'rgba(255,255,255,0.08)' }}
+                              style={{ background: strength >= i ? strengthColor : 'var(--bg-surface-hover)' }}
                             />
                           ))}
                         </div>
@@ -155,23 +155,23 @@ const ResetPassword = () => {
 
                       <div className="space-y-1">
                         <div className={`text-xs flex items-center gap-1.5 ${hasMinLength ? 'text-green-400' : 'text-text-muted'}`}>
-                          <div className={`w-1 h-1 rounded-full ${hasMinLength ? 'bg-green-400' : 'bg-white/20'}`} />
+                          <div className={`w-1 h-1 rounded-full ${hasMinLength ? 'bg-green-400' : 'bg-border-subtle'}`} />
                           At least 8 characters
                         </div>
                         <div className={`text-xs flex items-center gap-1.5 ${hasUpperCase ? 'text-green-400' : 'text-text-muted'}`}>
-                          <div className={`w-1 h-1 rounded-full ${hasUpperCase ? 'bg-green-400' : 'bg-white/20'}`} />
+                          <div className={`w-1 h-1 rounded-full ${hasUpperCase ? 'bg-green-400' : 'bg-border-subtle'}`} />
                           One uppercase letter
                         </div>
                         <div className={`text-xs flex items-center gap-1.5 ${hasLowerCase ? 'text-green-400' : 'text-text-muted'}`}>
-                          <div className={`w-1 h-1 rounded-full ${hasLowerCase ? 'bg-green-400' : 'bg-white/20'}`} />
+                          <div className={`w-1 h-1 rounded-full ${hasLowerCase ? 'bg-green-400' : 'bg-border-subtle'}`} />
                           One lowercase letter
                         </div>
                         <div className={`text-xs flex items-center gap-1.5 ${hasNumber ? 'text-green-400' : 'text-text-muted'}`}>
-                          <div className={`w-1 h-1 rounded-full ${hasNumber ? 'bg-green-400' : 'bg-white/20'}`} />
+                          <div className={`w-1 h-1 rounded-full ${hasNumber ? 'bg-green-400' : 'bg-border-subtle'}`} />
                           One number
                         </div>
                         <div className={`text-xs flex items-center gap-1.5 ${hasSpecialChar ? 'text-green-400' : 'text-text-muted'}`}>
-                          <div className={`w-1 h-1 rounded-full ${hasSpecialChar ? 'bg-green-400' : 'bg-white/20'}`} />
+                          <div className={`w-1 h-1 rounded-full ${hasSpecialChar ? 'bg-green-400' : 'bg-border-subtle'}`} />
                           One special character (!@#$%^&*)
                         </div>
                       </div>

@@ -404,10 +404,10 @@ const Landing = () => {
             {!token && (
               <Link
                 to="/login"
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl text-white/80 font-medium text-base transition-all hover:text-text-primary hover:border-accent/40"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl text-text-secondary font-medium text-base transition-all hover:text-text-primary hover:border-accent/40"
                 style={{
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'var(--bg-surface-glass)',
+                  border: '1px solid var(--border-subtle)',
                   backdropFilter: 'blur(12px)',
                 }}
               >
@@ -618,7 +618,7 @@ const Landing = () => {
                     <Link
                       to="/login"
                       className="flex items-center gap-2 px-8 py-4 rounded-2xl font-medium text-text-secondary hover:text-text-primary text-base transition-all w-full sm:w-auto justify-center hover:border-accent/40"
-                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+                      style={{ background: 'var(--bg-surface-glass)', border: '1px solid var(--border-subtle)' }}
                     >
                       Sign In
                     </Link>

@@ -572,10 +572,10 @@ const VideoCall = () => {
                 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
                 className="skill-card p-4 flex items-center justify-between gap-4"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                   <Avatar name={otherName} url={other?.avatar} size="md" userId={otherId} />
-                  <div>
-                    <p className="font-semibold text-text-primary text-sm">{otherName}</p>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-text-primary text-sm truncate">{otherName}</p>
                     <div className="flex items-center gap-2 mt-0.5">
                       <CallStatusIcon status={call.status} />
                       <span className="text-xs text-text-muted capitalize">{call.status}</span>

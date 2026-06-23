@@ -136,7 +136,7 @@ export default function LanguageMultiSelect({
               onClick={() => removeChip(name)}
               disabled={value.length <= minSelections}
               aria-label={`Remove ${name}`}
-              className="inline-flex items-center justify-center w-4 h-4 rounded-full hover:bg-white/15 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="inline-flex items-center justify-center w-4 h-4 rounded-full hover:bg-surface-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <X size={11} strokeWidth={2.5} />
             </button>

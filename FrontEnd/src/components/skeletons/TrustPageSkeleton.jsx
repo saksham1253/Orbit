@@ -31,7 +31,7 @@ const ReviewRowSkeleton = () => (
       gap: 14,
       alignItems: 'flex-start',
       padding: '14px 0',
-      borderBottom: '1px solid rgba(255,255,255,0.06)',
+      borderBottom: '1px solid var(--border-subtle)',
     }}
   >
     <SkelCircle size={38} />
@@ -60,8 +60,8 @@ const StatBoxSkeleton = () => (
   <div
     style={{
       flex: 1,
-      background: 'rgba(255,255,255,0.025)',
-      border: '1px solid rgba(255,255,255,0.07)',
+      background: 'var(--bg-surface)',
+      border: '1px solid var(--border-subtle)',
       borderRadius: 12,
       padding: 14,
       display: 'flex',
@@ -98,8 +98,8 @@ export const TrustPageSkeleton = () => (
       <div
         style={{
           gridColumn: 'span 2',
-          background: 'rgba(255,255,255,0.025)',
-          border: '1px solid rgba(255,255,255,0.07)',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border-subtle)',
           borderRadius: 16,
           padding: 32,
           display: 'flex',
@@ -123,8 +123,8 @@ export const TrustPageSkeleton = () => (
       <div
         style={{
           gridColumn: 'span 3',
-          background: 'rgba(255,255,255,0.025)',
-          border: '1px solid rgba(255,255,255,0.07)',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border-subtle)',
           borderRadius: 16,
           padding: 24,
           display: 'flex',
@@ -149,8 +149,8 @@ export const TrustPageSkeleton = () => (
     {/* BOTTOM — Recent Reviews card */}
     <div
       style={{
-        background: 'rgba(255,255,255,0.025)',
-        border: '1px solid rgba(255,255,255,0.07)',
+        background: 'var(--bg-surface)',
+        border: '1px solid var(--border-subtle)',
         borderRadius: 16,
         padding: 24,
       }}

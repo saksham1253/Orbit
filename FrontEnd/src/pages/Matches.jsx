@@ -58,7 +58,7 @@ const Matches = () => {
       ) : matches.length === 0 ? (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
           className="py-20 text-center rounded-2xl"
-          style={{ background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(0,229,160,0.15)' }}>
+          style={{ background: 'var(--bg-surface-glass)', border: '1px dashed rgba(0,229,160,0.15)' }}>
           <Handshake size={36} className="mx-auto mb-4" style={{ color: 'rgba(0,229,160,0.25)' }} />
           <h3 className="text-lg font-bold text-text-primary mb-2">No matches yet</h3>
           <p className="text-text-muted text-sm max-w-xs mx-auto">

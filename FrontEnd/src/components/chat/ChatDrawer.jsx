@@ -34,7 +34,7 @@ const DateSeparator = ({ date }) => {
   
   return (
     <div className="flex justify-center my-4">
-      <div className="px-3 py-1 rounded-full bg-surface text-[11px] font-medium text-text-secondary border border-white/5 shadow-sm backdrop-blur-sm">
+      <div className="px-3 py-1 rounded-full bg-surface text-[11px] font-medium text-text-secondary border border-border-subtle shadow-sm backdrop-blur-sm">
         {label}
       </div>
     </div>
@@ -108,10 +108,10 @@ const ConversationList = ({ onSelect, selectedId, onlineUsers, onConversationDel
         {!isLoading && filtered.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 gap-3 text-center px-6">
             <div className="w-14 h-14 rounded-full flex items-center justify-center bg-surface mb-2">
-              <MessageCircle size={24} className="text-white/20" />
+              <MessageCircle size={24} className="text-text-muted" />
             </div>
             <p className="text-sm font-medium text-text-secondary">No conversations yet</p>
-            <p className="text-xs text-white/25 max-w-[200px]">Connect with others to start messaging</p>
+            <p className="text-xs text-text-muted max-w-[200px]">Connect with others to start messaging</p>
           </div>
         )}
         {filtered.map(convo => {
@@ -125,7 +125,7 @@ const ConversationList = ({ onSelect, selectedId, onlineUsers, onConversationDel
               className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all duration-200 relative rounded-lg ${
                 isSelected
                   ? 'bg-accent/10 border-2 border-accent shadow-lg'
-                  : 'hover:bg-white/4 border-2 border-border-subtle hover:border-border-subtle'
+                  : 'hover:bg-surface-hover border-2 border-border-subtle hover:border-border-subtle'
               }`}
               aria-label={`Chat with ${convo.user.name}`}
             >
@@ -576,7 +576,7 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
         {!isLoading && messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
             <div className="w-16 h-16 rounded-full flex items-center justify-center bg-surface mb-2 shadow-inner">
-              <MessageCircle size={28} className="text-white/20" />
+              <MessageCircle size={28} className="text-text-muted" />
             </div>
             <div>
               <p className="text-sm font-medium text-text-secondary mb-1">No messages yet</p>
@@ -621,7 +621,7 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
                         <button
                           onClick={(e) => { e.stopPropagation(); setOpenMsgMenu(openMsgMenu === msg._id ? null : msg._id); }}
                           disabled={String(msg._id).startsWith('temp-')}
-                          className="p-1 rounded-md text-text-muted opacity-0 group-hover/msg:opacity-100 focus:opacity-100 hover:text-text-primary hover:bg-white/10 transition-all disabled:hidden"
+                          className="p-1 rounded-md text-text-muted opacity-0 group-hover/msg:opacity-100 focus:opacity-100 hover:text-text-primary hover:bg-surface-hover transition-all disabled:hidden"
                           aria-label="Message options"
                           aria-haspopup="menu"
                         >
@@ -636,7 +636,7 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
                             <button
                               role="menuitem"
                               onClick={() => setConfirmMsg({ id: msg._id, scope: 'me' })}
-                              className="w-full text-left px-3 py-2 text-xs text-text-secondary hover:bg-white/8 hover:text-text-primary transition-colors flex items-center gap-2"
+                              className="w-full text-left px-3 py-2 text-xs text-text-secondary hover:bg-surface-hover hover:text-text-primary transition-colors flex items-center gap-2"
                             >
                               <Trash2 size={13} /> Delete for me
                             </button>
@@ -665,8 +665,10 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
                               color: '#ffffff'
                             }
                           : {
+                              // --bubble-incoming is a green GRADIENT in light mode (index.css:128),
+                              // so the text must stay white in both themes — not a theme token.
                               background: 'var(--bubble-incoming)',
-                              border: '1px solid rgba(255,255,255,0.08)',
+                              border: '1px solid var(--border-subtle)',
                               color: '#ffffff'
                             }
                         }
@@ -677,15 +679,15 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
                   )}
                   {isLastInGroup && (
                     <div className="flex items-center gap-1 mt-1 px-1">
-                      <span className="text-[10px] text-white/25">
+                      <span className="text-[10px] text-text-muted">
                         {msg.createdAt ? formatTimestamp(msg.createdAt) : ''}
                       </span>
                       {isMe && (
                         msg.read
                           ? <CheckCheck size={12} className="text-accent" aria-label="Read" />
                           : msg.delivered
-                            ? <CheckCheck size={12} className="text-white/40" aria-label="Delivered" />
-                            : <Check size={12} className="text-white/25" aria-label="Sent" />
+                            ? <CheckCheck size={12} className="text-text-muted" aria-label="Delivered" />
+                            : <Check size={12} className="text-text-muted" aria-label="Sent" />
                       )}
                     </div>
                   )}
@@ -1112,7 +1114,7 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
                 ) : (
                   <div className="hidden sm:flex flex-col items-center justify-center h-full gap-4 text-center px-6 bg-background">
                     <div className="w-16 h-16 rounded-full flex items-center justify-center bg-surface shadow-inner">
-                      <MessageCircle size={32} className="text-white/15" />
+                      <MessageCircle size={32} className="text-text-muted" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-text-secondary mb-1">Select a conversation</p>

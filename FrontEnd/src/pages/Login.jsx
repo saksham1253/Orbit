@@ -121,7 +121,7 @@ const Login = () => {
 
         {/* Tab switcher */}
         <div className="grid grid-cols-2 gap-2 rounded-xl p-1 mb-7 w-full"
-          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
+          style={{ background: 'var(--bg-surface-glass)', border: '1px solid var(--border-subtle)' }}
         >
           <Link to="/login"
             className="flex-1 py-2 rounded-lg text-sm font-semibold text-center transition-all"
@@ -210,9 +210,9 @@ const Login = () => {
 
         {/* OAuth */}
         <div className="flex items-center my-6">
-          <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.07)' }} />
+          <div className="flex-1 h-px" style={{ background: 'var(--border-subtle)' }} />
           <span className="px-4 text-xs text-text-muted uppercase tracking-widest">or</span>
-          <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.07)' }} />
+          <div className="flex-1 h-px" style={{ background: 'var(--border-subtle)' }} />
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
@@ -220,8 +220,8 @@ const Login = () => {
             href={`${API_BASE}/api/auth/google`}
             className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all text-text-secondary hover:text-text-primary"
             style={{
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.08)',
+              background: 'var(--bg-surface-glass)',
+              border: '1px solid var(--border-subtle)',
             }}
           >
             <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none">
@@ -236,8 +236,8 @@ const Login = () => {
             href={`${API_BASE}/api/auth/github`}
             className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all text-text-secondary hover:text-text-primary"
             style={{
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.08)',
+              background: 'var(--bg-surface-glass)',
+              border: '1px solid var(--border-subtle)',
             }}
           >
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -255,12 +255,12 @@ const Login = () => {
         </p>
 
         {/* Trust badges - no emojis */}
-        <div className="flex items-center justify-center gap-5 mt-6 pt-5"
-          style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
+        <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 mt-6 pt-5"
+          style={{ borderTop: '1px solid var(--border-subtle)' }}
         >
-          <span className="text-xs text-white/25">Secure Authentication</span>
-          <span className="text-xs text-white/25">Trust Verified</span>
-          <span className="text-xs text-white/25">Location Matched</span>
+          <span className="text-xs text-text-muted">Secure Authentication</span>
+          <span className="text-xs text-text-muted">Trust Verified</span>
+          <span className="text-xs text-text-muted">Location Matched</span>
         </div>
       </motion.div>
     </div>

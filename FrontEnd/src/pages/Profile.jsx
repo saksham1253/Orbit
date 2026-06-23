@@ -189,7 +189,7 @@ const Profile = () => {
       {/* Avatar + meta card */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
         className="flex items-center gap-5 p-6 rounded-2xl"
-        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+        style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
         <div className="relative">
           <Avatar name={profile?.name || user?.name} size="xl" userId={profile?._id || user?._id} url={profile?.avatar} />
           <button
@@ -230,7 +230,7 @@ const Profile = () => {
       {/* Form */}
       <form onSubmit={handleSubmit(d => updateMutation.mutate(d))} className="space-y-5">
         <div className="p-6 rounded-2xl space-y-5"
-          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
           <h2 className="font-display font-bold text-text-primary text-base flex items-center gap-2">
             <UserCircle size={15} className="text-accent" /> Basic Info
           </h2>
@@ -259,7 +259,7 @@ const Profile = () => {
           {/* Languages */}
           <div>
             <label htmlFor="profile-languages" className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">
-              Spoken Languages <span className="normal-case text-white/25 lowercase">(search and pick up to {MAX_LANGUAGES})</span>
+              Spoken Languages <span className="normal-case text-text-muted lowercase">(search and pick up to {MAX_LANGUAGES})</span>
             </label>
             <LanguageMultiSelect
               id="profile-languages"
@@ -271,7 +271,7 @@ const Profile = () => {
         </div>
 
         <div className="p-6 rounded-2xl space-y-5"
-          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
           <h2 className="font-display font-bold text-text-primary text-base flex items-center gap-2">
             <LinkIcon size={15} className="text-accent" /> Social Links
           </h2>
@@ -439,7 +439,7 @@ const Profile = () => {
                     </div>
                     <div className="flex gap-1 mb-2">
                       {Array.from({ length: 5 }).map((_, i) => (
-                        <span key={i} className={`text-[12px] ${i < r.score ? 'text-[#ffb800]' : 'text-white/10'}`}>★</span>
+                        <span key={i} className={`text-[12px] ${i < r.score ? 'text-[#ffb800]' : 'text-text-muted'}`}>★</span>
                       ))}
                     </div>
                     <p className="text-sm text-text-secondary break-words">{r.review || "No written review provided."}</p>
@@ -463,7 +463,7 @@ const Profile = () => {
                     </div>
                     <div className="flex gap-1 mb-2">
                       {Array.from({ length: 5 }).map((_, i) => (
-                        <span key={i} className={`text-[12px] ${i < r.score ? 'text-[#ffb800]' : 'text-white/10'}`}>★</span>
+                        <span key={i} className={`text-[12px] ${i < r.score ? 'text-[#ffb800]' : 'text-text-muted'}`}>★</span>
                       ))}
                     </div>
                     <p className="text-sm text-text-secondary break-words">{r.review || "No written review provided."}</p>

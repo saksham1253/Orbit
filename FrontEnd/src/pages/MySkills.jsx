@@ -54,7 +54,7 @@ const MySkills = () => {
         <motion.div
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
           className="flex flex-col items-center justify-center py-20 rounded-2xl text-center"
-          style={{ background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(0,198,255,0.2)' }}
+          style={{ background: 'var(--bg-surface-glass)', border: '1px dashed rgba(0,198,255,0.2)' }}
         >
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
             style={{ background: 'rgba(0,198,255,0.1)', border: '1px solid rgba(0,198,255,0.2)' }}>

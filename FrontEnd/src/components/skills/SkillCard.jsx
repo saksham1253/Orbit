@@ -103,7 +103,7 @@ const SkillCard = memo(({ skill, variant = 'browse', onConnect, onViewRatings })
           {variant === 'my-skills' && isOwner && (
             <button
               onClick={handleDelete}
-              className="p-1.5 rounded-lg text-white/25 hover:text-danger hover:bg-danger/10 transition-all"
+              className="p-1.5 rounded-lg text-text-muted hover:text-danger hover:bg-danger/10 transition-all"
               disabled={deleteMutation.isPending}
             >
               <Trash2 size={14} />
@@ -144,7 +144,7 @@ const SkillCard = memo(({ skill, variant = 'browse', onConnect, onViewRatings })
           >
             {level}
           </span>
-          <span className="text-xs text-white/25">
+          <span className="text-xs text-text-muted">
             {skill.createdAt
               ? formatDistanceToNow(new Date(skill.createdAt), { addSuffix: true })
               : 'Recently'}
@@ -195,7 +195,7 @@ const SkillCard = memo(({ skill, variant = 'browse', onConnect, onViewRatings })
           <button
             onClick={(e) => e.stopPropagation()}
             className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium opacity-40 cursor-not-allowed"
-            style={{ border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)' }}
+            style={{ border: '1px solid var(--border-subtle)', background: 'var(--bg-surface-hover)' }}
             disabled
             title="Connect first to call"
           >

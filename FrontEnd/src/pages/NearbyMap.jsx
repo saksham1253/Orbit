@@ -133,7 +133,7 @@ const NearbyMap = () => {
 
       {/* Controls */}
       <div className="p-5 rounded-2xl space-y-4"
-        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+        style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
         <div className="flex flex-col sm:flex-row gap-3">
           {/* Location input */}
           <div className="flex-1 flex gap-2">
@@ -169,7 +169,7 @@ const NearbyMap = () => {
         </div>
 
         {/* Radius "search horizon" dial + search */}
-        <div className="pt-2 border-t border-white/5">
+        <div className="pt-2 border-t border-border-subtle">
           <div className="flex items-center gap-2 mb-3 text-xs font-semibold uppercase tracking-wider text-text-muted">
             <Sliders size={13} /> Search radius
           </div>
@@ -191,8 +191,8 @@ const NearbyMap = () => {
       {/* Map */}
       {!locationSet && (
         <div className="flex flex-col items-center justify-center py-16 rounded-2xl"
-          style={{ background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.1)' }}>
-          <MapPin size={40} className="text-white/15 mb-4" />
+          style={{ background: 'var(--bg-surface)', border: '1px dashed var(--border-subtle)' }}>
+          <MapPin size={40} className="text-text-muted mb-4" />
           <p className="text-text-muted text-sm">Enter your city above or click <strong>Locate Me</strong> to find nearby skills.</p>
         </div>
       )}
@@ -249,8 +249,8 @@ const NearbyMap = () => {
           {isLoading ? (
             <NearbyListSkeleton count={3} />
           ) : skills.length === 0 ? (
-            <div className="py-12 text-center rounded-2xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.08)' }}>
-              <Users size={32} className="mx-auto text-white/15 mb-3" />
+            <div className="py-12 text-center rounded-2xl" style={{ background: 'var(--bg-surface)', border: '1px dashed var(--border-subtle)' }}>
+              <Users size={32} className="mx-auto text-text-muted mb-3" />
               <p className="text-text-muted text-sm">No skills found within {radius} km. Try increasing the radius.</p>
             </div>
           ) : (
@@ -275,7 +275,7 @@ const NearbyMap = () => {
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="pill-offer">{s.skillOffered}</span>
-                    <span className="text-white/25">⇄</span>
+                    <span className="text-text-muted">⇄</span>
                     <span className="pill-want">{s.skillWanted}</span>
                   </div>
                 </motion.div>

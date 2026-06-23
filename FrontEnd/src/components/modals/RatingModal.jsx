@@ -108,7 +108,7 @@ const RatingModal = ({ isOpen, onClose, otherUser, callDuration }) => {
                 className={`${
                   star <= (hoveredRating || rating)
                     ? 'text-amber fill-amber'
-                    : 'text-white/20'
+                    : 'text-text-muted'
                 } transition-colors`}
               />
             </button>
@@ -158,7 +158,7 @@ const RatingModal = ({ isOpen, onClose, otherUser, callDuration }) => {
               {comment.length}/500 characters {comment.length < 10 && `(${10 - comment.length} more needed)`}
             </p>
             {comment.length >= 10 && (
-              <p className="text-xs text-green-400">✓ Good to go!</p>
+              <p className="text-xs text-green">✓ Good to go!</p>
             )}
           </div>
         </div>
@@ -192,7 +192,7 @@ const RatingModal = ({ isOpen, onClose, otherUser, callDuration }) => {
         </button>
 
         {/* Required Notice */}
-        <p className="text-center text-xs text-white/25 mt-2">
+        <p className="text-center text-xs text-text-muted mt-2">
           Rating helps improve the Orbit community
         </p>
       </motion.div>

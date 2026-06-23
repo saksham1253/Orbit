@@ -91,7 +91,7 @@ export default function Observatory() {
       <Helmet><title>The Observatory · Orbit</title></Helmet>
       <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex flex-wrap items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center"
             style={{ background: 'linear-gradient(135deg, #9B6BFF, #FF8FCF)', boxShadow: '0 0 16px rgba(155,107,255,0.5)' }}>
             <Telescope size={20} color="#fff" />

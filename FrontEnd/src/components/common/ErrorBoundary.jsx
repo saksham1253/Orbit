@@ -93,8 +93,8 @@ class ErrorBoundary extends Component {
                 onClick={() => window.location.assign('/')}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-text-secondary hover:text-text-primary transition-all"
                 style={{
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.08)',
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border-subtle)',
                 }}
               >
                 Go Home

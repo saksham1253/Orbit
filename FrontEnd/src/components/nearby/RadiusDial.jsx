@@ -90,7 +90,7 @@ export default function RadiusDial({ value, onChange, city }) {
                 cy={CENTER}
                 r={r}
                 fill="none"
-                stroke={within ? 'rgba(0,198,255,0.55)' : 'rgba(255,255,255,0.10)'}
+                stroke={within ? 'rgba(0,198,255,0.55)' : 'var(--border-subtle)'}
                 strokeWidth={isActive ? 2.5 : 1}
                 style={{ cursor: 'pointer' }}
                 onClick={() => setIndex(i)}

@@ -57,8 +57,8 @@ const UserRatingsModal = ({ user, isOpen, onClose }) => {
             transition={{ type: 'spring', stiffness: 420, damping: 30 }}
             onClick={e => e.stopPropagation()}
             style={{
-              background: 'linear-gradient(145deg, rgba(18,18,40,0.98) 0%, rgba(8,8,24,0.99) 100%)',
-              border: '1px solid rgba(255,255,255,0.1)',
+              background: 'var(--bg-surface-glass)',
+              border: '1px solid var(--border-subtle)',
               borderRadius: 24,
               width: '100%', maxWidth: 480,
               maxHeight: '85vh', display: 'flex', flexDirection: 'column',
@@ -70,7 +70,7 @@ const UserRatingsModal = ({ user, isOpen, onClose }) => {
             <div style={{ padding: '24px 24px 0', display: 'flex', alignItems: 'flex-start', gap: 14 }}>
               <Avatar name={profile?.name} url={profile?.avatar} size="xl" userId={profile?._id} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <h2 style={{ color: '#fff', fontSize: 20, fontWeight: 700, margin: 0 }}>
+                <h2 style={{ color: 'var(--text-primary)', fontSize: 20, fontWeight: 700, margin: 0 }}>
                   {profile?.name || 'User'}
                 </h2>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 6, flexWrap: 'wrap' }}>
@@ -89,10 +89,10 @@ const UserRatingsModal = ({ user, isOpen, onClose }) => {
                         key={s}
                         size={14}
                         fill={s <= Math.round(avg) ? '#ffb800' : 'transparent'}
-                        style={{ color: s <= Math.round(avg) ? '#ffb800' : 'rgba(255,255,255,0.2)' }}
+                        style={{ color: s <= Math.round(avg) ? '#ffb800' : 'var(--text-muted)' }}
                       />
                     ))}
-                    <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginLeft: 4 }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: 12, marginLeft: 4 }}>
                       {avg > 0 ? avg.toFixed(1) : '—'} ({total} review{total !== 1 ? 's' : ''})
                     </span>
                   </span>
@@ -102,9 +102,9 @@ const UserRatingsModal = ({ user, isOpen, onClose }) => {
                 aria-label="Close ratings modal"
                 onClick={onClose}
                 style={{
-                  background: 'rgba(255,255,255,0.07)', border: 'none', borderRadius: '50%',
+                  background: 'var(--bg-surface-hover)', border: 'none', borderRadius: '50%',
                   width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', color: 'rgba(255,255,255,0.5)', flexShrink: 0,
+                  cursor: 'pointer', color: 'var(--text-secondary)', flexShrink: 0,
                 }}
               >
                 <X size={16} />
@@ -112,7 +112,7 @@ const UserRatingsModal = ({ user, isOpen, onClose }) => {
             </div>
 
             {/* Divider */}
-            <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', margin: '18px 0 0' }} />
+            <div style={{ height: 1, background: 'var(--border-subtle)', margin: '18px 0 0' }} />
 
             {/* Reviews list */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px 24px' }}>
@@ -122,8 +122,8 @@ const UserRatingsModal = ({ user, isOpen, onClose }) => {
                     <div
                       key={i}
                       style={{
-                        background: 'rgba(255,255,255,0.04)',
-                        border: '1px solid rgba(255,255,255,0.08)',
+                        background: 'var(--bg-surface)',
+                        border: '1px solid var(--border-subtle)',
                         borderRadius: 14, padding: '14px 16px',
                         display: 'flex', flexDirection: 'column', gap: 10
                       }}
@@ -141,9 +141,9 @@ const UserRatingsModal = ({ user, isOpen, onClose }) => {
                 </div>
               ) : ratings.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '40px 0' }}>
-                  <MessageSquare size={36} style={{ color: 'rgba(255,255,255,0.12)', margin: '0 auto 12px' }} />
-                  <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 14 }}>No reviews yet</p>
-                  <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12, marginTop: 4 }}>
+                  <MessageSquare size={36} style={{ color: 'var(--text-muted)', margin: '0 auto 12px' }} />
+                  <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>No reviews yet</p>
+                  <p style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 4 }}>
                     This person hasn't received any ratings yet.
                   </p>
                 </div>
@@ -156,15 +156,15 @@ const UserRatingsModal = ({ user, isOpen, onClose }) => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.04 }}
                       style={{
-                        background: 'rgba(255,255,255,0.04)',
-                        border: '1px solid rgba(255,255,255,0.08)',
+                        background: 'var(--bg-surface)',
+                        border: '1px solid var(--border-subtle)',
                         borderRadius: 14, padding: '14px 16px',
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           <Avatar name={r.fromUser?.name || '?'} url={r.fromUser?.avatar} size="sm" userId={r.fromUser?._id} />
-                          <span style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>
+                          <span style={{ color: 'var(--text-primary)', fontSize: 13, fontWeight: 600, minWidth: 0, overflowWrap: 'anywhere' }}>
                             {r.fromUser?.name || 'Anonymous'}
                           </span>
                         </div>
@@ -175,13 +175,13 @@ const UserRatingsModal = ({ user, isOpen, onClose }) => {
                               key={s}
                               size={12}
                               fill={s <= r.score ? '#ffb800' : 'transparent'}
-                              style={{ color: s <= r.score ? '#ffb800' : 'rgba(255,255,255,0.2)' }}
+                              style={{ color: s <= r.score ? '#ffb800' : 'var(--text-muted)' }}
                             />
                           ))}
                         </div>
                       </div>
                       {r.review && (
-                        <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 13, lineHeight: 1.6, margin: 0 }}>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: 13, lineHeight: 1.6, margin: 0, overflowWrap: 'anywhere' }}>
                           "{r.review}"
                         </p>
                       )}

@@ -29,7 +29,7 @@ const EmptyState = ({
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       className="relative overflow-hidden flex flex-col items-center justify-center py-20 rounded-2xl text-center"
       style={{
-        background: 'rgba(255,255,255,0.02)',
+        background: 'var(--bg-surface-glass)',
         border: `1px dashed ${borderRgba}`,
       }}
     >

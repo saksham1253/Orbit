@@ -72,7 +72,7 @@ const ForgotPassword = () => {
               </div>
               <h2 className="text-xl font-display font-bold text-text-primary">Check your email</h2>
               <p className="text-sm text-text-secondary leading-relaxed">
-                If an account exists for <span className="text-white/80 font-medium">{email}</span>, we've sent a password reset link. It expires in 1 hour.
+                If an account exists for <span className="text-text-secondary font-medium break-words">{email}</span>, we've sent a password reset link. It expires in 1 hour.
               </p>
               <p className="text-xs text-text-muted">
                 Don't see it? Check your <span className="text-text-secondary font-medium">spam</span> or

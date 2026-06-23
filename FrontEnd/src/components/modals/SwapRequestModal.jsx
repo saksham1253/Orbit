@@ -60,7 +60,7 @@ const SwapRequestModal = ({ isOpen, onClose, skill, owner }) => {
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-5 border-b border-white/5 relative bg-surface">
+          <div className="flex items-center justify-between p-5 border-b border-border-subtle relative bg-surface">
             <h3 className="text-lg font-display font-bold text-text-primary flex items-center gap-2">
               <Send size={18} className="text-accent" /> Request Swap
             </h3>
@@ -72,10 +72,10 @@ const SwapRequestModal = ({ isOpen, onClose, skill, owner }) => {
           <div className="p-6 overflow-y-auto custom-scrollbar flex flex-col gap-6">
             
             {/* Target Info */}
-            <div className="flex items-center gap-4 p-4 rounded-xl border border-white/5 bg-surface">
+            <div className="flex items-center gap-4 p-4 rounded-xl border border-border-subtle bg-surface">
               <Avatar url={owner.avatar} name={owner.name} size="lg" userId={owner._id} />
-              <div>
-                <p className="font-semibold text-text-primary">Swap with {owner.name}</p>
+              <div className="min-w-0">
+                <p className="font-semibold text-text-primary break-words">Swap with {owner.name}</p>
                 <div className="flex items-center gap-2 text-sm mt-1">
                   <span className="text-text-muted">You want:</span>
                   <span className="pill-offer text-xs">{skill.skillOffered}</span>
@@ -102,7 +102,7 @@ const SwapRequestModal = ({ isOpen, onClose, skill, owner }) => {
           </div>
 
           {/* Footer */}
-          <div className="p-5 border-t border-white/5 bg-surface flex gap-3 justify-end">
+          <div className="p-5 border-t border-border-subtle bg-surface flex gap-3 justify-end">
             <button
               onClick={onClose}
               className="px-5 py-2.5 rounded-xl text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors"

@@ -73,9 +73,9 @@ const SkillForm = ({ isOpen, onClose }) => {
               <button key={value} type="button" onClick={() => setValue('level', value)}
                 className="flex-1 py-2 rounded-xl text-xs font-semibold transition-all"
                 style={{
-                  background: selectedLevel === value ? `${color}18` : 'rgba(255,255,255,0.04)',
-                  border: `1px solid ${selectedLevel === value ? `${color}50` : 'rgba(255,255,255,0.08)'}`,
-                  color: selectedLevel === value ? color : 'rgba(255,255,255,0.45)',
+                  background: selectedLevel === value ? `${color}18` : 'var(--bg-surface-hover)',
+                  border: `1px solid ${selectedLevel === value ? `${color}50` : 'var(--border-subtle)'}`,
+                  color: selectedLevel === value ? color : 'var(--text-muted)',
                 }}>
                 {label}
               </button>
@@ -85,7 +85,7 @@ const SkillForm = ({ isOpen, onClose }) => {
 
         {/* Description */}
         <div>
-          <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">Description <span className="normal-case text-white/25 lowercase">(optional)</span></label>
+          <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">Description <span className="normal-case text-text-muted lowercase">(optional)</span></label>
           <textarea {...register('description')} rows={2}
             placeholder="Any specific details about your offer…"
             className="input-glass w-full px-4 py-3 text-sm text-text-primary resize-none" />
@@ -95,7 +95,7 @@ const SkillForm = ({ isOpen, onClose }) => {
         <div className="flex justify-end gap-3 pt-1">
           <button type="button" onClick={onClose}
             className="px-5 py-2.5 rounded-xl text-sm font-medium text-text-secondary hover:text-text-primary transition-all"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            style={{ background: 'var(--bg-surface-hover)', border: '1px solid var(--border-subtle)' }}>
             Cancel
           </button>
           <button type="submit" disabled={mutation.isPending}

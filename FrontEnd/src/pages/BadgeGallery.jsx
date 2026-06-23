@@ -70,7 +70,7 @@ function ThemeColumn({ mode, label }) {
   const card = mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(13,2,33,0.04)';
 
   return (
-    <div data-mode={mode} style={{ background: bg, color: fg, padding: '24px', borderRadius: 16, flex: 1, minWidth: 320 }}>
+    <div data-mode={mode} style={{ background: bg, color: fg, padding: '24px', borderRadius: 16, flex: 1, minWidth: 'min(320px, 100%)' }}>
       <h2 style={{ margin: '0 0 4px', fontSize: 18, fontWeight: 700 }}>{label}</h2>
       <p style={{ margin: '0 0 20px', fontSize: 13, color: sub }}>data-mode=&quot;{mode}&quot;</p>
 

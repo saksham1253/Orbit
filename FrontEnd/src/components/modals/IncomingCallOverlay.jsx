@@ -182,7 +182,7 @@ const IncomingCallOverlay = ({ call, onAccept, onDecline, onIgnore }) => {
             <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 6, letterSpacing: 1, textTransform: 'uppercase' }}>
               Incoming Video Call
             </p>
-            <h2 style={{ color: '#fff', fontSize: 26, fontWeight: 700, marginBottom: 6 }}>
+            <h2 style={{ color: '#fff', fontSize: 26, fontWeight: 700, marginBottom: 6, wordBreak: 'break-word' }}>
               {call.callerName || 'Someone'}
             </h2>
             <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 36 }}>

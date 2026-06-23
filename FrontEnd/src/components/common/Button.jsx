@@ -4,7 +4,7 @@ const VARIANTS = {
   primary: 'btn-gradient text-text-primary',
   secondary: 'bg-surface hover:bg-surface-hover text-text-primary transition-all',
   danger: 'bg-danger/15 hover:bg-danger text-danger hover:text-text-primary border border-danger/40 transition-all',
-  ghost: 'text-text-secondary hover:text-text-primary hover:bg-white/05 transition-all',
+  ghost: 'text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-all',
   outline: 'border border-border text-text-secondary hover:text-text-primary hover:border-accent/50 hover:bg-accent/05 transition-all',
 };
 

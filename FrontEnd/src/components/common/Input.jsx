@@ -21,7 +21,7 @@ const Input = forwardRef(({ label, error, required, id: externalId, className = 
         aria-required={required}
         aria-invalid={!!error}
         aria-describedby={error ? `${inputId}-error` : undefined}
-        className={`input-glass w-full px-4 py-3 text-sm text-text-primary placeholder-white/25 ${
+        className={`input-glass w-full px-4 py-3 text-sm text-text-primary placeholder-text-muted ${
           error ? 'border-danger/60 focus:border-danger' : ''
         }`}
         {...props}

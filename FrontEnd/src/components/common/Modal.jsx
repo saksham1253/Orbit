@@ -43,10 +43,10 @@ const Modal = ({ isOpen, onClose, title, children, maxWidth = 'max-w-lg' }) => {
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             className={`relative w-full ${maxWidth} rounded-2xl overflow-hidden z-10`}
             style={{
-              background: 'rgba(8,10,22,0.92)',
+              background: 'var(--bg-surface)',
               backdropFilter: 'blur(28px) saturate(1.5)',
               WebkitBackdropFilter: 'blur(28px) saturate(1.5)',
-              border: '1px solid rgba(255,255,255,0.1)',
+              border: '1px solid var(--border-subtle)',
               boxShadow: '0 25px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,198,255,0.06)',
             }}
           >
@@ -57,13 +57,13 @@ const Modal = ({ isOpen, onClose, title, children, maxWidth = 'max-w-lg' }) => {
 
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4"
-              style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
+              style={{ borderBottom: '1px solid var(--border-subtle)' }}
             >
               <h3 id={titleId} className="text-lg font-semibold text-text-primary">{title}</h3>
               <button
                 onClick={onClose}
                 aria-label="Close dialog"
-                className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-white/08 transition-all"
+                className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-hover transition-all"
               >
                 <X size={18} />
               </button>
