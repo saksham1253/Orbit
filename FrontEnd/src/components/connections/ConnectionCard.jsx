@@ -155,7 +155,7 @@ const ConnectionCard = ({ connection, type, onRate, onViewRatings }) => {
             </p>
           )}
 
-          <p className="text-xs text-white/25 mt-1 flex items-center gap-1">
+          <p className="text-xs text-text-muted mt-1 flex items-center gap-1">
             <Clock size={10} />
             {isCompleted && connection.completedAt
               ? `Completed ${formatDistanceToNow(new Date(connection.completedAt), { addSuffix: true })}`
@@ -166,14 +166,15 @@ const ConnectionCard = ({ connection, type, onRate, onViewRatings }) => {
         </div>
       </div>
 
-      {/* Right — actions */}
-      <div className="flex gap-2 flex-shrink-0">
+      {/* Right — actions. Wrap on narrow screens so 2-3 buttons never overflow
+          the card width; single row from sm up. */}
+      <div className="flex gap-2 flex-wrap justify-end sm:justify-start sm:flex-nowrap sm:flex-shrink-0">
         {isIncoming && (
           <>
             {/* View Ratings — check their reputation before accepting */}
             <button
               onClick={() => onViewRatings?.(other)}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-text-secondary hover:text-amber hover:bg-amber/10 border border-white/08 transition-all"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-text-secondary hover:text-amber hover:bg-amber/10 border border-border-subtle transition-all"
               title="View this person's ratings"
             >
               <Star size={14} /> Ratings
@@ -181,7 +182,7 @@ const ConnectionCard = ({ connection, type, onRate, onViewRatings }) => {
             <button
               onClick={() => respondMutation.mutate('decline')}
               disabled={respondMutation.isPending}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-text-secondary hover:text-danger hover:bg-danger/10 border border-white/08 transition-all"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-text-secondary hover:text-danger hover:bg-danger/10 border border-border-subtle transition-all"
             >
               <X size={15} /> Decline
             </button>
@@ -224,7 +225,7 @@ const ConnectionCard = ({ connection, type, onRate, onViewRatings }) => {
               <button
                 onClick={handleCancel}
                 disabled={cancelMutation.isPending}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-text-secondary hover:text-danger hover:bg-danger/10 border border-white/08 transition-all disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-text-secondary hover:text-danger hover:bg-danger/10 border border-border-subtle transition-all disabled:opacity-50"
                 title="Cancel this request"
               >
                 <Trash2 size={14} /> Cancel
@@ -240,13 +241,13 @@ const ConnectionCard = ({ connection, type, onRate, onViewRatings }) => {
                 // Dispatch event so Navbar can open ChatDrawer with this user
                 window.dispatchEvent(new CustomEvent('open-chat', { detail: other }));
               }}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-text-secondary hover:text-accent hover:bg-accent/10 border border-white/08 transition-all"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-text-secondary hover:text-accent hover:bg-accent/10 border border-border-subtle transition-all"
             >
               <MessageCircle size={15} /> Chat
             </button>
             <button
               onClick={() => onRate?.(other?._id)}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-text-secondary hover:text-amber hover:bg-amber/10 border border-white/08 transition-all"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-text-secondary hover:text-amber hover:bg-amber/10 border border-border-subtle transition-all"
             >
               <Star size={15} /> Rate
             </button>
@@ -266,7 +267,7 @@ const ConnectionCard = ({ connection, type, onRate, onViewRatings }) => {
           <>
             <button
               onClick={() => navigate(`/profile/${other?._id}`)}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-text-secondary hover:text-accent hover:bg-accent/10 border border-white/08 transition-all"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-text-secondary hover:text-accent hover:bg-accent/10 border border-border-subtle transition-all"
             >
               <UserCheck size={15} /> View Profile
             </button>

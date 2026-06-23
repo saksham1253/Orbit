@@ -125,7 +125,7 @@ exports.setStatus = async (req, res) => {
     try {
         const status = req.body.status;
         if (!["active", "suspended", "banned"].includes(status)) return res.status(400).json({ message: "Invalid status." });
-        const before = await User.findById(req.params.id).select("status banndUntil banCount email").lean();
+        const before = await User.findById(req.params.id).select("status bannedUntil banCount email").lean();
         if (!before) return res.status(404).json({ message: "Not found" });
         if (String(req.params.id) === String(req.adminUser._id)) {
             return res.status(400).json({ message: "You cannot change your own status." });

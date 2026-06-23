@@ -115,7 +115,10 @@ export default function Leaderboard() {
     }
   }, [data?.you?.tierId, user?._id, data?.label, markIntroSeen, playLiftoff]);
 
-  const needsLocation = error?.response?.data?.needsLocation;
+  // Backend names this `viewerNeedsLocation` (older code read `needsLocation`,
+  // which never matched → dead branch). Accept either so the error-state nudge
+  // resolves correctly. The happy-path nudge is handled separately from `data`.
+  const needsLocation = error?.response?.data?.viewerNeedsLocation ?? error?.response?.data?.needsLocation;
 
   return (
     <>

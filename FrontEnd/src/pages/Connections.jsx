@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import api from '../services/api';
@@ -9,6 +9,7 @@ import RatingForm from '../components/trust/RatingForm';
 import ErrorState from '../components/common/ErrorState';
 import EmptyState from '../components/common/EmptyState';
 import { useAuthStore } from '../store/authStore';
+import useSeenSentStore from '../store/seenSentStore';
 import UserRatingsModal from '../components/modals/UserRatingsModal';
 import { Users, Inbox, Send, CheckCircle2 } from 'lucide-react';
 
@@ -87,10 +88,29 @@ const Connections = () => {
   const outgoingReqs = dedupeByOtherUser(pending?.outgoing || []);
   const connectionsList = establishedList;
 
+  // Sent tab: a request that has been answered (accepted/declined) is shown ONCE
+  // so the user sees the outcome, then auto-removed on the next visit. Pending
+  // requests are never hidden — they stay until resolved or cancelled.
+  const seenSent = useSeenSentStore((s) => s.seen);
+  const markSeen = useSeenSentStore((s) => s.markSeen);
+  const visibleOutgoing = outgoingReqs.filter(
+    (c) => c.status === 'pending' || !seenSent[c._id]
+  );
+  // Capture the resolved ids each render; mark them seen only when the user
+  // LEAVES the Sent tab (or unmounts) so they remain visible through this view.
+  const resolvedSentIdsRef = useRef([]);
+  resolvedSentIdsRef.current = outgoingReqs
+    .filter((c) => c.status === 'accepted' || c.status === 'declined')
+    .map((c) => c._id);
+  useEffect(() => {
+    if (activeTab !== 'outgoing') return undefined;
+    return () => markSeen(resolvedSentIdsRef.current);
+  }, [activeTab, markSeen]);
+
   const tabs = [
     { id: 'established', label: 'My Connections', short: 'Connections', count: connectionsList.length },
     { id: 'incoming', label: 'Incoming Requests', short: 'Incoming', count: incomingReqs.length },
-    { id: 'outgoing', label: 'Sent Requests', short: 'Sent', count: outgoingReqs.length },
+    { id: 'outgoing', label: 'Sent Requests', short: 'Sent', count: visibleOutgoing.length },
     { id: 'completed', label: 'Completed Swaps', short: 'Swaps', count: completedList.length },
   ];
 
@@ -192,7 +212,7 @@ const Connections = () => {
           <>
             {loadingPending && <ConnectionListSkeleton count={3} />}
             {pendingError && <ErrorState message="Failed to load requests." onRetry={refetchPending} />}
-            {!loadingPending && !pendingError && outgoingReqs.length === 0 && (
+            {!loadingPending && !pendingError && visibleOutgoing.length === 0 && (
               <EmptyState
                 icon={<Send size={26} />}
                 title="No sent requests"
@@ -202,7 +222,7 @@ const Connections = () => {
                 accentColor="#00e5a0"
               />
             )}
-            {!loadingPending && outgoingReqs.map(conn => (
+            {!loadingPending && visibleOutgoing.map(conn => (
               <ConnectionCard key={conn._id} connection={conn} type="outgoing" />
             ))}
           </>
