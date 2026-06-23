@@ -86,7 +86,9 @@ export const useNotificationStore = create((set, get) => ({
           label: 'View Profile',
           primary: true,
           handler: () => {
-            window.location.href = `/profile?userId=${otherUser?._id}`;
+            // The OTHER user's public profile lives at /profile/:userId.
+            // (/profile with no param is the viewer's OWN profile.)
+            window.location.href = otherUser?._id ? `/profile/${otherUser._id}` : '/matches';
           },
         },
         {
@@ -110,7 +112,8 @@ export const useNotificationStore = create((set, get) => ({
           label: 'View Profile',
           primary: true,
           handler: () => {
-            window.location.href = `/profile?userId=${matchedUser._id}`;
+            // Open the matched user's public profile (/profile/:userId), not /profile (own).
+            window.location.href = matchedUser?._id ? `/profile/${matchedUser._id}` : '/matches';
           },
         },
       ],
