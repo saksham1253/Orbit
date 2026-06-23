@@ -112,6 +112,9 @@ app.set("io", io);
 
 // Track online users
 const onlineUsers = new Map();
+// Expose the live presence map to HTTP routes (e.g. the admin Users list reads
+// it to flag who is online right now).
+app.set("onlineUsers", onlineUsers);
 
 // ── Socket.IO authentication ──────────────────────────────────────────────
 // Derive the trusted userId from a verified JWT on the handshake instead of

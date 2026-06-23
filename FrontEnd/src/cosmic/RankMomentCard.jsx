@@ -27,6 +27,7 @@ export default function RankMomentCard({
   score = null,
   pointsToRecover = null,
   city = '',
+  welcomeKind = null,
   revealed = true,
   stillMode = false,
   sharing = false,
@@ -34,7 +35,7 @@ export default function RankMomentCard({
   onContinue,
 }) {
   const tier = getTier(tierId);
-  const { eyebrow, support } = momentCopy({ variant, tierId, fromTierId, pointsToRecover, city });
+  const { eyebrow, support } = momentCopy({ variant, tierId, fromTierId, pointsToRecover, city, welcomeKind });
 
   return (
     <div className={`rmc rmc-${variant}`}>

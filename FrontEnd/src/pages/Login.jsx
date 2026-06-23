@@ -11,6 +11,7 @@ import api from '../services/api';
 import Spinner from '../components/common/Spinner';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
+import useLiftoffStore from '../cosmic/liftoffStore';
 
 const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:8000';
 
@@ -40,6 +41,18 @@ const Login = () => {
           headers: { Authorization: `Bearer ${data.token}` }
         });
         setUser(profileRes.data);
+
+        // Welcome moment (first signup-login, or returning after a long absence).
+        // Fired here rather than via LiftoffWatcher because it's NOT a tier change
+        // — it reintroduces the user to the tier they already hold.
+        if (data.welcome?.kind) {
+          const cosmic = profileRes.data?.cosmic || {};
+          useLiftoffStore.getState().play(cosmic.tierId || 'moon_4', {
+            direction: 'intro',
+            score: cosmic.score ?? null,
+            welcomeKind: data.welcome.kind,
+          });
+        }
       } catch {
         // Even if profile fetch fails, token is set — user will be loaded by app
       }

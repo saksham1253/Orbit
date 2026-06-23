@@ -19,9 +19,18 @@ export function isPromotion(fromId, toId) {
  * Copy for a moment — { eyebrow, support }. The tier NAME is rendered separately
  * (as the headline), so `support` never repeats it.
  */
-export function momentCopy({ variant, tierId, fromTierId, pointsToRecover, city }) {
+export function momentCopy({ variant, tierId, fromTierId, pointsToRecover, city, welcomeKind }) {
   const t = getTier(tierId);
   const where = city ? ` over ${city}'s sky` : '';
+
+  // Welcome moments aren't tier changes — they reintroduce the user to where they
+  // already stand (first login after signup, or a return after a long absence).
+  if (welcomeKind === 'first') {
+    return { eyebrow: 'WELCOME TO ORBIT', support: 'Your ascent begins here. Teach, learn, and rise.' };
+  }
+  if (welcomeKind === 'return') {
+    return { eyebrow: 'WELCOME BACK', support: 'The sky kept your place. Pick up your climb.' };
+  }
 
   if (variant === 'down') {
     const recover = pointsToRecover != null && fromTierId

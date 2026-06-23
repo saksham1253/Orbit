@@ -87,6 +87,21 @@ exports.login = async (req, res) => {
             });
         }
 
+        // Decide whether this sign-in deserves a cosmic "welcome" moment BEFORE we
+        // overwrite the login markers below:
+        //   - first ever login (loginCount still 0)            → 'first'
+        //   - returning after a long absence (>= 7 days idle)  → 'return'
+        // The client fires the Liftoff overlay from this signal.
+        const prevLastLogin = user.lastLogin ? new Date(user.lastLogin).getTime() : null;
+        const isFirstLogin = (user.loginCount || 0) === 0;
+        let welcome = null;
+        if (isFirstLogin) {
+            welcome = { kind: "first" };
+        } else if (prevLastLogin) {
+            const daysAway = Math.floor((Date.now() - prevLastLogin) / 86400000);
+            if (daysAway >= 7) welcome = { kind: "return", days: daysAway };
+        }
+
         // Track login activity (used for trust score calculation)
         user.loginCount += 1;
         user.lastLogin   = new Date();
@@ -116,7 +131,8 @@ exports.login = async (req, res) => {
 
         res.status(200).json({
             message: "Login successful",
-            token
+            token,
+            welcome   // null, { kind: "first" }, or { kind: "return", days }
         });
 
     } catch (err) {

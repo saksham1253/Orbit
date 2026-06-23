@@ -5,7 +5,7 @@
  */
 import { useState } from 'react';
 import { ShieldCheck, KeyRound, Loader2, Copy, Check } from 'lucide-react';
-import adminApi from './adminApi';
+import adminApi, { setAdminCsrf } from './adminApi';
 
 export default function AdminLogin({ onAuthed }) {
   const [step, setStep] = useState('password'); // password | enroll | verify | backup
@@ -40,6 +40,7 @@ export default function AdminLogin({ onAuthed }) {
     setErr(''); setBusy(true);
     try {
       const { data } = await adminApi.post('/auth/verify-totp', { code });
+      setAdminCsrf(data.csrfToken);   // remember token so subsequent mutations carry the CSRF header
       if (data.backupCodes && data.backupCodes.length) {
         setBackupCodes(data.backupCodes);
         setStep('backup');

@@ -5,7 +5,7 @@
  * admin theme.
  */
 import { useCallback, useEffect, useState } from 'react';
-import adminApi from './adminApi';
+import adminApi, { setAdminCsrf } from './adminApi';
 import AdminLogin from './AdminLogin';
 import AdminShell from './AdminShell';
 import './admin.css';
@@ -17,9 +17,11 @@ export default function AdminApp() {
   const probe = useCallback(async () => {
     try {
       const { data } = await adminApi.get('/auth/me');
+      setAdminCsrf(data.csrfToken);   // header source for mutations (cross-site cookie isn't JS-readable)
       setAdmin(data.admin);
       setState('authed');
     } catch {
+      setAdminCsrf(null);
       setState('login');
     }
   }, []);

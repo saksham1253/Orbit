@@ -24,6 +24,9 @@ exports.listUsers = async (req, res) => {
         const q = (req.query.q || "").trim();
         const filter = {};
         if (req.query.status) filter.status = req.query.status;
+        // Soft-deleted users are hidden from the default list (they're managed in
+        // Records); they only appear when explicitly filtered for above.
+        else filter.status = { $ne: "soft_deleted" };
         if (req.query.role) filter.role = req.query.role;
         if (q) {
             const rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
@@ -33,7 +36,19 @@ exports.listUsers = async (req, res) => {
             User.find(filter).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).select(SAFE_LIST).lean(),
             User.countDocuments(filter),
         ]);
-        return res.json({ rows, total, page, limit, pages: Math.ceil(total / limit) });
+        // Accounts created before role/status/cosmic were added to the schema have
+        // those fields genuinely missing (Mongoose defaults only apply to NEW docs,
+        // never backfilled). Coalesce to the schema defaults so every row renders a
+        // real value instead of a blank badge. Also flag live online presence.
+        const online = req.app.get("onlineUsers");
+        const shaped = rows.map((u) => ({
+            ...u,
+            role: u.role || "user",
+            status: u.status || "active",
+            cosmic: { ...(u.cosmic || {}), tierId: u.cosmic?.tierId || "moon_4" },
+            online: online ? online.has(String(u._id)) : false,
+        }));
+        return res.json({ rows: shaped, total, page, limit, pages: Math.ceil(total / limit) });
     } catch (err) {
         console.error("[admin listUsers]", err.message);
         return res.status(500).json({ message: "Failed to list users." });

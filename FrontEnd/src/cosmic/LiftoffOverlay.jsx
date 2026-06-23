@@ -57,7 +57,7 @@ export default function LiftoffOverlay() {
   const cardStill = stillMode || isDown;
 
   const copy = event
-    ? momentCopy({ variant, tierId: event.toTierId, fromTierId: event.fromTierId, pointsToRecover: event.pointsToRecover, city: event.city })
+    ? momentCopy({ variant, tierId: event.toTierId, fromTierId: event.fromTierId, pointsToRecover: event.pointsToRecover, city: event.city, welcomeKind: event.welcomeKind })
     : null;
 
   // Run the cinematics when an event arrives.
@@ -177,6 +177,7 @@ export default function LiftoffOverlay() {
             score={event.score}
             pointsToRecover={event.pointsToRecover}
             city={event.city}
+            welcomeKind={event.welcomeKind}
             revealed={revealed}
             stillMode={cardStill}
             sharing={sharing}

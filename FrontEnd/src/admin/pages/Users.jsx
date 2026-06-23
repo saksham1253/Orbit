@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Search, X, Shield, Ban, UserCheck, KeyRound, Loader2 } from 'lucide-react';
 import adminApi from '../adminApi';
+import useOnlineUsers from '../useOnlineUsers';
 
 const STATUS = ['', 'active', 'suspended', 'banned', 'soft_deleted'];
 const ROLES = ['', 'user', 'moderator', 'admin'];
@@ -107,6 +108,7 @@ export default function Users() {
   const [page, setPage] = useState(1);
   const [data, setData] = useState(null);
   const [openId, setOpenId] = useState(null);
+  const online = useOnlineUsers();   // live Set of userIds connected right now
 
   const load = useCallback(() => {
     const params = new URLSearchParams({ page: String(page) });
@@ -139,16 +141,31 @@ export default function Users() {
         <table className="ssctl-table">
           <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Tier</th><th>Joined</th></tr></thead>
           <tbody>
-            {data?.rows.map((u) => (
+            {data?.rows.map((u) => {
+              const isOnline = online.has(String(u._id)) || u.online;
+              return (
               <tr key={u._id} style={{ cursor: 'pointer' }} onClick={() => setOpenId(u._id)}>
                 <td>{u.name}</td>
                 <td className="ssctl-muted">{u.email}</td>
-                <td><span className="ssctl-badge ssctl-badge-role">{u.role}</span></td>
-                <td><span className={`ssctl-badge ssctl-badge-${u.status}`}>{u.status}</span></td>
-                <td className="ssctl-muted">{u.cosmic?.tierId}</td>
+                <td><span className="ssctl-badge ssctl-badge-role">{u.role || 'user'}</span></td>
+                <td>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                    <span
+                      title={isOnline ? 'Online now' : 'Offline'}
+                      style={{
+                        width: 8, height: 8, borderRadius: '50%', flex: 'none',
+                        background: isOnline ? '#22c55e' : 'var(--ss-text-dim, #5b6172)',
+                        boxShadow: isOnline ? '0 0 7px #22c55e' : 'none',
+                      }}
+                    />
+                    <span className={`ssctl-badge ssctl-badge-${u.status || 'active'}`}>{u.status || 'active'}</span>
+                  </span>
+                </td>
+                <td className="ssctl-muted">{u.cosmic?.tierId || 'moon_4'}</td>
                 <td className="ssctl-muted">{new Date(u.createdAt).toLocaleDateString()}</td>
               </tr>
-            ))}
+              );
+            })}
             {data && data.rows.length === 0 && <tr><td colSpan={6} className="ssctl-muted" style={{ textAlign: 'center', padding: 24 }}>No users match.</td></tr>}
           </tbody>
         </table>
