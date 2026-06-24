@@ -25,7 +25,8 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          # Node 22: required by Vite 8 (>=20.19) and @capacitor/cli (>=22).
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: FrontEnd/package-lock.json
 

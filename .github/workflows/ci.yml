@@ -12,7 +12,9 @@ jobs:
     
     strategy:
       matrix:
-        node-version: [18.x]
+        # Node 22: Vite 8 requires >=20.19 and the Capacitor toolchain requires
+        # >=22, so the old 18.x no longer builds the frontend.
+        node-version: [22.x]
 
     steps:
     - uses: actions/checkout@v3
