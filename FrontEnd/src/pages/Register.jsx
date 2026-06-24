@@ -10,6 +10,7 @@ import { Eye, EyeOff, ArrowRight, Sparkles } from 'lucide-react';
 import api from '../services/api';
 import Spinner from '../components/common/Spinner';
 import { useUIStore } from '../store/uiStore';
+import { oauthClickHandler } from '../services/nativeAuth';
 import LanguageMultiSelect from '../components/common/LanguageMultiSelect';
 
 const MAX_LANGUAGES = 5;
@@ -131,6 +132,7 @@ const registerSchema = z.object({
           {/* OAuth first — people prefer it */}
           <div className="flex flex-col sm:flex-row gap-3 mb-2">
             <a href={`${import.meta.env.VITE_API_URL?.replace('/api','') || 'http://localhost:8000'}/api/auth/google`}
+              onClick={oauthClickHandler('google')}
               className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all text-text-secondary hover:text-text-primary"
               style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
               <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none">
@@ -142,6 +144,7 @@ const registerSchema = z.object({
               Continue with Google
             </a>
             <a href={`${import.meta.env.VITE_API_URL?.replace('/api','') || 'http://localhost:8000'}/api/auth/github`}
+              onClick={oauthClickHandler('github')}
               className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all text-text-secondary hover:text-text-primary"
               style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">

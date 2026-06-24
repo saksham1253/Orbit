@@ -13,6 +13,7 @@ import IncomingCallOverlay from './components/modals/IncomingCallOverlay';
 import NotFound from './pages/NotFound';
 import Spinner from './components/common/Spinner';
 import { connectSocket } from './services/socket';
+import { initDeepLinkAuth } from './services/nativeAuth';
 import { Toaster } from 'react-hot-toast';
 import BadgeDefsSprite from './cosmic/BadgeDefsSprite';
 import LiftoffWatcher from './cosmic/LiftoffWatcher';
@@ -105,6 +106,14 @@ function AppInner() {
     initializeTheme();
     initializeAppearance();
   }, [initializeTheme, initializeAppearance]);
+
+  // Native (Capacitor) only: finish social login when the system browser
+  // returns via the orbit:// deep link. No-op on the web build.
+  useEffect(() => {
+    let cleanup = () => {};
+    initDeepLinkAuth().then((fn) => { cleanup = fn; });
+    return () => cleanup();
+  }, []);
 
   // Expose the Animation Speed as a global CSS var so purely-CSS animations
   // (cosmic badges, future liftoff effects) honor the setting — including

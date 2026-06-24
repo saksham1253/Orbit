@@ -1,7 +1,11 @@
 import { io } from 'socket.io-client';
 import { useAuthStore } from '../store/authStore';
 
-const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:8000';
+// Mirror api.js: fall back to the absolute Render URL in production builds
+// (e.g. the Capacitor APK / PWA) so the socket never points at localhost.
+const SOCKET_URL =
+  import.meta.env.VITE_API_URL?.replace('/api', '') ||
+  (import.meta.env.PROD ? 'https://skillswap-backend-mb4k.onrender.com' : 'http://localhost:8000');
 
 let socket = null;
 

@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import compression from 'vite-plugin-compression';
+import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
   plugins: [
@@ -9,6 +10,47 @@ export default defineConfig({
     tailwindcss(),
     compression({ algorithm: 'gzip', ext: '.gz' }),
     compression({ algorithm: 'brotliCompress', ext: '.br' }),
+    // PWA: makes the deployed site installable ("Add to Home Screen") on
+    // iPhone + Android. The Capacitor APK ships the same dist/ build; the
+    // service worker is harmless inside the native shell.
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.svg', 'apple-touch-icon-180x180.png', 'orbit-app.svg'],
+      manifest: {
+        name: 'Orbit — Exchange skills, rise together',
+        short_name: 'Orbit',
+        description: "Learn in each other's orbit. Teach what you know, learn what you don't.",
+        id: '/',
+        start_url: '/',
+        scope: '/',
+        display: 'standalone',
+        orientation: 'portrait',
+        theme_color: '#0b0a20',
+        background_color: '#06050f',
+        categories: ['education', 'social', 'productivity'],
+        icons: [
+          { src: 'pwa-64x64.png', sizes: '64x64', type: 'image/png' },
+          { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+          { src: 'maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+      },
+      workbox: {
+        // Precache the built app shell; bump the limit so the larger JS chunks
+        // (map/motion) are cached for offline launch.
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+        navigateFallbackDenylist: [/^\/api/, /^\/socket\.io/],
+        runtimeCaching: [
+          {
+            // API + sockets must always hit the network (auth, realtime); never
+            // serve stale data from the cache.
+            urlPattern: ({ url }) => url.pathname.startsWith('/api') || url.pathname.startsWith('/socket.io'),
+            handler: 'NetworkOnly',
+          },
+        ],
+      },
+      devOptions: { enabled: false },
+    }),
   ],
 
   build: {

@@ -1,0 +1,18 @@
+{
+  "appId": "app.orbit.mobile",
+  "appName": "Orbit",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 800,
+      "backgroundColor": "#0b0a20",
+      "showSpinner": false
+    }
+  }
+}

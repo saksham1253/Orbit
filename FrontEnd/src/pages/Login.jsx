@@ -12,6 +12,7 @@ import Spinner from '../components/common/Spinner';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
 import useLiftoffStore from '../cosmic/liftoffStore';
+import { oauthClickHandler } from '../services/nativeAuth';
 
 const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:8000';
 
@@ -218,6 +219,7 @@ const Login = () => {
         <div className="flex flex-col sm:flex-row gap-3">
           <a
             href={`${API_BASE}/api/auth/google`}
+            onClick={oauthClickHandler('google')}
             className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all text-text-secondary hover:text-text-primary"
             style={{
               background: 'var(--bg-surface-glass)',
@@ -234,6 +236,7 @@ const Login = () => {
           </a>
           <a
             href={`${API_BASE}/api/auth/github`}
+            onClick={oauthClickHandler('github')}
             className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all text-text-secondary hover:text-text-primary"
             style={{
               background: 'var(--bg-surface-glass)',

@@ -77,7 +77,7 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller }) => {
         }
 
         // 2. Connect to signaling server
-        const socketUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:8000';
+        const socketUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || (import.meta.env.PROD ? 'https://skillswap-backend-mb4k.onrender.com' : 'http://localhost:8000');
         socketRef.current = io(socketUrl);
 
         // 3. Setup WebRTC
@@ -445,7 +445,7 @@ const VideoCall = () => {
 
   /* Track online users via socket */
   useEffect(() => {
-    const socketUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:8000';
+    const socketUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || (import.meta.env.PROD ? 'https://skillswap-backend-mb4k.onrender.com' : 'http://localhost:8000');
     const socket = io(socketUrl);
 
     socket.emit('register', user?._id);

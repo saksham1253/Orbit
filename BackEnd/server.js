@@ -42,6 +42,9 @@ const allowedOrigins = [
   "https://react-skill-swap-fully-fledged.vercel.app",
   "http://localhost:5173",
   "http://localhost:3000",
+  // Capacitor mobile app (APK / iOS): the WebView serves from these origins.
+  "https://localhost",        // Android (androidScheme: 'https')
+  "capacitor://localhost",    // iOS
   // Honour the CORS_ORIGIN env var (comma-separated) so origins can be added
   // from the Render dashboard without a code change.
   ...(process.env.CORS_ORIGIN
