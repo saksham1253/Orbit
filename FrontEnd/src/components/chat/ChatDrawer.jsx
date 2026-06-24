@@ -5,7 +5,7 @@ import { X, Send, MessageCircle, Search, ArrowLeft, Check, CheckCheck, Maximize2
 import { formatDistanceToNow, format, isToday, isYesterday, isSameDay } from 'date-fns';
 import api from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
-import { useUIStore } from '../../store/uiStore';
+import { connectSocket } from '../../services/socket';
 import Avatar from '../common/Avatar';
 import { getSocket } from '../../services/socket';
 import { ChatListSkeleton, ChatMessagesSkeleton } from '../skeletons';
@@ -873,7 +873,6 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
 
   // Global socket listener for notifications and online presence
   useEffect(() => {
-    const { connectSocket } = require('../../services/socket');
     const sock = connectSocket(user?._id);
     if (!sock) return;
 
@@ -974,7 +973,7 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
   }, [isOpen, onClose]);
 
   // Handle Drag to Resize
-  const handleMouseDown = useCallback((e) => {
+  const handleMouseDown = useCallback(() => {
     // Only allow resizing if on desktop
     if (window.innerWidth < 640) return;
     isDraggingRef.current = true;

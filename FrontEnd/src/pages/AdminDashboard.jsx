@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ShieldAlert, Database, Trash2, ArrowRight, Server, Activity, HardDrive, Key, CheckCircle } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import api from '../services/api';

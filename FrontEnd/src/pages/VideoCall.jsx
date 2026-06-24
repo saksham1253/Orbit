@@ -165,7 +165,7 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller }) => {
         }
 
         // Handle signaling
-        socketRef.current.on('user-joined', async ({ userId }) => {
+        socketRef.current.on('user-joined', async () => {
           // Create offer
           const offer = await pc.createOffer();
           await pc.setLocalDescription(offer);

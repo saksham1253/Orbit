@@ -8,7 +8,7 @@ import api from '../../services/api';
 import ChatDrawer from '../chat/ChatDrawer';
 import {
   LogOut, Layers, Compass, Users, Map,
-  ShieldCheck, UserCircle, Menu, X, Handshake, Video, Settings as SettingsIcon, MessageCircle, Phone, Trophy
+  ShieldCheck, UserCircle, Menu, X, Handshake, Settings as SettingsIcon, MessageCircle, Phone, Trophy
 } from 'lucide-react';
 
 const NAV = [

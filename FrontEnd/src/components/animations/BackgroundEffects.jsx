@@ -627,7 +627,7 @@ const LightAuroraCanvas = memo(({ colors, speedMultiplier, themeName }) => {
     const draw = () => {
       ctx.clearRect(0, 0, w, h);
 
-      orbs.forEach((orb, i) => {
+      orbs.forEach((orb) => {
         // Move
         orb.x += orb.vx;
         orb.y += orb.vy;

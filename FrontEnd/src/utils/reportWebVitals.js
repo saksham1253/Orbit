@@ -36,7 +36,7 @@ export function initWebVitals() {
   }
 }
 
-export function measureScrollFPS(elementId = 'root', duration = 2000) {
+export function measureScrollFPS(_elementId = 'root', duration = 2000) {
   if (!import.meta.env.DEV) return;
   
   let frameCount = 0;

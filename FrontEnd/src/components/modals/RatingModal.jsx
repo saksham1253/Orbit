@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Star, Send, X } from 'lucide-react';
+import { Star, Send } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import api from '../../services/api';
 import { useUIStore } from '../../store/uiStore';

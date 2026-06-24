@@ -27,7 +27,7 @@ const UserRatingsModal = ({ user, isOpen, onClose }) => {
   const tsColor = ts >= 70 ? '#00e5a0' : ts >= 40 ? '#ffb800' : '#ff4b4b';
   const tsBg    = ts >= 70 ? 'rgba(0,229,160,0.1)' : ts >= 40 ? 'rgba(255,184,0,0.1)' : 'rgba(255,75,75,0.1)';
 
-  const starFill = (star, avg) => {
+  const _starFill = (star, avg) => {
     if (star <= Math.floor(avg)) return '#ffb800';
     if (star - 1 < avg && avg < star) return '#ffb800'; // partial — just show filled
     return 'transparent';

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { X, Send, UserCircle } from 'lucide-react';
+import { X, Send } from 'lucide-react';
 import api from '../../services/api';
 import { useUIStore } from '../../store/uiStore';
 import Avatar from '../common/Avatar';

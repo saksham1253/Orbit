@@ -9,7 +9,6 @@ import SkillCard from '../components/skills/SkillCard';
 import { SkillGridSkeleton } from '../components/skeletons';
 import ErrorState from '../components/common/ErrorState';
 import EmptyState from '../components/common/EmptyState';
-import { useUIStore } from '../store/uiStore';
 import { Search, Compass, SlidersHorizontal, X, ChevronDown } from 'lucide-react';
 import UserRatingsModal from '../components/modals/UserRatingsModal';
 import SwapRequestModal from '../components/modals/SwapRequestModal';
@@ -34,7 +33,6 @@ const BrowseSkills = () => {
   const [viewRatingsUser, setViewRatingsUser] = useState(null);
   const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE);
   const [swapTarget, setSwapTarget] = useState(null); // { skill, owner }
-  const { addToast } = useUIStore();
   
   const { ref: loadMoreRef, inView } = useInView();
 

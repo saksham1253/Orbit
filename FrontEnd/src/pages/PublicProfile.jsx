@@ -1,8 +1,8 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
-import { ShieldCheck, MapPin, Globe, Star, Mail, Link as LinkIcon, Calendar } from 'lucide-react';
+import { ShieldCheck, MapPin, Globe, Star, Link as LinkIcon, Calendar } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import api from '../services/api';
 import Avatar from '../components/common/Avatar';
@@ -12,7 +12,6 @@ import CosmicProfileCard from '../cosmic/CosmicProfileCard';
 
 const PublicProfile = () => {
   const { userId } = useParams();
-  const navigate = useNavigate();
 
   const { data: user, isLoading, error, refetch } = useQuery({
     queryKey: ['user', userId],

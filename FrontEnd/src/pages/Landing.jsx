@@ -61,7 +61,7 @@ const FloatingPill = ({ label, top, left, right, delay, dur }) => (
 );
 
 /* ── Animated stat counter ── */
-const StatDisplay = ({ value, suffix = '', prefix = '' }) => {
+const _StatDisplay = ({ value, suffix = '', prefix = '' }) => {
   return (
     <span className="tabular-nums">
       {prefix}{value?.toLocaleString() || '0'}{suffix}
@@ -128,7 +128,7 @@ const Landing = () => {
   }, []);
 
   // Fetch real platform stats
-  const { data: stats } = useQuery({
+  useQuery({
     queryKey: ['platform-stats'],
     queryFn: () => api.get('/user/stats').then(res => res.data),
     staleTime: 60000, // Cache for 1 minute

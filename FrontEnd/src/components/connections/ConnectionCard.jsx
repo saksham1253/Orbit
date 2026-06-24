@@ -9,7 +9,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useNotificationStore } from '../../store/notificationStore';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import io from 'socket.io-client';
+import { connectSocket } from '../../services/socket';
 
 const ConnectionCard = ({ connection, type, onRate, onViewRatings }) => {
   const queryClient = useQueryClient();
@@ -39,7 +39,6 @@ const ConnectionCard = ({ connection, type, onRate, onViewRatings }) => {
   useEffect(() => {
     if (!isEstablished) return;
 
-    const { connectSocket } = require('../../services/socket');
     const socket = connectSocket(user?._id);
 
     // Request initial online users list

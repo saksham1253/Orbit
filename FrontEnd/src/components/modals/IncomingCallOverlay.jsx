@@ -58,7 +58,7 @@ const IncomingCallOverlay = ({ call, onAccept, onDecline, onIgnore }) => {
 
       // stop() clears the pending timer too, so no dangling setTimeout survives unmount
       audioRef.current = { stop: () => { stopped = true; if (timerId) clearTimeout(timerId); ctx.close(); } };
-    } catch (_) {}
+    } catch { /* ignore */ }
 
     return () => {
       audioRef.current?.stop();
