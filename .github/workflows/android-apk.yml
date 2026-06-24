@@ -30,14 +30,23 @@ jobs:
           cache: 'npm'
           cache-dependency-path: FrontEnd/package-lock.json
 
-      - name: Setup Java (JDK 17)
+      - name: Setup Java (JDK 21)
         uses: actions/setup-java@v4
         with:
+          # JDK 21: required by Android Gradle Plugin 8.13 / compileSdk 36.
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK packages (API 36)
+        # compileSdk/targetSdk are 36 (see android/variables.gradle). API 36 is
+        # new enough that the runner's preinstalled SDK and AGP auto-download
+        # can't be relied on, so install the platform + build-tools explicitly.
+        run: |
+          yes | sdkmanager --licenses >/dev/null 2>&1 || true
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
       - name: Install dependencies
         run: npm ci

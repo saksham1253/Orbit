@@ -218,6 +218,19 @@ const userSchema = new mongoose.Schema({
     timestamps: true
 });
 
+// ── Derived mastery tier ───────────────────────────────────────────────────
+// Human-readable level computed from trustScore (0–100). Not persisted and not
+// serialized into API responses (virtuals stay off in toJSON), so it's purely a
+// convenience getter — e.g. `user.level === 'Expert'`.
+userSchema.virtual('level').get(function () {
+    const score = this.trustScore ?? 0;
+    if (score >= 90) return 'Master';
+    if (score >= 80) return 'Expert';
+    if (score >= 60) return 'Skilled';
+    if (score >= 40) return 'Apprentice';
+    return 'Novice';
+});
+
 // Add Indexes for Scalability
 userSchema.index({ createdAt: -1 });
 userSchema.index({ trustScore: -1 });
