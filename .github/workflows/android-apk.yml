@@ -54,6 +54,13 @@ jobs:
       - name: Build web app (Vite + PWA)
         run: npm run build
 
+      - name: Strip pre-compressed assets before sync
+        # Vite emits foo.js + foo.js.gz + foo.js.br. Android's asset merger strips
+        # the .gz/.br suffix, so the siblings collide ("Duplicate resources") and
+        # the APK build fails. They're useless inside the WebView, so drop them.
+        # (Belt-and-suspenders with android/app/build.gradle's ignoreAssetsPattern.)
+        run: find dist -type f \( -name '*.gz' -o -name '*.br' \) -delete
+
       - name: Sync web build into Android project
         run: npx cap sync android
 
