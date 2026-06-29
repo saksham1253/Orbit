@@ -9,3 +9,5 @@ services:
         value: production
       - key: PORT
         value: 8000
+      - key: PLATFORM_NAME
+        value: render

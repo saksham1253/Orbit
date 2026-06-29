@@ -1,9 +1,13 @@
 import { io } from 'socket.io-client';
 import { useAuthStore } from '../store/authStore';
 
-// Mirror api.js: fall back to the absolute Render URL in production builds
-// (e.g. the Capacitor APK / PWA) so the socket never points at localhost.
+// Socket.io must connect DIRECTLY to an always-on backend, NOT through the
+// Cloudflare Worker (Workers can't proxy the WebSocket upgrade). So we prefer a
+// dedicated VITE_SOCKET_URL when set. It falls back to VITE_API_URL (minus the
+// /api suffix) for the legacy single-backend setup, then to the Render URL for
+// production builds (APK/PWA) so the socket never points at localhost.
 const SOCKET_URL =
+  import.meta.env.VITE_SOCKET_URL ||
   import.meta.env.VITE_API_URL?.replace('/api', '') ||
   (import.meta.env.PROD ? 'https://skillswap-backend-mb4k.onrender.com' : 'http://localhost:8000');
 
