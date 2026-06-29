@@ -1,5 +1,6 @@
 const User   = require("../models/user");
 const Rating = require("../models/rating");
+const Connection = require("../models/Connection");
 const mlService = require("../services/mlService");
 
 // ─────────────────────────────────────────────
@@ -105,10 +106,23 @@ exports.submitRating = async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
+        // Is this review tied to a completed swap? Only completed-swap reviews
+        // count toward the CosmicScore (anti-gaming gate, cosmicScore §6.1).
+        // Previously this flag was never set, so EVERY review had weight 0 →
+        // weightedReviews stayed 0 → every cosmic score was pinned to the warm
+        // start (50). Setting it here is what actually lets scores move.
+        const tiedToCompletedSwap = !!(await Connection.exists({
+            status: "completed",
+            $or: [
+                { requester: req.user.id, receiver: toUserId },
+                { requester: toUserId, receiver: req.user.id },
+            ],
+        }));
+
         // Upsert — update if already rated, else create
         await Rating.findOneAndUpdate(
             { fromUser: req.user.id, toUser: toUserId },
-            { score, review, skillContext },
+            { score, review, skillContext, tiedToCompletedSwap },
             { upsert: true, new: true }
         );
 

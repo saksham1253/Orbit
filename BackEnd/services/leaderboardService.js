@@ -306,6 +306,15 @@ async function scorePool(mentorIds) {
         }
     }
 
+    // Real activity days per mentor — revives the 8% activity component, which
+    // was previously hardcoded to 0 here. Batch-loaded once for the whole pool.
+    const activeUsers = await User.find({ _id: { $in: mentorIds } })
+        .select("cosmic.activeDaysThisSeason").lean();
+    const activeDays = new Map();
+    for (const u of activeUsers) {
+        activeDays.set(String(u._id), (u.cosmic && u.cosmic.activeDaysThisSeason) || 0);
+    }
+
     const out = new Map();
     for (const [key, bucket] of byMentor) {
         const reviews = bucket.rows.map((r) => {
@@ -324,7 +333,7 @@ async function scorePool(mentorIds) {
         const result = computeCosmicScore({
             reviews,
             completedSwaps: swapCount.get(key) || 0,
-            activeDaysThisSeason: 0,
+            activeDaysThisSeason: activeDays.get(key) || 0,
             sentimentEnabled: process.env.COSMIC_SENTIMENT_ENABLED !== "false",
         });
         const tier = assignTier(result.score, { weightedReviews: result.weightedReviews, seasonsPlayed: 0 });
@@ -384,11 +393,35 @@ async function buildLeaderboard({ me, lat, lng, scope = "city", season = "" }) {
     const mentorIds = rankPool.map((u) => u._id);
     const scores = await scorePool(mentorIds);
 
+    // Persist freshly-computed scores so the OTHER surfaces that read the stored
+    // cosmic.score (Browse / dashboard mini-badge via standingFromUser) stop
+    // showing a stale 50. Only the SCORE is written here — tier PROMOTIONS stay
+    // gated through the moment-aware path (cosmicController.getMentorCosmic) so
+    // liftoff animations are never skipped. Changed-only + best-effort; the
+    // 3-min leaderboard cache throttles how often this runs.
+    try {
+        const ops = [];
+        for (const u of rankPool) {
+            const s = scores.get(String(u._id));
+            if (!s) continue;
+            const fresh = Math.round(s.score * 10) / 10;
+            const stored = (u.cosmic && typeof u.cosmic.score === "number")
+                ? Math.round(u.cosmic.score * 10) / 10 : null;
+            if (fresh !== stored) {
+                ops.push({ updateOne: {
+                    filter: { _id: u._id },
+                    update: { $set: { "cosmic.score": fresh } },
+                } });
+            }
+        }
+        if (ops.length) await User.bulkWrite(ops, { ordered: false });
+    } catch (_) { /* persistence is best-effort; never break the read */ }
+
     const entries = rankEntries(rankPool.map((u) => {
         const s = scores.get(String(u._id)) || { score: 50, tier: assignTier(50, {}), weightedReviews: 0, reviewsCount: 0 };
         return {
             userId: String(u._id),
-            name: u.name,
+            name: (u.name && String(u.name).trim()) ? u.name : "Anonymous",
             avatar: u.avatar || "",
             city: u.city || "",
             score: Math.round(s.score * 10) / 10,
@@ -413,7 +446,7 @@ async function buildLeaderboard({ me, lat, lng, scope = "city", season = "" }) {
         rank: youEntry ? youEntry.rank : entries.length, // always numeric
         of: entries.length,                              // "#N of M"
         userId: String(me._id),
-        name: me.name,
+        name: (me.name && String(me.name).trim()) ? me.name : "Anonymous",
         avatar: me.avatar || "",
         tierId: meScore.tier.tierId,
         score: Math.round(meScore.score * 10) / 10,

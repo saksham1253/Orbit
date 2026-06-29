@@ -6,6 +6,7 @@ import { useAuthStore } from '../../store/authStore';
 import Avatar from '../common/Avatar';
 import api from '../../services/api';
 import ChatDrawer from '../chat/ChatDrawer';
+import NotificationBell from '../notifications/NotificationBell';
 import {
   LogOut, Layers, Compass, Users, Map,
   ShieldCheck, UserCircle, Menu, X, Handshake, Settings as SettingsIcon, MessageCircle, Phone, Trophy
@@ -191,6 +192,8 @@ const Navbar = () => {
                 <Avatar name={user?.name} url={user?.avatar} size="xs" userId={user?._id} />
                 <span className="hidden md:block max-w-[80px] truncate">{user?.name?.split(' ')[0]}</span>
               </NavLink>
+              {/* Notification Bell (durable notification center) */}
+              <NotificationBell />
               {/* Chat Button */}
               <button
                 onClick={() => setChatOpen(true)}

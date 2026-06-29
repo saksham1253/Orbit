@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, Repeat2 } from 'lucide-react';
 import api from '../../services/api';
 import { useUIStore } from '../../store/uiStore';
@@ -32,6 +32,31 @@ const SkillForm = ({ isOpen, onClose }) => {
 
   const selectedLevel = watch('level');
 
+  // The user's existing skills — used for an instant duplicate message before we
+  // even hit the server (the server's 409 stays the source of truth). Cheap:
+  // shares the same cache MySkills already populates.
+  const { data: mySkills = [] } = useQuery({
+    queryKey: ['skills', 'my'],
+    queryFn: () => api.get('/skills/my').then(r => r.data),
+    enabled: isOpen,
+    staleTime: 30_000,
+  });
+
+  const norm = (s) => String(s || '').trim().toLowerCase();
+  const isExactDuplicate = (d) =>
+    mySkills.some(s => norm(s.skillOffered) === norm(d.skillOffered) &&
+                       norm(s.skillWanted)  === norm(d.skillWanted));
+
+  const submit = (d) => {
+    // Block the EXACT pair locally; the reverse pair (teach ↔ learn swapped) is
+    // a different offer and is allowed through.
+    if (isExactDuplicate(d)) {
+      addToast("You've already added this exact pair. Tip: the reverse pair (swap teach ↔ learn) is allowed.", 'error');
+      return;
+    }
+    mutation.mutate(d);
+  };
+
   const mutation = useMutation({
     mutationFn: (d) => api.post('/skills/add', d),
     onSuccess: () => {
@@ -46,7 +71,7 @@ const SkillForm = ({ isOpen, onClose }) => {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Add a New Skill">
-      <form onSubmit={handleSubmit(d => mutation.mutate(d))} className="space-y-5">
+      <form onSubmit={handleSubmit(submit)} className="space-y-5">
 
         {/* Offer / Want row */}
         <div className="flex items-start gap-3">

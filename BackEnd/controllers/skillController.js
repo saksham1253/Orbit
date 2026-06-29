@@ -5,6 +5,7 @@ const MatchNotification = require("../models/matchNotification");
 const mongoose = require("mongoose");
 const { enforceContentPolicy } = require("../utils/contentModeration");
 const { tierObjectFor } = require("../services/cosmicTier");
+const { createNotification } = require("../services/notify");
 
 // Lean cosmic standing for list cards (Browse/Matches). Computed in-memory from
 // the user's PERSISTED cosmic fields — no extra DB query, no N+1 (v7 §1). Same
@@ -27,6 +28,24 @@ exports.addSkill = async (req, res) => {
                 message: "Skill offered and wanted are required"
             });
         }
+
+        // --- EXACT-DUPLICATE GUARD ---
+        // Block re-adding the SAME pair (same teach + same learn, case/space
+        // insensitive). The REVERSE pair (teach/learn swapped) is a genuinely
+        // different offer and is intentionally allowed — so we only reject when
+        // BOTH sides match exactly.
+        const escExact = (str) => String(str || "").trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const dup = await Skill.findOne({
+            userId: req.user.id,
+            skillOffered: { $regex: `^${escExact(skillOffered)}$`, $options: "i" },
+            skillWanted:  { $regex: `^${escExact(skillWanted)}$`,  $options: "i" },
+        }).lean();
+        if (dup) {
+            return res.status(409).json({
+                message: "You've already added this exact pair. Tip: the reverse pair (swap teach ↔ learn) is allowed.",
+            });
+        }
+        // --------------------
 
         // --- CONTENT MODERATION (shared escalating warning/ban) ---
         const mod = await enforceContentPolicy(
@@ -91,7 +110,10 @@ exports.addSkill = async (req, res) => {
 
                     // Unique pairKey insert is the de-dupe gate: a duplicate-key
                     // error means this pair was already announced — skip silently.
-                    const pairKey = MatchNotification.keyFor(req.user.id, otherId);
+                    // Key on the user pair AND the matched skill pair, so a
+                    // distinct reciprocal pair between the same two users still
+                    // announces (but the same pair never re-spams). v7 §3.
+                    const pairKey = MatchNotification.keyFor(req.user.id, otherId, skillOffered, skillWanted);
                     try {
                         await MatchNotification.create({ pairKey });
                     } catch (dupErr) {
@@ -99,27 +121,43 @@ exports.addSkill = async (req, res) => {
                         throw dupErr;
                     }
 
+                    const matchName = match.userId.name || "Someone";
+                    const posterName = user?.name || "Someone";
+                    const bodyFor = (name, teach, learn) =>
+                        `You can learn ${learn} from ${name} and teach them ${teach}.`;
+
                     // Notify the POSTER about this existing match (the asymmetry
                     // bug: previously only the other side ever heard about it).
-                    io.to(`user_${req.user.id}`).emit("perfect-match", {
-                        otherUser: {
-                            _id: otherId,
-                            name: match.userId.name || "Someone",
-                            avatar: match.userId.avatar
+                    // Persist + keep the existing live "perfect-match" toast.
+                    await createNotification(io, req.user.id, {
+                        type: "perfect_match",
+                        title: "Perfect Match Found!",
+                        body: bodyFor(matchName, skillOffered, skillWanted),
+                        data: { otherUserId: String(otherId), youTeach: skillOffered, youLearn: skillWanted, link: `/profile/${otherId}` },
+                        legacy: {
+                            event: "perfect-match",
+                            payload: {
+                                otherUser: { _id: otherId, name: matchName, avatar: match.userId.avatar },
+                                youTeach: skillOffered,
+                                youLearn: skillWanted,
+                            },
                         },
-                        youTeach: skillOffered,
-                        youLearn: skillWanted
                     });
 
                     // Notify the OTHER user, framed from THEIR point of view.
-                    io.to(`user_${otherId}`).emit("perfect-match", {
-                        otherUser: {
-                            _id: req.user.id,
-                            name: user?.name || "Someone",
-                            avatar: user?.avatar
+                    await createNotification(io, otherId, {
+                        type: "perfect_match",
+                        title: "Perfect Match Found!",
+                        body: bodyFor(posterName, match.skillOffered, match.skillWanted),
+                        data: { otherUserId: String(req.user.id), youTeach: match.skillOffered, youLearn: match.skillWanted, link: `/profile/${req.user.id}` },
+                        legacy: {
+                            event: "perfect-match",
+                            payload: {
+                                otherUser: { _id: req.user.id, name: posterName, avatar: user?.avatar },
+                                youTeach: match.skillOffered,
+                                youLearn: match.skillWanted,
+                            },
                         },
-                        youTeach: match.skillOffered,
-                        youLearn: match.skillWanted
                     });
                 } catch (notifyErr) {
                     // Notifications are best-effort — never fail the skill add.

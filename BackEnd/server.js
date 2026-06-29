@@ -447,7 +447,11 @@ app.use(require('./config/passport').initialize());
 // Lightweight health check — no DB/Redis hit, so the keep-warm self-ping
 // (and any external uptime monitor) stays cheap and always-200.
 app.get("/api/health", (req, res) => {
-    res.status(200).json({ status: "ok", uptime: process.uptime() });
+    res.status(200).json({
+        status: "ok",
+        platform: process.env.PLATFORM_NAME || "unknown",
+        uptime: process.uptime()
+    });
 });
 
 // Routes
@@ -461,6 +465,7 @@ app.use("/api/video", videoRoutes);
 app.use("/api/connections", connectionRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/cosmic", cosmicRoutes);
+app.use("/api/notifications", require("./routes/notificationRoutes"));
 
 // ── Admin Command Center (hardened, hidden) ────────────────────────────────
 // Namespaced under an unguessable base; every route 404-cloaks for non-admins.

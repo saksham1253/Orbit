@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { lazy, Suspense, useEffect, useState, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from './store/authStore';
 import { useNotificationStore } from './store/notificationStore';
 import { useThemeStore } from './store/themeStore';
@@ -81,6 +82,7 @@ const ProtectedRoute = ({ children }) => {
 // Inner component so useNavigate is inside Router context
 function AppInner() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user, token } = useAuthStore();
   const {
     notifications,
@@ -145,6 +147,14 @@ function AppInner() {
 
     // ──────── Listen to notification events ────────
 
+    // Durable notification center: refresh the bell's badge + list whenever the
+    // server persists a new notification. Fires alongside the per-type events
+    // below, so this is the single place the center stays in sync live.
+    socket.on('notification:new', () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'list'] });
+    });
+
     // Perfect (reciprocal) match found — fired to BOTH people once per pair,
     // POV-framed by the server (v7 §3).
     socket.on('perfect-match', (data) => {
@@ -196,6 +206,7 @@ function AppInner() {
     // We don't disconnect the singleton completely here because other components (like ChatDrawer)
     // might still be relying on it while navigating. Disconnect is handled cleanly when logging out.
     return () => {
+      socket.off('notification:new');
       socket.off('perfect-match');
       socket.off('connection-request');
       socket.off('connection-accepted');
@@ -204,7 +215,7 @@ function AppInner() {
       socket.off('call-ended');
       socket.off('force-disconnect');
     };
-  }, [token, user, notifyConnectionRequest, notifyConnectionAccepted, notifyUserOffline, notifyCallEnded, notifyPerfectMatch]);
+  }, [token, user, queryClient, notifyConnectionRequest, notifyConnectionAccepted, notifyUserOffline, notifyCallEnded, notifyPerfectMatch]);
 
   const handleAcceptCall = useCallback(() => {
     if (!incomingCall) return;

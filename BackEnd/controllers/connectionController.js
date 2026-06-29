@@ -1,6 +1,7 @@
 const Connection = require("../models/Connection");
 const Skill = require("../models/skill");
 const User = require("../models/user");
+const { createNotification } = require("../services/notify");
 
 // Send a connection request
 exports.requestConnection = async (req, res) => {
@@ -44,18 +45,23 @@ exports.requestConnection = async (req, res) => {
         if (io) {
             const requesterUser = await User.findById(req.user.id).select("name avatar");
             const skillData = await Skill.findById(skillId).select("skillOffered skillWanted");
-            
-            io.to(`user_${receiverId}`).emit("connection-request", {
-                requester: {
-                    _id: req.user.id,
-                    name: requesterUser?.name || "Someone",
-                    avatar: requesterUser?.avatar
+            const reqName = requesterUser?.name || "Someone";
+            const offered = skillData?.skillOffered || "a skill";
+
+            // Persist + keep the existing live "connection-request" toast.
+            await createNotification(io, receiverId, {
+                type: "connection_request",
+                title: "New Connection Request",
+                body: `${reqName} wants to connect with you for ${offered}.`,
+                data: { otherUserId: String(req.user.id), link: "/connections?tab=requests" },
+                legacy: {
+                    event: "connection-request",
+                    payload: {
+                        requester: { _id: req.user.id, name: reqName, avatar: requesterUser?.avatar },
+                        skill: { skillOffered: offered, skillWanted: skillData?.skillWanted },
+                        message: message || "",
+                    },
                 },
-                skill: {
-                    skillOffered: skillData?.skillOffered || "a skill",
-                    skillWanted: skillData?.skillWanted
-                },
-                message: message || ""
             });
         }
 
@@ -217,9 +223,18 @@ exports.respondConnection = async (req, res) => {
             const io = req.app.get("io");
             if (io) {
                 const receiverUser = await User.findById(req.user.id).select("name avatar");
-                io.to(`user_${connection.requester}`).emit("connection-accepted", {
-                    receiverName: receiverUser ? receiverUser.name : "Someone",
-                    receiverAvatar: receiverUser?.avatar
+                const accepterName = receiverUser ? receiverUser.name : "Someone";
+
+                // Persist + keep the existing live "connection-accepted" toast.
+                await createNotification(io, connection.requester, {
+                    type: "connection_accepted",
+                    title: "Request Accepted!",
+                    body: `${accepterName} accepted your connection request. You can now call them!`,
+                    data: { otherUserId: String(req.user.id), link: "/connections" },
+                    legacy: {
+                        event: "connection-accepted",
+                        payload: { receiverName: accepterName, receiverAvatar: receiverUser?.avatar },
+                    },
                 });
             }
         }

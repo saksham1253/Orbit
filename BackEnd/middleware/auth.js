@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
+const { seasonIdFor } = require("../services/seasonService");
 
 module.exports = async (req, res, next) => {
     try {
@@ -26,6 +27,27 @@ module.exports = async (req, res, next) => {
                 message: `Your account is banned for safety violations. Ban expires in approx. ${timeRemaining} hours.`,
                 banned: true 
             });
+        }
+
+        // ── Cosmic activity heartbeat (at most once per UTC day) ──────────────
+        // Revives the activity component of the CosmicScore: cosmic.activeDays-
+        // ThisSeason was never incremented anywhere, so 8% of every score was
+        // permanently 0. We bump it once per day per active user, and self-heal
+        // the season scoping (resetting to 1 when the month rolls over) so a user
+        // the season worker hasn't touched still gets counted. Best-effort —
+        // never block or fail a request over activity tracking.
+        try {
+            const todayUTC = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+            const cosmic = user.cosmic || {};
+            if (cosmic.lastActiveDay !== todayUTC) {
+                const currentSeason = seasonIdFor(new Date());
+                const update = cosmic.seasonId !== currentSeason
+                    ? { $set: { "cosmic.lastActiveDay": todayUTC, "cosmic.seasonId": currentSeason, "cosmic.activeDaysThisSeason": 1 } }
+                    : { $set: { "cosmic.lastActiveDay": todayUTC }, $inc: { "cosmic.activeDaysThisSeason": 1 } };
+                await User.updateOne({ _id: user._id }, update);
+            }
+        } catch (_) {
+            /* non-critical */
         }
 
         req.user = decoded; // keep it compatible with existing code

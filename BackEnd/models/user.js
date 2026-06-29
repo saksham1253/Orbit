@@ -204,6 +204,7 @@ const userSchema = new mongoose.Schema({
         currentTitle:     { type: String, default: "" },
         flair:            { type: [String], default: [] },
         activeDaysThisSeason: { type: Number, default: 0 },
+        lastActiveDay:    { type: String, default: "" },       // "YYYY-MM-DD" UTC — guards the once-per-day activity bump
         weightedReviews:  { type: Number, default: 0 },        // for eligibility gates
         hasSeenIntroForTier: { type: String, default: null },  // last tierId we auto-played the intro for (v2 §7)
         nameGlowTier:        { type: String, default: null },  // "supernova" | "galaxy" | "quasar" | null (v2 §8)

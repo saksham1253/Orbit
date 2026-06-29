@@ -43,8 +43,12 @@ async function finishSignIn(token) {
   try {
     const { data } = await api.get('/user/profile', { headers: { Authorization: `Bearer ${token}` } });
     setUser(data);
-  } catch {
-    /* token is valid even if the profile fetch blips — proceed */
+  } catch (err) {
+    // The token is valid even if this fetch blips, so we still proceed — but DO
+    // NOT swallow it silently. A failure here means in-WebView XHR to the API is
+    // broken (the exact symptom that masked the APK email-login bug), so log it
+    // loudly to aid future diagnosis instead of hiding behind an empty catch.
+    console.error('[nativeAuth] profile hydrate failed after sign-in:', err?.message || err);
   }
   // Full navigation reliably re-mounts the app at the authed route in the WebView.
   window.location.assign('/dashboard');
