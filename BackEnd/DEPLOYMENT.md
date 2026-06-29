@@ -1,30 +1,38 @@
-# Multi-Platform Backend Deployment — Resilient & Free (2026)
+# Multi-Platform Backend Deployment — Free & No-Card (2026)
 
-Deploy the **identical** Node.js backend to multiple free hosts and route REST
-traffic through a single Cloudflare Worker that automatically fails over between
-them. Socket.io connects directly to an always-on host. The frontend points at
-two permanent URLs forever and never has to change again.
+Deploy the **identical** Node.js backend to more than one free host and route
+REST traffic through a single Cloudflare Worker that automatically fails over
+between them. Socket.io connects directly to the most-available host. The
+frontend points at two permanent URLs and never changes again.
 
 ---
 
-## ⚠️ Read first — the 2026 free-tier reality
+## ⚠️ Read first — the 2026 no-card free reality
 
-The original plan assumed Railway + Koyeb + Fly.io + Render are all "free, no
-card." **That is no longer true:**
+The original brief assumed Railway + Koyeb + Fly.io + Render are all free with no
+card. Verified against each platform's current pricing, that is **no longer
+true**, and it keeps shrinking:
 
-| Platform | Free in 2026? | Always-on? | Card? | Verdict |
-|---|---|---|---|---|
-| **Render** | ✅ permanent free | ❌ sleeps after 15 min | No | Keep — REST backend |
-| **Koyeb** | ✅ free (1 web service, 512 MB / 0.1 vCPU) | ❌ scales to zero after 1 h | Usually no | Keep — REST backend |
-| **Oracle Cloud "Always Free"** | ✅ free **forever** | ✅ **never sleeps** | Card once (identity only, never charged) | **Add — Socket.io host + REST #1** |
-| **Railway** | ⚠️ $5 one-time trial, then $1/mo Free (container stops) / $5/mo Hobby | ❌ free can't stay on | Card for Hobby | Optional (paid) |
-| **Fly.io** | ❌ **free tier removed Oct 2024** | — | Card required | Optional (paid) |
-| **Cloudflare Workers** | ✅ free 100k req/day | ✅ serverless | No | Load balancer |
+| Platform | No-card free in 2026? | Always-on? | Notes |
+|---|---|---|---|
+| **Render** | ✅ free forever | ❌ sleeps after 15 min | The durable anchor |
+| **Railway** | ⏳ trial only (~$5 / 30 days, no card) | ⚠️ on during trial, then **stops** | Best while trial lasts |
+| Koyeb | ❌ card + $29/mo (Mistral acquisition, Feb 2026) | — | Was free; not anymore |
+| Fly.io | ❌ card, free tier removed Oct 2024 | — | Paid only |
+| Oracle "Always Free" | ❌ card once (then free forever) | ✅ never sleeps | Best *durable* free if you accept a one-time card |
+| **Cloudflare Workers** | ✅ free 100k req/day | ✅ serverless | The load balancer |
 
-**Conclusion:** the best *genuinely free* resilient setup is **Oracle Always
-Free + Koyeb + Render**, balanced by a **Cloudflare Worker**. Oracle is the only
-free-forever host that never sleeps, so it anchors Socket.io. Railway/Fly are
-documented at the end as optional paid add-ons.
+**Honest conclusion:** with a strict **no-card** rule, the only genuinely free
+hosts left are **Render** (permanent) and **Railway** (a ~30-day no-card trial).
+This guide deploys both behind the Worker, with Socket.io on Railway.
+
+> **The catch you must know:** when Railway's trial credit runs out (~30 days),
+> its Free plan ($1/mo of usage) will stop the container partway through each
+> month. REST keeps working because the Worker fails over to Render, but
+> **Socket.io (pointed at Railway) will drop** until Railway is up again. To make
+> this durable you eventually need either Railway Hobby ($5/mo) **or** the
+> one-time-card Oracle Always Free option (Appendix A). There is no durable,
+> no-card, always-on free host in 2026.
 
 ---
 
@@ -40,47 +48,45 @@ documented at the end as optional paid add-ons.
             │  Cloudflare Worker     │                │
             │  (load balancer)       │                │
             └───────────┬───────────┘                │
-                        │ try in order, 5xx/timeout → next
-        ┌───────────────┼────────────────┐           │
-        ▼               ▼                ▼           ▼
-   ┌─────────┐    ┌──────────┐     ┌──────────┐  ┌──────────┐
-   │ Oracle  │    │  Koyeb   │     │  Render  │  │  Oracle  │
-   │ (on)    │    │ (sleeps) │     │ (sleeps) │  │  (on)    │
-   └─────────┘    └──────────┘     └──────────┘  └──────────┘
-   REST #1         REST #2          REST #3       Socket.io
+                        │ try in order; 5xx/timeout → next
+              ┌─────────┴──────────┐                  │
+              ▼                    ▼                  ▼
+        ┌──────────┐         ┌──────────┐       ┌──────────┐
+        │ Railway  │         │  Render  │       │ Railway  │
+        │ (trial)  │         │ (sleeps) │       │ (trial)  │
+        └──────────┘         └──────────┘       └──────────┘
+        REST #1               REST #2            Socket.io
 ```
 
-Why Socket.io bypasses the Worker: **Cloudflare Workers cannot proxy the
-WebSocket `Upgrade`.** Socket.io therefore connects straight to Oracle (always
-on, real TLS via Caddy), using the new `VITE_SOCKET_URL`.
+Socket.io bypasses the Worker because **Cloudflare Workers can't proxy the
+WebSocket `Upgrade`.** It connects straight to Railway via `VITE_SOCKET_URL`
+(Railway serves real TLS on its `*.up.railway.app` domain, so `wss://` works
+out of the box — no extra TLS setup needed).
 
 ---
 
 ## What's already done in the code
 
-- `server.js` — `PORT` uses `process.env.PORT` ✅, `/api/health` returns
+- `server.js` — `PORT` from `process.env.PORT` ✅; `/api/health` returns
   `{ status, platform: process.env.PLATFORM_NAME, uptime }` ✅
-- `socket.js` — now prefers `VITE_SOCKET_URL` (the change that lets Socket.io
-  skip the Worker). Falls back to the old behaviour if unset.
+- `socket.js` — prefers `VITE_SOCKET_URL` (so Socket.io skips the Worker);
+  falls back to the old behaviour if unset
 - `worker.js` — failover Worker (buffers the body so retries work, fails over on
   5xx/timeout, longer timeout for the last/cold backend, CORS preflight, rejects
-  WebSocket, `X-Served-By`).
-- `Dockerfile`, `.dockerignore` — production container (used by Koyeb).
-- `wrangler.toml` — Worker deploy config.
-- `fly.toml`, `railway.json` — kept for the **optional paid** appendix only.
+  WebSocket, adds `X-Served-By`)
+- `Dockerfile`, `.dockerignore`, `wrangler.toml`, `railway.json` — deploy configs
+- `fly.toml` — kept for the optional paid path (Appendix B)
 
-You only need to **deploy** and set env vars. No further code changes required.
+You only need to **deploy** and set env vars.
 
 ---
 
 ## Prerequisites
 
-- The GitHub repo (already connected). All hosts pull the same repo/branch.
+- The GitHub repo (already connected). Both hosts pull the same repo/branch.
 - Your MongoDB Atlas connection string and all secrets from `BackEnd/.env.example`.
-- Accounts (all free): [Oracle Cloud](https://www.oracle.com/cloud/free/),
-  [Koyeb](https://www.koyeb.com), [Render](https://render.com) (exists),
-  [Cloudflare](https://workers.cloudflare.com), [DuckDNS](https://www.duckdns.org)
-  (free hostname for Oracle's TLS).
+- Accounts (free): [Railway](https://railway.app), [Render](https://render.com)
+  (exists), [Cloudflare](https://workers.cloudflare.com).
 
 ---
 
@@ -89,71 +95,32 @@ You only need to **deploy** and set env vars. No further code changes required.
 ```bash
 cd /path/to/React-SkillSwap-fully-fledged
 git add BackEnd/Dockerfile BackEnd/.dockerignore BackEnd/worker.js \
-        BackEnd/wrangler.toml BackEnd/fly.toml BackEnd/railway.json \
-        BackEnd/render.yaml BackEnd/DEPLOYMENT.md BackEnd/server.js \
-        FrontEnd/src/services/socket.js
-git commit -m "feat: multi-platform failover deployment (Oracle + Koyeb + Render + Worker)"
+        BackEnd/wrangler.toml BackEnd/railway.json BackEnd/fly.toml \
+        BackEnd/render.yaml BackEnd/server.js FrontEnd/src/services/socket.js
+git add -f BackEnd/DEPLOYMENT.md BackEnd/IMPLEMENTATION_SUMMARY.md   # repo gitignores *.md
+git commit -m "feat: Railway + Render failover deployment with Cloudflare Worker"
 git push origin main
 ```
 
 ---
 
-## Step 1 — Oracle Cloud Always Free VM (the always-on anchor)
+## Step 1 — Railway (no-card trial; REST #1 + Socket.io host)
 
-This is the most steps, but it gives you a **free-forever, never-sleeping**
-server — the thing no PaaS free tier provides.
+### 1.1 Create the project
+1. https://railway.app/dashboard → **New Project → Deploy from GitHub repo**.
+2. Pick the `Orbit` (React-SkillSwap) repo. Start the free trial when prompted —
+   **no credit card is required for the trial.**
 
-### 1.1 Create the instance
-1. Sign up at https://www.oracle.com/cloud/free/ (a card is required for identity
-   verification; **Always Free** resources are never billed — confirm your shapes
-   show the green "Always Free-eligible" tag).
-2. Console → **Compute → Instances → Create Instance**.
-3. **Image:** Canonical Ubuntu 22.04. **Shape:** `VM.Standard.A1.Flex`
-   (Ampere ARM — Always Free up to 4 OCPU / 24 GB). If ARM shows "out of
-   capacity," use `VM.Standard.E2.1.Micro` (AMD, Always Free).
-4. Add your SSH public key (or let it generate one — download it).
-5. Under **Networking**, keep "Assign a public IPv4 address" = Yes. Create.
-6. Note the **Public IP address**.
+### 1.2 Point it at the backend folder
+1. Open the service → **Settings**.
+2. **Root Directory:** `BackEnd` → Save. (Railway then reads `BackEnd/railway.json`.)
 
-### 1.2 Open the firewall (two layers — both required)
-**a) VCN Security List (cloud firewall):** Console → **Networking → Virtual
-Cloud Networks →** your VCN **→ Security Lists →** default **→ Add Ingress
-Rules**. Add two rules, source `0.0.0.0/0`, IP Protocol TCP, destination ports
-**80** and **443**.
-
-**b) Instance firewall (Ubuntu ships with iptables blocking everything but 22 —
-the classic Oracle gotcha):**
-```bash
-ssh ubuntu@YOUR_PUBLIC_IP
-sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
-sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 443 -j ACCEPT
-sudo netfilter-persistent save
-```
-
-### 1.3 Install Node, git, PM2
-```bash
-curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
-sudo apt-get install -y nodejs git
-sudo npm install -g pm2
-node -v   # should print v22.x
-```
-
-### 1.4 Clone the repo and install
-```bash
-git clone https://github.com/saksham1253/Orbit.git
-cd Orbit/BackEnd
-npm ci --omit=dev
-```
-
-### 1.5 Create the `.env` (all secrets — never committed)
-```bash
-nano .env
-```
-Paste (fill in real values from your existing Render env / `.env.example`):
+### 1.3 Environment variables
+**Variables** tab → add (fill in real values from your existing Render env):
 ```
 NODE_ENV=production
 PORT=8000
-PLATFORM_NAME=oracle
+PLATFORM_NAME=railway
 MONGO_URI=mongodb+srv://USER:PASS@cluster.mongodb.net/skillswap
 JWT_SECRET=...
 CORS_ORIGIN=https://react-skill-swap-fully-fledged.vercel.app
@@ -173,65 +140,23 @@ HUGGINGFACE_API_KEY=...
 GROQ_API_KEY=...
 ```
 
-### 1.6 Run it under PM2 (auto-restart + boot persistence)
+### 1.4 Generate the public URL
+1. **Settings → Networking → Generate Domain**.
+2. Copy it (e.g. `https://orbit-backend-production.up.railway.app`).
+   This is both the Worker's **Railway** entry and your **`VITE_SOCKET_URL`**.
+
+### 1.5 Verify
 ```bash
-pm2 start npm --name orbit -- start
-pm2 save
-pm2 startup systemd     # run the exact command it prints
-curl http://localhost:8000/api/health
-# {"status":"ok","platform":"oracle","uptime":...}
+curl https://YOUR-railway-url.up.railway.app/api/health
+# {"status":"ok","platform":"railway","uptime":...}
 ```
-
-### 1.7 Free hostname + automatic HTTPS (required for WSS)
-The Vercel frontend is HTTPS, so Socket.io needs `wss://` → Oracle needs a real
-TLS cert → which needs a hostname. Use DuckDNS (free) + Caddy (auto Let's
-Encrypt, and it proxies WebSocket out of the box).
-
-**DuckDNS:** sign in at https://www.duckdns.org, create a subdomain e.g.
-`orbit-yourname`, set its IP to your VM's public IP. Your host is now
-`orbit-yourname.duckdns.org`.
-
-**Caddy:**
-```bash
-sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
-sudo apt update && sudo apt install -y caddy
-echo 'orbit-yourname.duckdns.org {
-    reverse_proxy localhost:8000
-}' | sudo tee /etc/caddy/Caddyfile
-sudo systemctl restart caddy
-```
-
-Verify (TLS auto-provisions in ~30 s):
-```bash
-curl https://orbit-yourname.duckdns.org/api/health
-# {"status":"ok","platform":"oracle","uptime":...}
-```
-This URL is your **`VITE_SOCKET_URL`** and Oracle entry in the Worker.
 
 ---
 
-## Step 2 — Koyeb (free REST backend, Docker)
+## Step 2 — Render (free forever; REST #2)
 
-1. https://app.koyeb.com → **Create Web Service → GitHub** → pick the repo/branch.
-2. **Builder:** Dockerfile. **Dockerfile location:** `BackEnd/Dockerfile`.
-   **Work directory / context:** `BackEnd`.
-3. **Instance:** Free. **Region:** Washington or Frankfurt. **Port:** `8000`.
-4. **Health check:** HTTP path `/api/health`.
-5. **Environment variables:** same as Step 1.5 but `PLATFORM_NAME=koyeb`.
-6. Deploy, then copy the URL (e.g. `https://orbit-backend-xxxx.koyeb.app`).
-```bash
-curl https://orbit-backend-xxxx.koyeb.app/api/health   # platform: koyeb
-```
-> Koyeb free scales to zero after 1 h idle — expected. The Worker skips it while
-> it's cold and it wakes on the next hit.
-
----
-
-## Step 3 — Render (existing free backend)
-
-1. https://dashboard.render.com → your backend service → **Environment**.
+Your existing Render service just needs one env var:
+1. https://dashboard.render.com → backend service → **Environment**.
 2. Add `PLATFORM_NAME=render` → **Save** (auto-redeploys).
 ```bash
 curl https://skillswap-backend-mb4k.onrender.com/api/health   # platform: render
@@ -239,21 +164,20 @@ curl https://skillswap-backend-mb4k.onrender.com/api/health   # platform: render
 
 ---
 
-## Step 4 — Cloudflare Worker (the load balancer)
+## Step 3 — Cloudflare Worker (the load balancer)
 
-### 4.1 Put your real backend URLs in `worker.js`
-Edit `BackEnd/worker.js` → `DEFAULT_BACKENDS` (always-on first):
+### 3.1 Put your real URLs in `worker.js`
+Edit `BackEnd/worker.js` → `DEFAULT_BACKENDS` (most-available first):
 ```javascript
 const DEFAULT_BACKENDS = [
-  { name: 'Oracle', url: 'https://orbit-yourname.duckdns.org' },
-  { name: 'Koyeb',  url: 'https://orbit-backend-xxxx.koyeb.app' },
-  { name: 'Render', url: 'https://skillswap-backend-mb4k.onrender.com' },
+  { name: 'Railway', url: 'https://YOUR-railway-url.up.railway.app' },
+  { name: 'Render',  url: 'https://skillswap-backend-mb4k.onrender.com' },
 ];
 ```
-> Alternatively leave the code alone and set a `BACKENDS` var (JSON array) in
-> `wrangler.toml` `[vars]` — the Worker reads it at runtime.
+> Or leave the code and set a `BACKENDS` var (JSON array) in `wrangler.toml`
+> `[vars]` — the Worker reads it at runtime.
 
-### 4.2 Deploy
+### 3.2 Deploy
 ```bash
 npm install -g wrangler
 cd BackEnd
@@ -262,46 +186,44 @@ wrangler deploy
 ```
 You'll get `https://orbit-backend-lb.YOURNAME.workers.dev`.
 
-### 4.3 Verify proxy + failover
+### 3.3 Verify proxy + failover
 ```bash
 curl -i https://orbit-backend-lb.YOURNAME.workers.dev/api/health | grep -i x-served-by
-# X-Served-By: Oracle
+# X-Served-By: Railway
 ```
-Stop the Oracle app (`pm2 stop orbit`) and curl again → `X-Served-By: Koyeb`.
-Restart it (`pm2 start orbit`).
+Stop the Railway service (dashboard → pause) and curl again → `X-Served-By: Render`.
 
 ---
 
-## Step 5 — Frontend env vars on Vercel (the only two changes, forever)
+## Step 4 — Frontend env vars on Vercel (the only two, forever)
 
 Vercel → project → **Settings → Environment Variables**:
 ```
 VITE_API_URL    = https://orbit-backend-lb.YOURNAME.workers.dev/api
-VITE_SOCKET_URL = https://orbit-yourname.duckdns.org
+VITE_SOCKET_URL = https://YOUR-railway-url.up.railway.app
 ```
 - `VITE_API_URL` → the **Worker** (note the trailing `/api`).
-- `VITE_SOCKET_URL` → **Oracle directly** (no `/api`) — Socket.io target.
+- `VITE_SOCKET_URL` → **Railway directly** (no `/api`) — the Socket.io target.
 
 Redeploy the frontend:
 ```bash
-cd FrontEnd && git commit --allow-empty -m "chore: point frontend at Worker + Oracle socket" && git push
+cd FrontEnd && git commit --allow-empty -m "chore: point frontend at Worker + Railway socket" && git push
 ```
-(or Vercel dashboard → Deployments → Redeploy).
+(or Vercel → Deployments → Redeploy).
 
 ---
 
-## Step 6 — End-to-end verification
+## Step 5 — End-to-end verification
 
 ```bash
-# 1. Each backend healthy with the right platform field
-curl https://orbit-yourname.duckdns.org/api/health      # oracle
-curl https://orbit-backend-xxxx.koyeb.app/api/health    # koyeb
-curl https://skillswap-backend-mb4k.onrender.com/api/health  # render
+# Each backend healthy with the right platform field
+curl https://YOUR-railway-url.up.railway.app/api/health        # railway
+curl https://skillswap-backend-mb4k.onrender.com/api/health    # render
 
-# 2. Worker proxies + reports who served it
+# Worker proxies + reports who served it
 curl -i https://orbit-backend-lb.YOURNAME.workers.dev/api/health | grep -i x-served-by
 
-# 3. CORS preflight is answered by the Worker (204 + CORS headers)
+# CORS preflight answered by the Worker (204 + CORS headers)
 curl -i -X OPTIONS \
   -H "Origin: https://react-skill-swap-fully-fledged.vercel.app" \
   -H "Access-Control-Request-Method: POST" \
@@ -311,10 +233,9 @@ curl -i -X OPTIONS \
 
 In the browser (logged-in frontend, DevTools):
 - Console shows `Socket connected: <id>`.
-- Network → WS → the WebSocket is to **`orbit-yourname.duckdns.org`**, not the Worker.
-- Failover test: `pm2 stop orbit` on Oracle → REST keeps working via Koyeb/Render
-  (Socket.io will reconnect when Oracle returns; that's the one trade-off of a
-  single always-on host).
+- Network → WS → the WebSocket is to **Railway**, not the Worker.
+- Failover test: pause Railway → REST keeps working via Render (Socket.io
+  reconnects when Railway returns).
 
 ---
 
@@ -322,40 +243,61 @@ In the browser (logged-in frontend, DevTools):
 
 | Symptom | Cause / Fix |
 |---|---|
-| Worker `503 All backend services unavailable` | All backends down or all returned 5xx. `curl` each `/api/health` directly; the usual culprit is a bad `MONGO_URI` on one host. |
-| Oracle URL times out | Firewall. Re-check **both** the VCN ingress rules (80/443) and the instance `iptables` rules (Step 1.2). |
-| Caddy won't get a cert | DuckDNS subdomain must point at the VM IP and ports 80+443 must be open. `sudo journalctl -u caddy -f`. |
-| Socket.io connects to the Worker (fails) | `VITE_SOCKET_URL` not set, or frontend not redeployed after setting it. It must be the Oracle URL. |
-| CORS error in browser | Confirm the Vercel origin is in the Worker `ALLOWED_ORIGINS` **and** in `server.js` `allowedOrigins`. |
-| Koyeb/Render slow first hit | Cold start from sleep — expected. The Worker's last-backend timeout (30 s) lets a cold instance wake; the keep-warm self-ping in `server.js` reduces it. |
+| Worker `503 All backend services unavailable` | Both backends down/5xx. `curl` each `/api/health`; usual culprit is a bad `MONGO_URI` on one host. |
+| Socket.io connects to the Worker (fails) | `VITE_SOCKET_URL` not set, or frontend not redeployed. It must be the Railway URL. |
+| CORS error in browser | Confirm the Vercel origin is in the Worker `ALLOWED_ORIGINS` **and** `server.js` `allowedOrigins`. |
+| Railway stops mid-month | Trial credit exhausted → see the box at the top. Add Railway Hobby ($5/mo) or switch the always-on host to Oracle (Appendix A). |
+| Render slow first hit | Cold start from 15-min sleep — expected. The Worker's 30 s last-backend timeout lets it wake; the keep-warm self-ping in `server.js` reduces it. |
 
 ---
 
-## Cost (honest, 2026)
+## Cost
 
 | Item | Cost |
 |---|---|
-| Oracle Always Free VM | $0 forever (card for identity only) |
-| Koyeb free instance | $0 |
-| Render free instance | $0 |
+| Render free instance | $0 forever |
+| Railway trial | $0 for ~30 days (no card), then $1/mo Free (stops) or $5/mo Hobby |
 | Cloudflare Worker | $0 (100k req/day) |
-| DuckDNS + Caddy/Let's Encrypt | $0 |
-| **Total** | **$0 / month** |
+| **Total (first ~30 days)** | **$0, no card** |
 
 ---
 
-## Appendix — Optional PAID platforms (Railway / Fly.io)
+## Appendix A — Durable always-on for free: Oracle Cloud (one-time card)
 
-These are **not free** in 2026 but the configs exist if you want more capacity.
+The only way to get a **free-forever, never-sleeping** backend is Oracle Cloud
+"Always Free." It asks for a card **once** for identity verification; Always Free
+resources are never billed. If you later accept that, it's the best Socket.io
+host. Outline:
 
-**Railway** (`railway.json`): New Project → Deploy from GitHub → Settings → Root
-Directory `BackEnd` → add env vars (`PLATFORM_NAME=railway`) → Generate Domain.
-Free trial is $5 one-time; staying online needs the $5/mo Hobby plan (card).
+1. Create an Always Free VM (Ubuntu 22.04, shape `VM.Standard.A1.Flex` ARM, or
+   `E2.1.Micro` if ARM capacity is out).
+2. Open ports 80/443 in **both** the VCN Security List **and** the instance
+   `iptables` (Oracle's classic double-firewall):
+   ```bash
+   sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
+   sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 443 -j ACCEPT
+   sudo netfilter-persistent save
+   ```
+3. Install Node + PM2, clone the repo, `npm ci --omit=dev`, create `.env`
+   (`PLATFORM_NAME=oracle`), `pm2 start npm --name orbit -- start && pm2 save && pm2 startup`.
+4. Free hostname + auto-HTTPS: point a [DuckDNS](https://www.duckdns.org)
+   subdomain at the VM IP, install Caddy with a one-line Caddyfile
+   (`yourname.duckdns.org { reverse_proxy localhost:8000 }`) — it auto-issues TLS
+   and proxies WebSocket.
+5. Set `VITE_SOCKET_URL` to the DuckDNS URL and add Oracle as the first entry in
+   the Worker's `DEFAULT_BACKENDS`.
 
-**Fly.io** (`fly.toml`): `fly launch --no-deploy` (keep the existing `fly.toml`),
-`fly secrets set ...` (`PLATFORM_NAME=fly.io`), `fly deploy`. No free tier —
-pay-as-you-go after the short trial; a card is required. Note `fly.toml` sets
-`auto_stop_machines = false`, which on pay-as-you-go bills continuously.
+---
 
-To include either, just add it to `DEFAULT_BACKENDS` in `worker.js` and redeploy
+## Appendix B — Optional paid platforms (Koyeb / Fly.io / Railway Hobby)
+
+- **Koyeb** (`Dockerfile`): no longer free for new users (card + $29/mo Pro after
+  the Mistral acquisition). Builder = Dockerfile, path `BackEnd/Dockerfile`,
+  port 8000, `PLATFORM_NAME=koyeb`.
+- **Fly.io** (`fly.toml`): no free tier; pay-as-you-go + card. `fly launch
+  --no-deploy`, `fly secrets set ...` (`PLATFORM_NAME=fly.io`), `fly deploy`.
+- **Railway Hobby** ($5/mo): the simplest way to make the Railway backend above
+  durable/always-on.
+
+To add any of these, append it to `DEFAULT_BACKENDS` in `worker.js` and redeploy
 the Worker.

@@ -15,14 +15,14 @@
  * BACKENDS below are used.
  */
 
-// Priority order: always-on first, sleepers last. Override at deploy time with
-// the BACKENDS env var (a JSON array) so you never have to edit code to add or
-// reorder platforms. See DEPLOYMENT.md for the 2026 free-tier reality
-// (Railway/Fly.io are no longer free-always-on; Oracle Always Free is).
+// Priority order: most-available first, sleepers last. Override at deploy time
+// with the BACKENDS env var (a JSON array) so you never have to edit code to add
+// or reorder platforms. See DEPLOYMENT.md for the 2026 free-tier reality — the
+// only no-card free hosts left are Railway (trial) and Render. Add a third entry
+// here if you bring up Oracle/Koyeb/Fly (all card-required) later.
 const DEFAULT_BACKENDS = [
-  { name: 'Oracle', url: 'https://orbit.YOURNAME.duckdns.org' }, // always-on free VM
-  { name: 'Koyeb',  url: 'https://orbit-backend-yourapp.koyeb.app' }, // free, sleeps ~1h
-  { name: 'Render', url: 'https://skillswap-backend-mb4k.onrender.com' }, // free, sleeps ~15m
+  { name: 'Railway', url: 'https://orbit-backend-production.up.railway.app' }, // no-card trial; Socket.io host
+  { name: 'Render',  url: 'https://skillswap-backend-mb4k.onrender.com' }, // free forever, sleeps ~15m
 ];
 
 // Per-backend timeout. The LAST backend gets a longer window so a cold-starting
