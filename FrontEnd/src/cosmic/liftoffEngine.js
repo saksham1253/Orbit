@@ -153,10 +153,16 @@ export class LiftoffEngine {
     const dt = 1 / 60;
     const t = ((now - this._start) / 1000) * this.speed; // scaled timeline seconds
 
-    // Trail-fade backdrop (deep space) — cheaper than clearRect for glow trails.
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = 'rgba(8,3,20,0.34)';
+    // Trail-fade: fade existing trails toward TRANSPARENT (destination-out)
+    // instead of painting an opaque deep-space fill over them. The old dark fill
+    // accumulated to ~98% opaque within ~0.2s and sat ON TOP of the per-tier
+    // coloured CSS backdrop (.liftoff-cat-*), hiding the tier colour entirely —
+    // so every rank-up/down moment looked plain black. Erasing keeps the canvas
+    // transparent where nothing is drawn, letting the tier colour show through.
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.fillStyle = 'rgba(0,0,0,0.34)';
     ctx.fillRect(0, 0, this.W, this.H);
+    ctx.globalCompositeOperation = 'source-over';
 
     // Twinkling ambient stars.
     ctx.globalCompositeOperation = 'lighter';
