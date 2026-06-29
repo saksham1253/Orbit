@@ -933,8 +933,23 @@ html[data-mode="light"] .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     animation-duration: 6s;
   }
 
+  /* Hero scroll smoothness (esp. the APK WebView): nine large rings each scale
+     to 3× and are promoted to persistent GPU layers (will-change), so the phone
+     has to composite nine huge translucent layers WHILE scrolling the hero —
+     that's the jank. Keep only the first three; visually it's still a clean
+     ripple, but scrolling the hero stays smooth. */
+  .ripple-ring:nth-child(n+4) {
+    display: none;
+  }
+
   .hero-pill {
     animation-duration: 6s;
+  }
+
+  /* Trim the floating skill pills on small screens too (fewer animated layers
+     over the scroll area). */
+  .hero-pill:nth-of-type(n+5) {
+    display: none;
   }
 
   /* Smaller glow effects on mobile */
