@@ -125,6 +125,70 @@ const BANNED_KEYWORDS = [
   'x-rated', 'r-rated', 'mature content', 'adult only', '18+', '21+',
   'viagra', 'cialis', 'penis enlargement', 'breast enhancement',
   'sex toy', 'vibrator', 'dildo', 'fleshlight', 'sex doll',
+
+  // ====================================================================
+  // === EXPANDED SET (v2) — researched against widely-used moderation
+  // lists (Shutterstock/LDNOOBW, words/cuss, Google profanity words) and
+  // the Unified Harmful-Content taxonomy. Whole-word matching (see below)
+  // keeps the "Scunthorpe problem" in check: "skill" never trips "kill",
+  // "Pakistan" never trips "paki".
+  // ====================================================================
+
+  // --- Plain profanity (the list previously had only leetspeak forms) ---
+  'fuck', 'fucker', 'fucking', 'fucked', 'fucks', 'motherfucker', 'mofo',
+  'fuckface', 'fuckwit', 'clusterfuck', 'shit', 'shits', 'shitty', 'shithead',
+  'shithole', 'bullshit', 'dipshit', 'bitch', 'bitches', 'bitching', 'asshole',
+  'assholes', 'arsehole', 'bastard', 'bastards', 'dumbass', 'jackass', 'dickhead',
+  'prick', 'douche', 'douchebag', 'wanker', 'tosser', 'bollocks', 'twat',
+  'cocksucker', 'jerkoff', 'slut', 'sluts', 'slutty', 'whore', 'whores', 'skank',
+  'cumslut', 'cockhead', 'knobhead', 'shitbag', 'piss off', 'pissed off',
+
+  // --- Violence / threats (incl. the requested kill-family) ---
+  'killer', 'killing', 'killed', 'kills', 'kill you', 'kill u', 'kill them',
+  'kill yourself', 'kill myself', 'manslaughter', 'homicide', 'slaughter',
+  'massacre', 'behead', 'beheading', 'decapitate', 'decapitation', 'dismember',
+  'strangle', 'strangulation', 'choke you', 'lynch', 'lynching', 'stab',
+  'stabbing', 'stabbed', 'shooter', 'gunman', 'mass murder', 'mass murderer',
+  'serial killer', 'hitman', 'hit man', 'assassinate', 'assassination', 'maim',
+  'slit your throat', 'slit throat', 'bloodbath', 'death threat', 'i will kill',
+
+  // --- Hate speech / slurs (additional) ---
+  'retard', 'retarded', 'retards', 'spastic', 'mongoloid', 'paki', 'pakis',
+  'jigaboo', 'porch monkey', 'tar baby', 'sand nigger', 'wop', 'dago', 'kraut',
+  'zipperhead', 'half breed', 'subhuman', 'untermensch', 'heil hitler',
+
+  // --- Self-harm (additional) ---
+  'kms', 'kys', 'slit my wrists', 'slit wrists', 'cut my wrists', 'noose',
+  'jump off a bridge', 'overdose on', 'want to die', 'how to commit suicide',
+
+  // --- Drugs (additional slang) ---
+  'crystal meth', 'angel dust', 'speedball', 'oxycontin', 'oxycodone', 'percocet',
+  'vicodin', 'shrooms', 'magic mushrooms', 'crack cocaine', 'dope dealer',
+  'roofies', 'ghb', 'date rape drug', 'buy drugs', 'sell drugs', 'score drugs',
+
+  // --- Weapons / mass harm ---
+  'glock', 'ar-15', 'ar15', 'ak-47', 'ak47', 'silencer', 'suppressor',
+  'pipe bomb', 'molotov', 'molotov cocktail', 'grenade', 'hand grenade',
+  'dirty bomb', 'nerve agent', 'anthrax', 'ghost gun', '3d printed gun',
+  'untraceable gun', 'gun for sale', 'buy a gun', 'sell a gun', 'illegal firearm',
+
+  // --- Sexual (additional explicit) ---
+  'deepthroat', 'titjob', 'cumshot', 'jizz', 'horny', 'thot', 'gooner',
+  'cumdump', 'facefuck', 'titfuck',
+
+  // --- Child safety (additional, CRITICAL) ---
+  'child porn', 'childporn', 'kiddie porn', 'kiddy porn', 'lolicon', 'preteen',
+  'prepubescent', 'underage girl', 'underage boy', 'child model',
+
+  // --- Scams (additional) ---
+  'gift card scam', 'crypto giveaway', 'double your money', 'guaranteed returns',
+  'multi level marketing', 'advance fee', '419 scam', 'fake check', 'money mule',
+  'seed phrase', 'wallet recovery',
+
+  // --- Leetspeak / obfuscation of the worst terms ---
+  'fuk', 'fck', 'fcuk', 'phuck', 'fvck', 'sh1t', 'b1tch', 'biatch', 'azz',
+  'a55', 'pu55y', 'pussi', 'd1ck', 'c0ck', 'n1gger', 'n1gga', 'fagg0t', 'r4pe',
+  'k1ll', 'h3ntai', 'pron', 's3xx',
 ];
 
 /**
@@ -132,26 +196,26 @@ const BANNED_KEYWORDS = [
  * @param {string} text - Text to check
  * @returns {Object} - { isClean: boolean, foundKeywords: string[] }
  */
+// Precompiled ONCE at module load: a single whole-word alternation regex over
+// the entire blocklist. Far cheaper than compiling one RegExp per keyword on
+// every check (the list is now several hundred terms). The \b...\b boundaries
+// keep the "Scunthorpe problem" away — "skill" never matches "kill", "classic"
+// never matches "ass", "Pakistan" never matches "paki". Multi-word phrases work
+// because the alternation matches the literal spaces inside them.
+const BANNED_REGEX = new RegExp(
+  `\\b(?:${BANNED_KEYWORDS.map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`,
+  'gi'
+);
+
 function checkForBannedContent(text) {
   if (!text || typeof text !== 'string') {
     return { isClean: true, foundKeywords: [] };
   }
-
-  const lowerText = text.toLowerCase();
-  const foundKeywords = [];
-
-  for (const keyword of BANNED_KEYWORDS) {
-    // Word boundary check to avoid false positives (e.g., "classic" containing "ass")
-    const regex = new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-    if (regex.test(lowerText)) {
-      foundKeywords.push(keyword);
-    }
-  }
-
-  return {
-    isClean: foundKeywords.length === 0,
-    foundKeywords: foundKeywords,
-  };
+  const matches = text.match(BANNED_REGEX);
+  if (!matches) return { isClean: true, foundKeywords: [] };
+  // De-dupe and normalize so the same term isn't reported twice.
+  const foundKeywords = [...new Set(matches.map((m) => m.toLowerCase()))];
+  return { isClean: false, foundKeywords };
 }
 
 /**
