@@ -134,7 +134,17 @@ const Navbar = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full" style={{ padding: scrolled ? '5px 0' : '10px 0' }}>
+      <header
+        className="sticky top-0 z-40 w-full"
+        style={{
+          // Add the device safe-area inset to the top padding so the nav never
+          // hides under a notch / status bar (iOS PWA + Android APK). It's 0 on
+          // normal mobile web and on Android once the status bar no longer
+          // overlays the WebView, so there's no double-spacing.
+          paddingTop: `calc(${scrolled ? '5px' : '10px'} + env(safe-area-inset-top, 0px))`,
+          paddingBottom: scrolled ? '5px' : '10px',
+        }}
+      >
         <div className="max-w-[1400px] mx-auto px-3 sm:px-5">
           <div
             className={`flex items-center justify-between px-3 rounded-2xl transition-all duration-300 ${scrolled ? 'nav-glass-scrolled' : 'nav-glass'}`}

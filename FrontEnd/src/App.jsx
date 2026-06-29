@@ -114,6 +114,17 @@ function AppInner() {
   useEffect(() => {
     let cleanup = () => {};
     initDeepLinkAuth().then((fn) => { cleanup = fn; });
+
+    // APK: keep the WebView content BELOW the Android status bar — without this
+    // the navbar (top:0 sticky) sits under the battery/time icons, nav buttons
+    // overlap. StatusBar.setOverlaysWebView(false) tells the WebView to inset
+    // its top automatically. The safe-area-inset CSS isn't enough on Android
+    // (viewport-fit=cover makes it draw edge-to-edge, and Android doesn't push
+    // env(safe-area-inset-top) without this hint). No-op on web.
+    import('@capacitor/status-bar').then(({ StatusBar }) => {
+      StatusBar.setOverlaysWebView({ overlay: false }).catch(() => {});
+    }).catch(() => {});
+
     return () => cleanup();
   }, []);
 
