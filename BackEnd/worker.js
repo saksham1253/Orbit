@@ -21,7 +21,7 @@
 // only no-card free hosts left are Railway (trial) and Render. Add a third entry
 // here if you bring up Oracle/Koyeb/Fly (all card-required) later.
 const DEFAULT_BACKENDS = [
-  { name: 'Railway', url: 'https://orbit-backend-production.up.railway.app' }, // no-card trial; Socket.io host
+  { name: 'Railway', url: 'https://orbit-production-0d45.up.railway.app' }, // no-card trial; Socket.io host
   { name: 'Render',  url: 'https://skillswap-backend-mb4k.onrender.com' }, // free forever, sleeps ~15m
 ];
 

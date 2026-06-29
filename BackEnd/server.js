@@ -542,23 +542,23 @@ server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
 
-// ── Keep-warm self-ping ────────────────────────────────────────────────────
-// Render's free tier sleeps after ~15 min of INBOUND inactivity, and waking
-// takes 30–60s (during which the edge returns fast 503s → "Oops!"/slow loads).
-// Hitting our own public URL is an inbound request that resets the idle timer,
-// so the instance never sleeps. Render injects RENDER_EXTERNAL_URL automatically,
-// so this needs no external cron and no config. Interval (10 min) stays safely
-// under the 15-min sleep threshold.
-// Resolve our own public URL: Render injects RENDER_EXTERNAL_URL, but fall back
-// to the known production host so the keep-warm works even if that env var is
-// absent. Disabled outside production (NODE_ENV !== production) and when fetch
-// is unavailable (Node < 18).
+// ── Keep-warm self-ping (OPT-IN, default OFF) ──────────────────────────────
+// A self-ping keeps a free instance awake so it never cold-starts. BUT keeping
+// a Render free service awake 24/7 burns ~744 of its 750 monthly instance-hours
+// → mid-month suspension (exactly what happened). In the multi-backend setup the
+// Worker routes to an always-warm primary (Railway) and only fails over to the
+// backup (Render) occasionally, so the backup should be allowed to SLEEP and use
+// almost no hours. Therefore keep-warm is now OFF unless you explicitly opt in
+// with KEEP_WARM=true on a host that genuinely needs to stay warm. We ping only a
+// KNOWN-SELF url (Render injects RENDER_EXTERNAL_URL; or set PUBLIC_URL) so a host
+// can never accidentally ping a DIFFERENT backend awake. Disabled when fetch is
+// unavailable (Node < 18).
 const SELF_PING_URL =
     process.env.RENDER_EXTERNAL_URL ||
     process.env.PUBLIC_URL ||
-    (process.env.NODE_ENV === "production" ? "https://skillswap-backend-mb4k.onrender.com" : null);
+    null;
 
-if (SELF_PING_URL && typeof fetch === "function") {
+if (process.env.KEEP_WARM === "true" && SELF_PING_URL && typeof fetch === "function") {
     const KEEP_WARM_MS = 10 * 60 * 1000; // every 10 min — under Render's 15-min sleep threshold
     const ping = () => {
         fetch(`${SELF_PING_URL}/api/health`)
@@ -567,6 +567,8 @@ if (SELF_PING_URL && typeof fetch === "function") {
     };
     setInterval(ping, KEEP_WARM_MS).unref();
     console.log(`Keep-warm self-ping enabled → ${SELF_PING_URL}/api/health every 10 min`);
+} else {
+    console.log("Keep-warm self-ping disabled (set KEEP_WARM=true to enable; leave OFF on free Render to conserve instance-hours)");
 }
 
 // Graceful Shutdown implementation
