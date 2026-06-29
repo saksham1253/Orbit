@@ -294,6 +294,15 @@
   66%      { transform: translate3d(-20px, 20px, 0) scale(0.9); }
 }
 
+/* Flowing "Gradient" background style — drifts the multi-stop sweep across an
+   oversized (300%) background so the theme colors visibly move. Duration is set
+   inline from the animation-speed setting. */
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
 @keyframes blink {
   0%, 50% { opacity: 1; }
   51%, 100% { opacity: 0; }

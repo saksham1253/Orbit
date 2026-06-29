@@ -189,6 +189,37 @@ const BANNED_KEYWORDS = [
   'fuk', 'fck', 'fcuk', 'phuck', 'fvck', 'sh1t', 'b1tch', 'biatch', 'azz',
   'a55', 'pu55y', 'pussi', 'd1ck', 'c0ck', 'n1gger', 'n1gga', 'fagg0t', 'r4pe',
   'k1ll', 'h3ntai', 'pron', 's3xx',
+
+  // ====================================================================
+  // === HINDI / HINGLISH ABUSE (romanized) — with the spelling and
+  // number-substitution variants people use to dodge filters. Whole-word
+  // matching still applies, so legit words are not affected. Bare ultra-
+  // common/ambiguous forms (mc, bc, sala, kutta, rand) are intentionally
+  // omitted to avoid false positives; their unambiguous forms are kept.
+  // ====================================================================
+  'bhosdike', 'bhosdika', 'bhosdiki', 'bhosadike', 'bhosadika', 'bhosda',
+  'bhosdiwala', 'bhosdiwale', 'bhosadi', 'bhosdi', 'bsdk', 'bhonsdike',
+  'bh0sdike', 'bhosadpappu',
+  'madarchod', 'madarchood', 'maderchod', 'madrchod', 'madarchd', 'madarchodd',
+  'madharchod', 'm4darchod', 'madarchoot', 'mkc', 'maaki chut', 'maa ki chut',
+  'behenchod', 'bhenchod', 'behanchod', 'bahenchod', 'benchod', 'bhencho',
+  'bhench0d', 'bhen ke lode', 'behen ke lode', 'behen ke laude', 'bkl',
+  'chutiya', 'chutia', 'chutiye', 'chootiya', 'chutiyaa', 'chtiya', 'chutiyapa',
+  'chutiyapanti', 'ch00tiya', 'chutiyape',
+  'chut', 'choot', 'chootad', 'chutad', 'ch00t', 'chutmarike', 'chutmarika',
+  'lund', 'lauda', 'lawda', 'loda', 'lodu', 'lavda', 'lavde', 'laude', 'laudu',
+  'lundtopi', 'l4uda', 'lodu',
+  'randi', 'raand', 'randwa', 'randibaaz', 'chinaal', 'chinal', 'chhinaal',
+  'gashti', 'gasti',
+  'harami', 'haraami', 'haramkhor', 'haramzada', 'haramzade', 'haraamzada',
+  'gaandu', 'gandu', 'gandoo', 'gaandoo', 'g4ndu', 'gaand', 'gandfat',
+  'gand mein', 'gandmasti', 'gaandfat',
+  'bhadwa', 'bhadve', 'bhadua', 'bhadwagiri',
+  'chod', 'chodu', 'chodna', 'chudai', 'chudayi', 'chudwa', 'chudwana', 'chodel',
+  'jhant', 'jhaant', 'jhatu', 'jhantu', 'jhaatu',
+  'kamina', 'kaminey', 'kameena', 'kaminon',
+  'teri maa ki', 'teri maa ka', 'maa ki', 'maa chuda', 'maa ke lode',
+  'maa ka bhosda', 'teri behen', 'teri maa ka bhosda', 'tmkc', 'tmkb',
 ];
 
 /**

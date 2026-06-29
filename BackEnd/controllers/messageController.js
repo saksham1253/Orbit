@@ -186,6 +186,16 @@ exports.sendMessage = async (req, res) => {
             return res.status(400).json({ message: 'Message content is required' });
         }
 
+        // Chat moderation: block prohibited words and WARN (no account ban).
+        // Same banned-keyword list as skills/bio (incl. Hindi).
+        const { checkForBannedContent } = require('../utils/bannedKeywords');
+        if (!checkForBannedContent(content).isClean) {
+            return res.status(400).json({
+                message: '⚠️ Your message contains prohibited words and was not sent. Please keep it respectful.',
+                violationType: 'content_policy',
+            });
+        }
+
         const message = await Message.create({
             sender:   myId,
             receiver: otherId,

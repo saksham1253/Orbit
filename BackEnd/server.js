@@ -341,6 +341,19 @@ io.on("connection", (socket) => {
         if (!socket.userId || !receiverId || !content?.trim()) return;
 
         try {
+            // Chat moderation: block messages with prohibited words and WARN the
+            // sender — no account ban here (chat is real-time; a warning + a
+            // dropped message is the right weight). Same banned-keyword list as
+            // skills/bio, so coverage (incl. Hindi) is identical everywhere.
+            const { checkForBannedContent } = require("./utils/bannedKeywords");
+            if (!checkForBannedContent(content).isClean) {
+                socket.emit("message-blocked", {
+                    message: "⚠️ Your message contains prohibited words and was not sent. Please keep it respectful.",
+                    content, // echoed back so the client can restore the text for editing
+                });
+                return;
+            }
+
             const Message = require("./models/Message");
             const message = await Message.create({
                 sender: socket.userId,

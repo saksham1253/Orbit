@@ -157,35 +157,85 @@ ConstellationCanvas.displayName = 'ConstellationCanvas';
    Mesh: Animated blob mesh
 ───────────────────────────────────────────────────── */
 const MeshBackground = memo(({ colors, speedMultiplier, mode = 'dark' }) => {
-  // if (speedMultiplier === 0) return null; // Canvas unmounting disabled to fix desktop layout collapse
-  const isLight = mode === 'light';
-  // Guard against speed 0 (reduced-motion / hidden tab): 20/0 = Infinity which
-  // produces an invalid `animation` value; fall back to a static (paused) blob.
-  const duration = speedMultiplier > 0 ? 20 / speedMultiplier : 0;
+  const canvasRef = useRef(null);
+  const animRef = useRef(null);
+
+  useEffect(() => {
+    const isLight = mode === 'light';
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d', { alpha: true });
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const hexToRgb = (hex) => ({
+      r: parseInt(hex.slice(1, 3), 16),
+      g: parseInt(hex.slice(3, 5), 16),
+      b: parseInt(hex.slice(5, 7), 16),
+    });
+    const palette = colors.map(hexToRgb);
+
+    // More blobs than colors → a richer, overlapping mesh. They DRIFT and pulse,
+    // and additive ('lighter') compositing makes them blend where they overlap —
+    // a living color mesh, clearly distinct from the static Gradient style.
+    const BLOB_COUNT = 6;
+    const minDim = () => Math.min(canvas.width, canvas.height);
+    const blobs = Array.from({ length: BLOB_COUNT }, (_, i) => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.6 * speedMultiplier,
+      vy: (Math.random() - 0.5) * 0.6 * speedMultiplier,
+      r: minDim() * (0.30 + Math.random() * 0.18),
+      color: palette[i % palette.length],
+      pulse: Math.random() * Math.PI * 2,
+      pulseSpeed: (0.006 + Math.random() * 0.01) * speedMultiplier,
+    }));
+
+    const core = isLight ? 0.30 : 0.52;
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.globalCompositeOperation = 'lighter';
+      blobs.forEach((b) => {
+        b.x += b.vx;
+        b.y += b.vy;
+        const pad = b.r * 0.35;
+        if (b.x < -pad || b.x > canvas.width + pad) b.vx *= -1;
+        if (b.y < -pad || b.y > canvas.height + pad) b.vy *= -1;
+        b.pulse += b.pulseSpeed;
+        const pr = b.r * (0.85 + 0.15 * Math.sin(b.pulse));
+        const { r, g, b: bl } = b.color;
+        const grd = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, pr);
+        grd.addColorStop(0, `rgba(${r},${g},${bl},${core})`);
+        grd.addColorStop(0.55, `rgba(${r},${g},${bl},${core * 0.35})`);
+        grd.addColorStop(1, `rgba(${r},${g},${bl},0)`);
+        ctx.fillStyle = grd;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, pr, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalCompositeOperation = 'source-over';
+      if (speedMultiplier !== 0) animRef.current = requestAnimationFrame(draw);
+    };
+    draw();
+
+    return () => {
+      cancelAnimationFrame(animRef.current);
+      window.removeEventListener('resize', resize);
+    };
+  }, [colors, speedMultiplier, mode]);
 
   return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-      {colors.map((color, i) => (
-        <div
-          key={i}
-          className="absolute rounded-full"
-          style={{
-            width: '48vw',
-            height: '48vw',
-            background: color,
-            // Bumped from opacity-20 + blur-120 so the mesh is clearly visible
-            // when selected (it was nearly invisible before).
-            opacity: isLight ? 0.3 : 0.5,
-            filter: 'blur(100px)',
-            top: `${12 + i * 26}%`,
-            left: `${4 + i * 30}%`,
-            animation: duration ? `float ${duration}s ease-in-out infinite` : 'none',
-            animationDelay: `${i * 2}s`,
-            willChange: 'transform',
-          }}
-        />
-      ))}
-    </div>
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 pointer-events-none block w-full h-full"
+      style={{ zIndex: 0, filter: 'blur(40px)' }}
+    />
   );
 });
 
@@ -878,42 +928,37 @@ const BackgroundEffects = memo(() => {
 
   const minimalBg = 'var(--bg-app)';
 
-  // The dedicated "Gradient" style. The ambient wash above is intentionally
-  // faint (~8%) because every style layers on top of it — so on its own the
-  // Gradient option looked like nothing. This is a deliberately BOLD, clearly
-  // visible multi-stop gradient of the three theme colors so the choice reads.
-  const darkGradientStyleBg = `
-    radial-gradient(ellipse 90% 70% at 12% 8%, ${colors[0]}4d 0%, transparent 55%),
-    radial-gradient(ellipse 85% 65% at 88% 18%, ${colors[1]}45 0%, transparent 55%),
-    radial-gradient(ellipse 100% 80% at 50% 105%, ${colors[2]}4d 0%, transparent 60%),
-    linear-gradient(135deg, ${colors[0]}22 0%, ${colors[1]}1a 50%, ${colors[2]}22 100%),
-    var(--bg-app)
-  `;
+  const isGradientStyle = backgroundStyle === 'gradient';
 
-  const lightGradientStyleBg = `
-    radial-gradient(ellipse 95% 70% at 12% 5%, ${colors[0]}40 0%, transparent 55%),
-    radial-gradient(ellipse 85% 65% at 90% 18%, ${colors[1]}38 0%, transparent 55%),
-    radial-gradient(ellipse 100% 80% at 50% 105%, ${colors[2]}40 0%, transparent 60%),
-    linear-gradient(135deg, ${colors[0]}1f 0%, ${colors[1]}14 50%, ${colors[2]}1f 100%),
-    var(--bg-app)
-  `;
-
+  // Base wash for the non-gradient styles (their canvas layers on top of this).
   const baseBg = backgroundStyle === 'minimal'
     ? minimalBg
-    : backgroundStyle === 'gradient'
-      ? (effectiveIsDark ? darkGradientStyleBg : lightGradientStyleBg)
-      : (effectiveIsDark ? darkGradientBg : lightGradientBg);
+    : (effectiveIsDark ? darkGradientBg : lightGradientBg);
+
+  // The "Gradient" style is now a BOLD, FLOWING gradient — a multi-stop sweep of
+  // the three theme colors that drifts via background-position. Its motion is
+  // tied to the animation-speed setting (faster speed → shorter duration), and
+  // at speed 0 it holds a static, still-vivid gradient. This is what makes the
+  // choice actually read (it used to be a near-invisible static wash).
+  const gradientDuration = effectiveSpeed > 0 ? 24 / effectiveSpeed : 0;
+  const flowGradientImage = effectiveIsDark
+    ? `linear-gradient(120deg, ${colors[0]}59 0%, ${colors[1]}3d 22%, ${colors[2]}59 45%, ${colors[1]}3d 68%, ${colors[0]}59 100%)`
+    : `linear-gradient(120deg, ${colors[0]}33 0%, ${colors[1]}24 22%, ${colors[2]}33 45%, ${colors[1]}24 68%, ${colors[0]}33 100%)`;
+
+  const baseStyle = isGradientStyle
+    ? {
+        zIndex: -1,
+        backgroundColor: 'var(--bg-app)',
+        backgroundImage: flowGradientImage,
+        backgroundSize: '300% 300%',
+        animation: gradientDuration ? `gradientShift ${gradientDuration}s ease-in-out infinite` : 'none',
+      }
+    : { zIndex: -1, background: baseBg };
 
   return (
     <>
       {/* Base gradient or solid */}
-      <div
-        className="fixed inset-0 pointer-events-none"
-        style={{
-          zIndex: -1,
-          background: baseBg,
-        }}
-      />
+      <div className="fixed inset-0 pointer-events-none" style={baseStyle} />
 
       {/* Noise texture overlay for depth - only in light mode */}
       {!effectiveIsDark && (

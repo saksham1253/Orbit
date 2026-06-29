@@ -14,6 +14,18 @@ import toast from 'react-hot-toast';
 import ErrorBoundary from '../common/ErrorBoundary';
 import ConfirmDialog from '../common/ConfirmDialog';
 
+// Drop optimistic "temp-*" bubbles from a conversation cache — used when a
+// message is rejected (e.g. blocked for prohibited content) so it doesn't get
+// stuck on screen looking sent.
+const removeTempMessages = (queryClient, userId) => {
+  queryClient.setQueryData(['messages', userId], (oldData) => {
+    const keep = (m) => !String(m._id).startsWith('temp-');
+    if (oldData && oldData.messages) return { ...oldData, messages: oldData.messages.filter(keep) };
+    if (Array.isArray(oldData)) return oldData.filter(keep);
+    return oldData;
+  });
+};
+
 const formatTimestamp = (date) => {
   if (!date) return '';
   const d = new Date(date);
@@ -301,12 +313,21 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
       });
     };
 
+    // Server rejected a message for prohibited content: drop the optimistic
+    // bubble, warn the sender, and restore their text so they can edit it.
+    const handleMessageBlocked = ({ message, content } = {}) => {
+      removeTempMessages(queryClient, otherUser._id);
+      toast.error(message || 'Message blocked: please keep it respectful.');
+      if (content) setInput(content);
+    };
+
     sock.on('new-message', handleNewMessage);
     sock.on('typing-start', handleTypingStart);
     sock.on('typing-stop', handleTypingStop);
     sock.on('message-deleted', handleMessageDeleted);
     sock.on('messages-seen', handleMessagesSeen);
     sock.on('message-status', handleMessageStatus);
+    sock.on('message-blocked', handleMessageBlocked);
 
     return () => {
       sock.off('new-message', handleNewMessage);
@@ -315,6 +336,7 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
       sock.off('message-deleted', handleMessageDeleted);
       sock.off('messages-seen', handleMessagesSeen);
       sock.off('message-status', handleMessageStatus);
+      sock.off('message-blocked', handleMessageBlocked);
       // Clean up typing stop when leaving
       sock.emit('typing-stop', { receiverId: otherUser._id });
     };
@@ -382,7 +404,16 @@ const ChatWindow = ({ otherUser, onBack, onlineUsers, isExpanded }) => {
       }
       return api.post(`/messages/${otherUser._id}`, { content }).then(r => r.data);
     },
-    onError: () => {},
+    onError: (err, content) => {
+      // HTTP fallback path: surface a content-policy block the same way the
+      // socket path does — drop the optimistic bubble, warn, restore the text.
+      const msg = err?.response?.data?.message;
+      if (err?.response?.status === 400 && msg) {
+        removeTempMessages(queryClient, otherUser._id);
+        toast.error(msg);
+        if (content) setInput(content);
+      }
+    },
   });
 
   const handleSend = () => {
