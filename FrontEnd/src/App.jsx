@@ -15,6 +15,7 @@ import NotFound from './pages/NotFound';
 import Spinner from './components/common/Spinner';
 import { connectSocket } from './services/socket';
 import { initDeepLinkAuth } from './services/nativeAuth';
+import { initNativeNotifications, postNativeNotification } from './utils/nativeNotify';
 import { Toaster } from 'react-hot-toast';
 import BadgeDefsSprite from './cosmic/BadgeDefsSprite';
 import LiftoffWatcher from './cosmic/LiftoffWatcher';
@@ -125,8 +126,12 @@ function AppInner() {
       StatusBar.setOverlaysWebView({ overlay: false }).catch(() => {});
     }).catch(() => {});
 
+    // APK: ask for notification permission once and route taps to the right
+    // screen. No-op on web (Capacitor.isNativePlatform() is false).
+    initNativeNotifications((link) => navigate(link));
+
     return () => cleanup();
-  }, []);
+  }, [navigate]);
 
   // Expose the Animation Speed as a global CSS var so purely-CSS animations
   // (cosmic badges, future liftoff effects) honor the setting — including
@@ -161,9 +166,18 @@ function AppInner() {
     // Durable notification center: refresh the bell's badge + list whenever the
     // server persists a new notification. Fires alongside the per-type events
     // below, so this is the single place the center stays in sync live.
-    socket.on('notification:new', () => {
+    socket.on('notification:new', (payload) => {
       queryClient.invalidateQueries({ queryKey: ['notifications', 'unread'] });
       queryClient.invalidateQueries({ queryKey: ['notifications', 'list'] });
+      // APK: also surface it in the Android notification tray (no-op on web).
+      // Covers every persisted type — perfect match, connection request/accepted.
+      if (payload?.title || payload?.body) {
+        postNativeNotification({
+          title: payload.title,
+          body: payload.body,
+          link: payload?.data?.link || '/',
+        });
+      }
     });
 
     // Perfect (reciprocal) match found — fired to BOTH people once per pair,

@@ -10,6 +10,7 @@ import Avatar from '../common/Avatar';
 import { getSocket } from '../../services/socket';
 import { ChatListSkeleton, ChatMessagesSkeleton } from '../skeletons';
 import { requestNotificationPermission, showDesktopNotification, playNotificationSound, startTitleFlash, stopTitleFlash } from '../../utils/notifications';
+import { postNativeNotification } from '../../utils/nativeNotify';
 import toast from 'react-hot-toast';
 import ErrorBoundary from '../common/ErrorBoundary';
 import ConfirmDialog from '../common/ConfirmDialog';
@@ -935,6 +936,14 @@ const ChatDrawer = ({ isOpen, onClose, initialUser = null }) => {
 
       // Handle unfocused notifications
       if (notificationsEnabled) {
+        // APK: post to the Android notification tray (no-op on web). Fires
+        // whether the app is foregrounded or backgrounded, so a new message
+        // produces a real tray entry — not just the in-app toast/sound.
+        postNativeNotification({
+          title: `New message from ${msg.sender?.name || 'Someone'}`,
+          body: msg.content,
+          link: '/',
+        });
         if (document.hidden) {
           showDesktopNotification(`New message from ${msg.sender?.name || 'Someone'}`, {
             body: msg.content,

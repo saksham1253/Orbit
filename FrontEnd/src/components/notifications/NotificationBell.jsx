@@ -112,8 +112,17 @@ const NotificationBell = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.98 }}
             transition={{ duration: 0.16 }}
-            className="absolute right-0 mt-2 w-[340px] max-w-[calc(100vw-24px)] rounded-2xl overflow-hidden z-50 nav-glass-scrolled"
-            style={{ border: '1px solid var(--border-subtle)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}
+            // Mobile: a fixed full-width sheet pinned under the navbar. Anchoring
+            // an `absolute` 340px panel to the 8px bell button collapsed it to a
+            // thin sliver in the Android WebView (the APK bug). `sm+` keeps the
+            // original anchored dropdown. The top inset clears the navbar + the
+            // device status bar / notch.
+            className="fixed left-3 right-3 z-50 w-auto rounded-2xl overflow-hidden nav-glass-scrolled sm:absolute sm:left-auto sm:right-0 sm:w-[340px] sm:max-w-[calc(100vw-24px)]"
+            style={{
+              border: '1px solid var(--border-subtle)',
+              boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+              top: 'calc(64px + env(safe-area-inset-top, 0px))',
+            }}
             role="dialog"
             aria-label="Notifications"
           >

@@ -194,11 +194,18 @@ function scopeFilter(candidates, { scope, me, lat, lng }) {
 
 // Per-scope mentor counts from the SAME candidate array (in-JS, no extra DB),
 // so the UI can show real counts + one-tap scope switching (§8.5).
+//
+// The candidate set EXCLUDES the viewer (mentorCandidates uses $ne), but the
+// ranked board always appends the viewer to whatever scope is shown
+// (rankPool.push(me) in resolveLeaderboard), so the standing card reads
+// "#N of M" with the viewer counted. We add the viewer here too (+1) so the
+// scope-tab counts match that total exactly — otherwise the tab said "· 11"
+// while the card said "12 of 12", which read as a bug.
 function scopeCounts(candidates, me, lat, lng) {
     return {
-        city:    scopeFilter(candidates, { scope: "city", me, lat, lng }).pool.length,
-        region:  scopeFilter(candidates, { scope: "region", me, lat, lng }).pool.length,
-        country: scopeFilter(candidates, { scope: "country", me, lat, lng }).pool.length,
+        city:    scopeFilter(candidates, { scope: "city", me, lat, lng }).pool.length + 1,
+        region:  scopeFilter(candidates, { scope: "region", me, lat, lng }).pool.length + 1,
+        country: scopeFilter(candidates, { scope: "country", me, lat, lng }).pool.length + 1,
     };
 }
 
