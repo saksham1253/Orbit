@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Bell, Handshake, Users, CheckCheck, Inbox } from 'lucide-react';
 import api from '../../services/api';
+import { useUIStore } from '../../store/uiStore';
 
 const ICON_BY_TYPE = {
   perfect_match:       Handshake,
@@ -31,6 +32,7 @@ function timeAgo(date) {
 const NotificationBell = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const addToast = useUIStore((s) => s.addToast);
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -60,6 +62,7 @@ const NotificationBell = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications', 'unread'] });
       queryClient.invalidateQueries({ queryKey: ['notifications', 'list'] });
+      addToast("You're all caught up.", 'success');
     },
   });
 

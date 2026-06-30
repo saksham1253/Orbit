@@ -80,6 +80,16 @@ const ProtectedRoute = ({ children }) => {
   );
 };
 
+// Notification types that already render a dedicated rich popup (with action
+// buttons) via their own per-type socket handler. The generic notification:new
+// flash skips these so they never show twice. Any type NOT listed here falls
+// through to the generic website flash — that's the universal coverage net.
+const RICH_FLASH_TYPES = new Set([
+  'perfect_match',
+  'connection_request',
+  'connection_accepted',
+]);
+
 // Inner component so useNavigate is inside Router context
 function AppInner() {
   const navigate = useNavigate();
@@ -169,14 +179,30 @@ function AppInner() {
     socket.on('notification:new', (payload) => {
       queryClient.invalidateQueries({ queryKey: ['notifications', 'unread'] });
       queryClient.invalidateQueries({ queryKey: ['notifications', 'list'] });
-      // APK: also surface it in the Android notification tray (no-op on web).
-      // Covers every persisted type — perfect match, connection request/accepted.
+
       if (payload?.title || payload?.body) {
+        // APK: surface it in the Android notification tray (no-op on web).
         postNativeNotification({
           title: payload.title,
           body: payload.body,
           link: payload?.data?.link || '/',
         });
+
+        // Website flash: types with a dedicated rich popup (with action buttons)
+        // are shown by their own per-type socket handlers below — skip those to
+        // avoid a double toast. EVERY OTHER notification type (now or added later)
+        // gets a generic in-app flash here, so the web never silently swallows a
+        // server notification. This is the universal safety net.
+        if (!RICH_FLASH_TYPES.has(payload.type)) {
+          const link = payload?.data?.link;
+          useNotificationStore.getState().addNotification({
+            type: payload.type || 'info',
+            title: payload.title || 'Notification',
+            message: payload.body || '',
+            actions: link ? [{ label: 'View', primary: true, handler: () => navigate(link) }] : undefined,
+            duration: 8000,
+          });
+        }
       }
     });
 

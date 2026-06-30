@@ -6,6 +6,7 @@ import { Helmet } from 'react-helmet-async';
 import { Mail, ArrowLeft, CheckCircle, Sparkles, RotateCw } from 'lucide-react';
 import api from '../services/api';
 import Spinner from '../components/common/Spinner';
+import { useUIStore } from '../store/uiStore';
 
 const RESEND_COOLDOWN = 30; // seconds
 
@@ -13,10 +14,18 @@ const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [cooldown, setCooldown] = useState(0);
+  const addToast = useUIStore((s) => s.addToast);
 
   const mutation = useMutation({
     mutationFn: (email) => api.post('/auth/forgot-password', { email }),
-    onSuccess: () => { setSent(true); setCooldown(RESEND_COOLDOWN); },
+    onSuccess: () => {
+      setSent(true);
+      setCooldown(RESEND_COOLDOWN);
+      addToast('Reset link sent — check your inbox.', 'success');
+    },
+    onError: (err) => {
+      addToast(err?.response?.data?.message || 'Could not send reset link. Try again.', 'error');
+    },
   });
 
   // Tick the Resend cooldown down to zero.
