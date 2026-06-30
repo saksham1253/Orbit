@@ -115,16 +115,17 @@ const NotificationBell = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.98 }}
             transition={{ duration: 0.16 }}
-            // Mobile: a fixed full-width sheet pinned under the navbar. Anchoring
-            // an `absolute` 340px panel to the 8px bell button collapsed it to a
-            // thin sliver in the Android WebView (the APK bug). `sm+` keeps the
-            // original anchored dropdown. The top inset clears the navbar + the
-            // device status bar / notch.
-            className="fixed left-3 right-3 z-50 w-auto rounded-2xl overflow-hidden nav-glass-scrolled sm:absolute sm:left-auto sm:right-0 sm:w-[340px] sm:max-w-[calc(100vw-24px)]"
+            // Sizing/position live in the `.notif-panel` CSS class (index.css):
+            // desktop = an anchored 340px dropdown; phones = a fixed full-width
+            // sheet under the navbar. This avoids the bug where a Tailwind
+            // `max-w-[calc(100vw-24px)]` emitted invalid CSS (no spaces around
+            // the `-`), got dropped, and the global `* { max-width:100% }` guard
+            // then collapsed the panel to its ~32px bell wrapper — the sliver
+            // seen on both desktop and the APK WebView.
+            className="notif-panel absolute right-0 mt-2 rounded-2xl overflow-hidden z-50 nav-glass-scrolled"
             style={{
               border: '1px solid var(--border-subtle)',
               boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
-              top: 'calc(64px + env(safe-area-inset-top, 0px))',
             }}
             role="dialog"
             aria-label="Notifications"

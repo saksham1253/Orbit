@@ -976,6 +976,28 @@ body, html {
   max-width: 100%;
 }
 
+/* ─── NOTIFICATION DROPDOWN ───
+   The bell panel is position:absolute inside the tiny ~32px bell wrapper, so the
+   global `* { max-width: 100% }` overflow guard above clamps it to the wrapper's
+   width — collapsing it into a thin vertical sliver (desktop AND the APK WebView).
+   Pin an explicit width here (this rule loads after Tailwind, so it wins) and turn
+   it into a full-width anchored sheet on phones. */
+.notif-panel {
+  width: 340px;
+  max-width: calc(100vw - 24px);
+}
+@media (max-width: 639px) {
+  .notif-panel {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-width: none;
+    top: calc(56px + env(safe-area-inset-top, 0px));
+    margin-top: 0;
+  }
+}
+
 /* ─── TOUCH-FRIENDLY INTERACTIONS ─── */
 @media (hover: none) and (pointer: coarse) {
   /* Remove hover effects on touch devices */

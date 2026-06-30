@@ -287,6 +287,25 @@ exports.deleteSkill = async (req, res) => {
             return res.status(404).json({ message: "Skill not found or unauthorized" });
         }
 
+        // Clear the perfect-match de-dupe rows tied to THIS skill pair for this
+        // user. The pairKey is `<userA>__<userB>::<skillX>|<skillY>` (ids and
+        // skills each sorted). Without this, once a pair was announced the row
+        // lived forever — so deleting a skill and re-adding it (or its reverse)
+        // never re-announced the match. Removing the skill resets that memory,
+        // so a genuine re-add fires the perfect-match notification again.
+        try {
+            const norm = (s) => String(s || "").trim().toLowerCase();
+            const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            const skillKey = esc([norm(skill.skillOffered), norm(skill.skillWanted)].sort().join("|"));
+            const uid = esc(String(req.user.id));
+            // Match either user position in the sorted id pair, then this skill pair.
+            const re = new RegExp(`^(?:${uid}__[0-9a-fA-F]{24}|[0-9a-fA-F]{24}__${uid})::${skillKey}$`);
+            await MatchNotification.deleteMany({ pairKey: re });
+        } catch (cleanupErr) {
+            // De-dupe cleanup is best-effort — never fail the delete over it.
+            console.error("match-dedupe cleanup error:", cleanupErr);
+        }
+
         res.status(200).json({ message: "Skill deleted successfully" });
 
     } catch (err) {
