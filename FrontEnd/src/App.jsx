@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import { lazy, Suspense, useEffect, useState, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { lazy, Suspense, useEffect, useState, useCallback, useRef } from 'react';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
+import api from './services/api';
 import { useAuthStore } from './store/authStore';
 import { useNotificationStore } from './store/notificationStore';
 import { useThemeStore } from './store/themeStore';
@@ -109,6 +110,57 @@ function AppInner() {
     notifyPerfectMatch,
   } = useNotificationStore();
 
+  // Durable-notification flash dedupe. Flashes can arrive two ways: the live
+  // `notification:new` socket event (instant, but the socket is dead on the web
+  // build behind the Cloudflare Worker) and an HTTP poll fallback below (works
+  // everywhere). Both record ids here so a notification is flashed exactly once.
+  const flashSeenRef = useRef(new Set());
+  const flashSeededRef = useRef(false);
+  // Reset when the signed-in user changes so a new account's backlog isn't
+  // flashed and the previous user's ids don't leak across a logout/login.
+  useEffect(() => {
+    flashSeenRef.current = new Set();
+    flashSeededRef.current = false;
+  }, [user?._id]);
+
+  // HTTP poll fallback for in-app flashes. The socket delivers `notification:new`
+  // instantly on the APK, but never on the deployed website (its socket points at
+  // the Worker, which can't carry the WebSocket upgrade) — so web users saw the
+  // bell badge tick up with no flash. Polling the durable feed over plain HTTP
+  // makes perfect-match / connection flashes appear on web too, within one tick.
+  const { data: flashFeed } = useQuery({
+    queryKey: ['notifications', 'flashfeed'],
+    queryFn: () => api.get('/notifications', { params: { limit: 10 } }).then((r) => r.data),
+    enabled: !!token,
+    refetchInterval: 15000,
+    refetchOnWindowFocus: true,
+  });
+  useEffect(() => {
+    const items = flashFeed?.items || [];
+    if (!items.length) return;
+    // First successful load: record the backlog without flashing it.
+    if (!flashSeededRef.current) {
+      items.forEach((n) => flashSeenRef.current.add(String(n._id)));
+      flashSeededRef.current = true;
+      return;
+    }
+    // Oldest → newest so a burst stacks in chronological order.
+    [...items].reverse().forEach((n) => {
+      const id = String(n._id);
+      if (flashSeenRef.current.has(id)) return; // already flashed (socket or a prior poll)
+      flashSeenRef.current.add(id);
+      if (n.read) return; // read elsewhere already — no point flashing
+      const link = n.data?.link;
+      useNotificationStore.getState().addNotification({
+        type: n.type || 'info',
+        title: n.title || 'Notification',
+        message: n.body || '',
+        actions: link ? [{ label: 'View', primary: true, handler: () => navigate(link) }] : undefined,
+        duration: 8000,
+      });
+    });
+  }, [flashFeed, navigate]);
+
   const { initializeTheme } = useThemeStore();
   const { initializeAppearance } = useAppearanceStore();
   // Animation Speed multiplier (off=0 / slow=0.5 / medium=1 / fast=1.5)
@@ -185,6 +237,10 @@ function AppInner() {
     socket.on('notification:new', (payload) => {
       queryClient.invalidateQueries({ queryKey: ['notifications', 'unread'] });
       queryClient.invalidateQueries({ queryKey: ['notifications', 'list'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'flashfeed'] });
+
+      // Mark this id handled so the HTTP poll fallback never re-flashes it.
+      if (payload?._id) flashSeenRef.current.add(String(payload._id));
 
       if (payload?.title || payload?.body) {
         // APK: surface it in the Android notification tray (no-op on web).

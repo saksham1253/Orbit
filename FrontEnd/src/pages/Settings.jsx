@@ -1,12 +1,13 @@
 import { motion } from 'framer-motion';
-import { Palette, Zap, Eye, RotateCcw, Check, Volume2, VolumeX, Moon, Sun } from 'lucide-react';
+import { Palette, Zap, Eye, RotateCcw, Check, Volume2, VolumeX, Moon, Sun, Bell, BellOff } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import useAppearanceStore, { THEMES, BACKGROUND_STYLES, ANIMATION_SPEEDS } from '../store/appearanceStore';
 import { useThemeStore } from '../store/themeStore';
 import { useUIStore } from '../store/uiStore';
 import { useSound } from '../utils/soundManager';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Switch from '../components/common/Switch';
+import { getNotificationPermission, requestNotificationPermission } from '../utils/notifyPermission';
 
 const Settings = () => {
   const {
@@ -24,6 +25,43 @@ const Settings = () => {
   const { toggle, isEnabled, playClick, playSuccess, toggleMusic, isMusicEnabled } = useSound();
   const [soundsEnabled, setSoundsEnabled] = useState(isEnabled());
   const [musicEnabled, setMusicEnabled] = useState(isMusicEnabled());
+  // 'granted' | 'denied' | 'default' | 'unsupported' | null (loading)
+  const [notifPerm, setNotifPerm] = useState(null);
+
+  useEffect(() => {
+    getNotificationPermission().then(setNotifPerm);
+  }, []);
+
+  const handleToggleNotifications = async () => {
+    playClick();
+    // Permission can't be revoked from JS — once granted, sending the user to
+    // system/browser settings is the only way off.
+    if (notifPerm === 'granted') {
+      addToast('Notifications are on. Turn them off in your device/browser settings.', 'info');
+      return;
+    }
+    if (notifPerm === 'unsupported') {
+      addToast('This browser does not support notifications.', 'error');
+      return;
+    }
+    const granted = await requestNotificationPermission();
+    const perm = await getNotificationPermission();
+    setNotifPerm(perm);
+    if (granted || perm === 'granted') {
+      addToast('Notifications enabled', 'success');
+      playSuccess();
+    } else if (perm === 'denied') {
+      addToast('Notifications are blocked. Enable them in your device/browser settings.', 'error');
+    } else {
+      addToast('Notification permission was not granted.', 'info');
+    }
+  };
+
+  const notifDescription =
+    notifPerm === 'granted' ? 'Matches, connections & messages — even when the app is closed'
+    : notifPerm === 'denied' ? 'Blocked — re-enable in your device/browser settings'
+    : notifPerm === 'unsupported' ? 'Not supported on this browser'
+    : 'Get alerted about matches, connections & messages';
 
   const handleReset = () => {
     playClick();
@@ -266,6 +304,18 @@ const Settings = () => {
         description="Toggle between dark and light theme"
         icon={isDark ? <Moon size={18} className="text-accent" /> : <Sun size={18} className="text-amber" />}
         delay={0.25}
+      />
+
+      <Switch
+        id="toggle-notifications"
+        checked={notifPerm === 'granted'}
+        onChange={handleToggleNotifications}
+        label="Notifications"
+        description={notifDescription}
+        icon={notifPerm === 'granted'
+          ? <Bell size={18} className="text-accent" />
+          : <BellOff size={18} className="text-text-muted" />}
+        delay={0.28}
       />
 
       <Switch
