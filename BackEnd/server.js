@@ -554,6 +554,13 @@ const PORT = process.env.PORT || 8000;
 
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    // Eagerly report FCM push status at boot so deploy logs confirm the env vars
+    // are wired (isEnabled() triggers the lazy init and prints a [fcm] line).
+    try {
+        require("./services/fcm").isEnabled();
+    } catch (e) {
+        console.error("[fcm] status check failed:", e.message);
+    }
 });
 
 // ── Keep-warm self-ping (OPT-IN, default OFF) ──────────────────────────────
