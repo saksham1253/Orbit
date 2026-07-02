@@ -16,6 +16,7 @@ import Spinner from './components/common/Spinner';
 import { connectSocket } from './services/socket';
 import { initDeepLinkAuth } from './services/nativeAuth';
 import { initNativeNotifications, postNativeNotification } from './utils/nativeNotify';
+import { initPushNotifications, unregisterPush } from './utils/pushNotify';
 import { Toaster } from 'react-hot-toast';
 import BadgeDefsSprite from './cosmic/BadgeDefsSprite';
 import LiftoffWatcher from './cosmic/LiftoffWatcher';
@@ -170,6 +171,11 @@ function AppInner() {
     if (!token || !user) return;
 
     const socket = connectSocket(user._id);
+
+    // APK: register this device with FCM (needs the auth token, so it runs here
+    // after login, not at mount). Delivers tray notifications even when the app
+    // is fully killed. No-op on web. Taps route via the same navigate fn.
+    initPushNotifications((link) => navigate(link));
 
     // ──────── Listen to notification events ────────
 

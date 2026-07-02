@@ -213,6 +213,19 @@ exports.sendMessage = async (req, res) => {
             io.to(`user_${otherId}`).emit('new-message', populated);
         }
 
+        // Native push (FCM) so the recipient's APK gets a tray entry even when
+        // the app is killed (the socket emit above only reaches a live app).
+        // Fire-and-forget; no-op when FCM is unconfigured and never throws.
+        const senderName = (populated.sender && populated.sender.name) || 'Someone';
+        const preview = content.trim().slice(0, 120);
+        require('../services/fcm')
+            .sendToUser(otherId, {
+                title: `New message from ${senderName}`,
+                body: preview,
+                data: { link: `/dashboard?chat=${myId}`, type: 'message' },
+            })
+            .catch(() => {});
+
         res.status(201).json(populated);
 
     } catch (err) {

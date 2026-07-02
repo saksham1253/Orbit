@@ -479,6 +479,7 @@ app.use("/api/connections", connectionRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/cosmic", cosmicRoutes);
 app.use("/api/notifications", require("./routes/notificationRoutes"));
+app.use("/api/device", require("./routes/deviceRoutes"));
 
 // ── Admin Command Center (hardened, hidden) ────────────────────────────────
 // Namespaced under an unguessable base; every route 404-cloaks for non-admins.

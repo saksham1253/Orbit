@@ -213,7 +213,11 @@ const userSchema = new mongoose.Schema({
         pendingMomentTierId:    { type: String, default: null },
         pendingMomentDirection: { type: String, enum: ["up", "down", null], default: null },
         lowestTierId:           { type: String, default: "moon_4" }  // internal analytics only; never shown in UI
-    }
+    },
+
+    // FCM device tokens for native push (Android APK). One user can have several
+    // (multiple devices); dead tokens are pruned by services/fcm.js on send.
+    fcmTokens: { type: [String], default: [] }
 
 }, {
     timestamps: true

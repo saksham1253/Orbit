@@ -1,4 +1,5 @@
 const Notification = require("../models/Notification");
+const fcm = require("./fcm");
 
 /**
  * createNotification — persist a notification THEN push it live.
@@ -41,6 +42,11 @@ async function createNotification(io, userId, { type, title = "", body = "", dat
             /* live push is best-effort; the record is already persisted */
         }
     }
+
+    // Native push (FCM) so the APK gets a tray entry even when fully killed —
+    // the socket emit above only reaches a live app. Fire-and-forget; no-op when
+    // FCM is unconfigured and never throws.
+    fcm.sendToUser(userId, { title, body, data }).catch(() => {});
 
     return doc;
 }

@@ -7,6 +7,7 @@ import Avatar from '../common/Avatar';
 import api from '../../services/api';
 import ChatDrawer from '../chat/ChatDrawer';
 import NotificationBell from '../notifications/NotificationBell';
+import { unregisterPush } from '../../utils/pushNotify';
 import {
   LogOut, Layers, Compass, Users, Map,
   ShieldCheck, UserCircle, Menu, X, Handshake, Settings as SettingsIcon, MessageCircle, Phone, Trophy
@@ -130,7 +131,26 @@ const Navbar = () => {
     return () => window.removeEventListener('open-chat', handler);
   }, []);
 
-  const handleLogout = () => { logout(); navigate('/login'); };
+  // Deep link from a tapped message push (FCM): /dashboard?chat=<senderId>.
+  // Open the drawer to that conversation, then strip the param so a refresh /
+  // back-nav doesn't reopen it. The drawer only needs `_id` to load messages.
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const chatId = params.get('chat');
+    if (!chatId) return;
+    setChatInitialUser({ _id: chatId });
+    setChatOpen(true);
+    params.delete('chat');
+    navigate({ pathname: location.pathname, search: params.toString() }, { replace: true });
+  }, [location.search, location.pathname, navigate]);
+
+  const handleLogout = async () => {
+    // Drop this device's FCM token first (needs the still-valid auth token),
+    // then clear the session. No-op / instant on web.
+    await unregisterPush();
+    logout();
+    navigate('/login');
+  };
 
   return (
     <>
