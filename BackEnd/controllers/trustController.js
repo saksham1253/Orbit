@@ -2,6 +2,7 @@ const User   = require("../models/user");
 const Rating = require("../models/rating");
 const Connection = require("../models/Connection");
 const mlService = require("../services/mlService");
+const { recordOrbitAction } = require("../services/orbitActivity");
 
 // ─────────────────────────────────────────────
 //  TRUST SCORE FORMULA
@@ -130,6 +131,10 @@ exports.submitRating = async (req, res) => {
         await recalculateTrustScore(toUserId);
 
         res.status(201).json({ message: "Rating submitted successfully" });
+
+        // Orbit Engine: leaving a review is a real-progress day for the reviewer.
+        // Fire-and-forget — never affects the response.
+        recordOrbitAction(req.app.get("io"), req.user.id, "rating");
 
         // Non-blocking ML sentiment analysis
         if (review) {

@@ -217,7 +217,52 @@ const userSchema = new mongoose.Schema({
 
     // FCM device tokens for native push (Android APK). One user can have several
     // (multiple devices); dead tokens are pruned by services/fcm.js on send.
-    fcmTokens: { type: [String], default: [] }
+    fcmTokens: { type: [String], default: [] },
+
+    // ─────────────────────────────────────────────────────────────
+    //  ORBIT ENGINE (additive — Tier‑1 engagement: streak + freeze + missions).
+    //  All fields default-safe so existing users are unaffected (same rollout
+    //  strategy as `cosmic`). Advanced by services/orbitActivity.js on real
+    //  progress; the math lives in services/orbitEngine.js (pure). Day/week are
+    //  UTC-scoped, consistent with the cosmic activity heartbeat.
+    // ─────────────────────────────────────────────────────────────
+    orbit: {
+        streak: {
+            current:       { type: Number, default: 0 },
+            longest:       { type: Number, default: 0 },
+            lastActionDay: { type: String, default: null },   // "YYYY-MM-DD" UTC
+            milestonesHit: { type: [Number], default: [] },   // milestone day-counts already paid
+        },
+        // Gravity Assist — one free freeze token granted per ISO week (capped),
+        // auto-consumed to bridge a missed day so a long streak survives.
+        freeze: {
+            tokens:        { type: Number, default: 0 },
+            lastGrantWeek: { type: String, default: "" },     // "YYYY-Www"
+        },
+        // Cosmetic currency, earned from missions + streak milestones, spent on
+        // extra Gravity Assists (and future cosmetics). Separate from CosmicScore
+        // so rewards never inflate the ranking.
+        stardust: { type: Number, default: 0 },
+        // The current week's rotating missions (regenerated lazily on read when
+        // the ISO week changes — no cron needed, mirrors the season self-heal).
+        missions: {
+            weekId: { type: String, default: "" },            // "YYYY-Www"
+            items:  {
+                type: [{
+                    key:         String,
+                    metric:      String,   // swap | message | rating | streak_day
+                    target:      Number,
+                    stardust:    Number,
+                    label:       String,
+                    description: String,
+                    progress:    { type: Number, default: 0 },
+                    claimed:     { type: Boolean, default: false },
+                    _id: false,
+                }],
+                default: [],
+            },
+        },
+    }
 
 }, {
     timestamps: true

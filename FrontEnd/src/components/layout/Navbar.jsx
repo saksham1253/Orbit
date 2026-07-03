@@ -8,9 +8,10 @@ import api from '../../services/api';
 import ChatDrawer from '../chat/ChatDrawer';
 import NotificationBell from '../notifications/NotificationBell';
 import { unregisterPush } from '../../utils/pushNotify';
+import OrbitStreakBadge from '../../cosmic/OrbitStreakBadge';
 import {
   LogOut, Layers, Compass, Users, Map,
-  ShieldCheck, UserCircle, Menu, X, Handshake, Settings as SettingsIcon, MessageCircle, Phone, Trophy
+  ShieldCheck, UserCircle, Menu, X, Handshake, Settings as SettingsIcon, MessageCircle, Phone, Trophy, Rocket
 } from 'lucide-react';
 
 const NAV = [
@@ -22,6 +23,7 @@ const NAV = [
   { name: 'Calls',        path: '/video',        Icon: Phone      },
   { name: 'Trust',        path: '/trust',        Icon: ShieldCheck},
   { name: 'Leaderboard',  path: '/leaderboard',  Icon: Trophy     },
+  { name: 'Orbit',        path: '/orbit',        Icon: Rocket     },
 ];
 
 const Navbar = () => {
@@ -216,6 +218,8 @@ const Navbar = () => {
 
             {/* ── Right side ── */}
             <div className="flex items-center gap-1.5 flex-shrink-0">
+              {/* Orbit streak — glanceable loss-aversion cue (pulses when decaying) */}
+              <OrbitStreakBadge variant="nav" className="hidden sm:inline-flex" />
               <NavLink to="/profile" title="Profile"
                 className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all text-text-secondary hover:text-text-primary bg-surface border border-border-subtle"
               >

@@ -22,6 +22,7 @@ const Message     = require('../models/Message');
 const ChatArchive = require('../models/ChatArchive');
 const User        = require('../models/user');
 const { decompress } = require('../services/archiveService');
+const { recordOrbitAction } = require('../services/orbitActivity');
 
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT     = 100;
@@ -227,6 +228,10 @@ exports.sendMessage = async (req, res) => {
             .catch(() => {});
 
         res.status(201).json(populated);
+
+        // Orbit Engine: messaging a partner is a real-progress day for the sender.
+        // Fire-and-forget — never affects the response.
+        recordOrbitAction(io, myId, "message");
 
     } catch (err) {
         console.error('sendMessage error:', err);

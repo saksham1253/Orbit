@@ -45,6 +45,7 @@ const BadgeGallery   = lazy(() => import('./pages/BadgeGallery'));
 const Leaderboard    = lazy(() => import('./pages/Leaderboard'));
 const Observatory    = lazy(() => import('./pages/Observatory'));
 const TierAtlas      = lazy(() => import('./pages/TierAtlas'));
+const Orbit          = lazy(() => import('./pages/Orbit'));
 // Heavy cinematics (canvas engine + share card) — split out of the initial
 // bundle; only fetched when a rank-up actually fires.
 const LiftoffOverlay = lazy(() => import('./cosmic/LiftoffOverlay'));
@@ -413,6 +414,7 @@ function AppInner() {
         <Route path="/nearby"      element={<ProtectedRoute><NearbyMap /></ProtectedRoute>} />
         <Route path="/trust"       element={<ProtectedRoute><TrustScore /></ProtectedRoute>} />
         <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
+        <Route path="/orbit"       element={<ProtectedRoute><Orbit /></ProtectedRoute>} />
         <Route path="/observatory" element={<ProtectedRoute><Observatory /></ProtectedRoute>} />
         <Route path="/cosmic-atlas" element={<Layout><Suspense fallback={<PageLoader />}><TierAtlas /></Suspense></Layout>} />
         <Route path="/settings"    element={<ProtectedRoute><Settings /></ProtectedRoute>} />
