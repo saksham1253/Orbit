@@ -15,6 +15,7 @@ import MissionsPanel from '../cosmic/MissionsPanel';
 import ConstellationsPanel from '../cosmic/ConstellationsPanel';
 import LeaguePanel from '../cosmic/LeaguePanel';
 import ShopPanel from '../cosmic/ShopPanel';
+import SignalLegend from '../cosmic/SignalLegend';
 import CosmicLoader from '../cosmic/CosmicLoader';
 import ErrorState from '../components/common/ErrorState';
 import { useUIStore } from '../store/uiStore';
@@ -183,6 +184,9 @@ export default function Orbit() {
           </p>
         </section>
       </div>
+
+      {/* Signal clarity — Stardust vs CosmicScore vs Orbit XP */}
+      <SignalLegend />
 
       {/* Missions */}
       <MissionsPanel missions={missions} />
