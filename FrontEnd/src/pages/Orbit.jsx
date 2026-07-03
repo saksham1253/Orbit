@@ -13,6 +13,7 @@ import { Flame, Shield, Sparkles, Rocket, Clock, Trophy } from 'lucide-react';
 import { useOrbit, useBuyFreeze } from '../cosmic/useOrbit';
 import MissionsPanel from '../cosmic/MissionsPanel';
 import ConstellationsPanel from '../cosmic/ConstellationsPanel';
+import LeaguePanel from '../cosmic/LeaguePanel';
 import CosmicLoader from '../cosmic/CosmicLoader';
 import ErrorState from '../components/common/ErrorState';
 import { useUIStore } from '../store/uiStore';
@@ -157,6 +158,9 @@ export default function Orbit() {
 
       {/* Missions */}
       <MissionsPanel missions={missions} />
+
+      {/* Weekly League — promotion/relegation by fresh weekly Orbit XP */}
+      <LeaguePanel />
 
       {/* Constellations — co-op Binary Star streaks */}
       <ConstellationsPanel />

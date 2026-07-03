@@ -262,6 +262,19 @@ const userSchema = new mongoose.Schema({
                 default: [],
             },
         },
+        // Weekly League — fresh Orbit XP earned each ISO week (resets Monday UTC),
+        // ranked within a fixed-size group; top/bottom promote/relegate at the
+        // weekly rollover (workers/leagueWorker.js). `weekXp` self-heals to 0 on
+        // read when the week changes (services/leagueService.js), so a user the
+        // worker hasn't touched still starts each week at zero.
+        league: {
+            divisionId: { type: String, default: "asteroid_belt" }, // lowest tier
+            groupId:    { type: String, default: "" },              // "<divisionId>:<weekId>:<n>"
+            weekXp:     { type: Number, default: 0 },
+            weekId:     { type: String, default: "" },              // "YYYY-Www" weekXp belongs to
+            lastResult: { type: String, enum: ["promoted", "relegated", "held", ""], default: "" },
+            highestDivisionId: { type: String, default: "asteroid_belt" }, // lifetime best
+        },
     }
 
 }, {
@@ -298,6 +311,10 @@ userSchema.index({ 'coordinates.lng': 1, 'coordinates.lat': 1 }); // Fallback co
 userSchema.index({ 'geo.point': '2dsphere' });
 // Season-scoped ranking: fetch a city's pool ordered by CosmicScore.
 userSchema.index({ 'cosmic.seasonId': 1, 'cosmic.score': -1 });
+
+// ── Orbit Weekly League index (additive) ───────────────────────────────────
+// Fetch a league group ordered by this week's XP (leaderboard + rollover).
+userSchema.index({ 'orbit.league.groupId': 1, 'orbit.league.weekXp': -1 });
 
 // ── Admin Command Center indexes (additive) ────────────────────────────────
 userSchema.index({ role: 1 });

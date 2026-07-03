@@ -34,6 +34,7 @@ const { startArchiveWorker } = require("./workers/archiveWorker");
 const { startSentimentWorker } = require("./workers/sentimentWorker");
 const { startSeasonWorker } = require("./workers/seasonWorker");
 const { startOrbitWorker } = require("./workers/orbitWorker");
+const { startLeagueWorker } = require("./workers/leagueWorker");
 
 const app = express();
 app.set("trust proxy", 1); // Trust first proxy (needed for express-rate-limit on Render)
@@ -539,6 +540,7 @@ mongoose.connect(process.env.MONGO_URI, {
         startSentimentWorker(); // Cosmic: precompute review sentiment off the request path
         startSeasonWorker(); // Cosmic: monthly season lifecycle + rollover (idempotent)
         startOrbitWorker(io); // Orbit: daily decaying-streak reminders (loss-aversion nudge)
+        startLeagueWorker(io); // Orbit: weekly League promotion/relegation + regroup
 
         // One-time admin bootstrap for hosts without a shell (e.g. Render free
         // tier): set RUN_ADMIN_SEED=true + ADMIN_EMAIL + ADMIN_INITIAL_PASSWORD,

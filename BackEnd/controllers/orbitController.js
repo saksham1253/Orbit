@@ -8,6 +8,7 @@
 
 const User = require("../models/user");
 const engine = require("../services/orbitEngine");
+const league = require("../services/leagueService");
 const { utcDayStr, rollForward } = require("../services/orbitActivity");
 
 // Build the client payload from a fully-rolled orbit object.
@@ -76,6 +77,8 @@ exports.claimMission = async (req, res) => {
         }
         orbit.missions = result.missions;
         orbit.stardust += result.stardust;
+        // Claiming a mission also grants weekly League XP.
+        orbit.league.weekXp += league.XP_MISSION_CLAIM;
 
         await User.updateOne({ _id: req.user.id }, { $set: { orbit } });
         return res.status(200).json({ awarded: result.stardust, ...shapeOrbit(orbit) });
