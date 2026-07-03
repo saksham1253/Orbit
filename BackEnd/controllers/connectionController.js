@@ -3,6 +3,7 @@ const Skill = require("../models/skill");
 const User = require("../models/user");
 const { createNotification } = require("../services/notify");
 const { recordOrbitAction } = require("../services/orbitActivity");
+const { creditTeaching } = require("../services/masteryActivity");
 
 // Send a connection request
 exports.requestConnection = async (req, res) => {
@@ -196,6 +197,10 @@ exports.markConnectionCompleted = async (req, res) => {
         const io = req.app.get("io");
         recordOrbitAction(io, connection.requester, "swap");
         recordOrbitAction(io, connection.receiver, "swap");
+
+        // Skill Mastery: credit the owner of the swapped skill with one session
+        // taught (advances their per-skill mastery ladder). Fire-and-forget.
+        creditTeaching(io, connection.skill);
 
     } catch (err) {
         console.error(err);

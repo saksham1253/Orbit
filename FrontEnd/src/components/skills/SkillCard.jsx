@@ -8,6 +8,7 @@ import api from '../../services/api';
 import Avatar from '../common/Avatar';
 import CosmicBadge from '../../cosmic/CosmicBadge';
 import TierProgress from '../../cosmic/TierProgress';
+import MasteryBar from '../../cosmic/MasteryBar';
 import { useAuthStore } from '../../store/authStore';
 import { useUIStore } from '../../store/uiStore';
 
@@ -135,6 +136,9 @@ const SkillCard = memo(({ skill, variant = 'browse', onConnect, onViewRatings })
       {skill.description && (
         <p className="text-xs text-text-muted leading-relaxed line-clamp-2">{skill.description}</p>
       )}
+
+      {/* Skill Mastery — teaching rank + progress (renders once ≥1 session taught) */}
+      <MasteryBar mastery={skill.mastery} />
 
       {/* Footer */}
       <div className="flex items-center justify-between mt-auto pt-1">
