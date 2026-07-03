@@ -16,7 +16,6 @@
 
 const User = require("../models/user");
 
-let admin = null;          // the firebase-admin module (lazy require)
 let messaging = null;      // cached messaging() instance
 let initState = "pending"; // "pending" | "ready" | "disabled"
 
@@ -63,11 +62,15 @@ function ensureInit() {
     }
 
     try {
-        admin = require("firebase-admin");
-        if (!admin.apps.length) {
-            admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+        // firebase-admin v14 is modular — the old `admin.credential.cert` /
+        // `admin.messaging()` off the default export no longer exist, so import
+        // the app + messaging subpaths directly.
+        const { initializeApp, getApps, cert } = require("firebase-admin/app");
+        const { getMessaging } = require("firebase-admin/messaging");
+        if (!getApps().length) {
+            initializeApp({ credential: cert(serviceAccount) });
         }
-        messaging = admin.messaging();
+        messaging = getMessaging();
         initState = "ready";
         console.log("[fcm] initialised — push notifications active.");
         return true;
