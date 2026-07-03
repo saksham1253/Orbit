@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Star, Send } from 'lucide-react';
+import { Star, Send, Share2, Check } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import api from '../../services/api';
 import { useUIStore } from '../../store/uiStore';
 import { useSound } from '../../utils/soundManager';
 import Avatar from '../common/Avatar';
+import { buildSessionCard, shareOrDownload } from '../../cosmic/sessionCard';
 
 /**
  * Rating Modal - Appears after video call ends
@@ -18,13 +19,28 @@ const RatingModal = ({ isOpen, onClose, otherUser, callDuration }) => {
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState('');
+  const [learned, setLearned] = useState('');
+  const [step, setStep] = useState('rate');   // 'rate' → 'card'
+  const [cardUrl, setCardUrl] = useState('');
 
   const submitRatingMutation = useMutation({
     mutationFn: (data) => api.post('/trust/rate', data),
     onSuccess: () => {
       playSuccess();
-      addToast('Rating submitted successfully!', 'success');
-      onClose();
+      addToast('Rating submitted — nice session! ✨', 'success');
+      // Post-session ritual: generate a shareable session card and show it
+      // instead of closing immediately (viral loop).
+      try {
+        setCardUrl(buildSessionCard({
+          partnerName: otherUser.name,
+          rating,
+          learned: learned.trim(),
+          durationSec: callDuration || 0,
+        }));
+        setStep('card');
+      } catch {
+        onClose(); // card is a bonus; never block the close on a canvas hiccup
+      }
     },
     onError: (err) => {
       addToast(err.response?.data?.message || 'Failed to submit rating', 'error');
@@ -60,7 +76,51 @@ const RatingModal = ({ isOpen, onClose, otherUser, callDuration }) => {
     setRating(value);
   };
 
+  const handleShareCard = async () => {
+    try {
+      const result = await shareOrDownload(cardUrl, {
+        filename: 'orbit-session.png',
+        text: `Just finished a skill swap on Orbit${learned.trim() ? ` — ${learned.trim()}` : ''}!`,
+      });
+      addToast(result === 'downloaded' ? 'Session card saved 📸' : 'Shared! ✨', 'success');
+    } catch {
+      addToast('Could not share the card', 'error');
+    }
+  };
+
   if (!isOpen) return null;
+
+  // Step 2 — the shareable session card (post-session ritual / viral loop).
+  if (step === 'card') {
+    return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="bg-dark-lighter border border-border-subtle rounded-3xl p-6 max-w-lg w-full"
+        >
+          <h2 className="text-xl font-display font-bold text-text-primary text-center mb-4">
+            Your session card 🌌
+          </h2>
+          {cardUrl && (
+            <img src={cardUrl} alt="Shareable session card" className="w-full rounded-2xl border border-border-subtle mb-5" />
+          )}
+          <button
+            onClick={handleShareCard}
+            className="btn-gradient w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-sm"
+          >
+            <Share2 size={16} /> Share / Save
+          </button>
+          <button
+            onClick={onClose}
+            className="w-full flex items-center justify-center gap-1.5 text-center text-sm text-text-muted hover:text-text-secondary mt-3 py-1 transition-colors"
+          >
+            <Check size={14} /> Done
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
@@ -161,6 +221,21 @@ const RatingModal = ({ isOpen, onClose, otherUser, callDuration }) => {
               <p className="text-xs text-green">✓ Good to go!</p>
             )}
           </div>
+        </div>
+
+        {/* One thing you learned — feeds the shareable session card (optional) */}
+        <div className="mb-6">
+          <label className="block text-sm font-semibold text-text-secondary mb-2">
+            One thing you learned <span className="text-text-muted font-normal">(for your session card)</span>
+          </label>
+          <input
+            type="text"
+            value={learned}
+            onChange={(e) => setLearned(e.target.value)}
+            placeholder="e.g. barre chords finally clicked!"
+            maxLength={90}
+            className="input-glass w-full px-4 py-3 text-sm text-text-primary"
+          />
         </div>
 
         {/* Submit Button */}
