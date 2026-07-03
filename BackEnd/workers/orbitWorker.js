@@ -70,8 +70,17 @@ async function runOrbitReminders(io) {
 /**
  * startOrbitWorker(io) — call once from server.js after DB connects. Schedules
  * the first run at RUN_HOUR_UTC, then every 24h.
+ *
+ * Gated by ORBIT_DECAY_REMINDERS so the daily nudges can be soft-launched: set
+ * ORBIT_DECAY_REMINDERS=false to keep the whole Orbit Engine live but silence
+ * the push reminders (the streak/missions/Stardust all still work). Enabled by
+ * default so no config is needed to get the intended behaviour.
  */
 function startOrbitWorker(io) {
+    if (String(process.env.ORBIT_DECAY_REMINDERS).toLowerCase() === "false") {
+        console.log("[OrbitWorker] Decay reminders disabled (ORBIT_DECAY_REMINDERS=false). Skipping schedule.");
+        return;
+    }
     const delay = msUntilNextRun();
     console.log(`[OrbitWorker] Scheduled. First run in ${(delay / 3600000).toFixed(1)}h (at ${RUN_HOUR_UTC}:07 UTC).`);
     setTimeout(() => runOrbitReminders(io), delay);
