@@ -262,6 +262,15 @@ const userSchema = new mongoose.Schema({
                 default: [],
             },
         },
+        // Cosmetics — what Stardust BUYS (the spend side of the economy). `owned`
+        // holds catalog item keys the user has purchased; `nameGlow`/`background`
+        // are the currently-equipped items (must be owned). Purely visual; never
+        // touches CosmicScore or ranking.
+        cosmetics: {
+            owned:      { type: [String], default: [] },
+            nameGlow:   { type: String, default: null },   // equipped name-glow key
+            background: { type: String, default: null },   // equipped profile background key
+        },
     }
 
 }, {
