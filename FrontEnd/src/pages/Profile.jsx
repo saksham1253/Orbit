@@ -12,6 +12,7 @@ import Spinner from '../components/common/Spinner';
 import Modal from '../components/common/Modal';
 import { ProfileHeaderSkeleton } from '../components/skeletons';
 import CosmicProfileCard from '../cosmic/CosmicProfileCard';
+import { equippedFromUser } from '../cosmic/cosmetics';
 import { InfoDot, ScoreExplainerBody } from '../cosmic/scoreInfo';
 import { TRUST_TOOLTIP, TRUST_SCORE_INFO } from '../cosmic/scoreCopy';
 import LanguageMultiSelect from '../components/common/LanguageMultiSelect';
@@ -165,6 +166,8 @@ const Profile = () => {
 
   const trust = profile?.trustScore ?? 0;
   const trustColor = trust >= 70 ? '#00e5a0' : trust >= 40 ? '#ffb800' : '#ff4b4b';
+  // Equipped Stardust-shop cosmetics (name glow + nebula background).
+  const { glowClass, bgClass } = equippedFromUser(profile);
 
   return (
     <div className="max-w-2xl mx-auto space-y-7">
@@ -186,10 +189,10 @@ const Profile = () => {
         <p className="text-text-muted mt-1 text-sm">Your public persona on Orbit.</p>
       </div>
 
-      {/* Avatar + meta card */}
+      {/* Avatar + meta card — shows the equipped nebula background if any */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-        className="flex items-center gap-5 p-6 rounded-2xl"
-        style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
+        className={`flex items-center gap-5 p-6 rounded-2xl overflow-hidden ${bgClass}`}
+        style={{ background: bgClass ? undefined : 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
         <div className="relative">
           <Avatar name={profile?.name || user?.name} size="xl" userId={profile?._id || user?._id} url={profile?.avatar} />
           <button
@@ -201,8 +204,8 @@ const Profile = () => {
           </button>
         </div>
         <div className="min-w-0">
-          <p className="text-xl font-bold text-text-primary truncate">{profile?.name || user?.name}</p>
-          <p className="text-sm text-text-muted truncate">{profile?.email || user?.email}</p>
+          <p className={`text-xl font-bold truncate ${glowClass || 'text-text-primary'}`}>{profile?.name || user?.name}</p>
+          <p className={`text-sm truncate ${bgClass ? 'text-white/80' : 'text-text-muted'}`}>{profile?.email || user?.email}</p>
           <div className="flex items-center gap-1.5 mt-2">
             <Shield size={13} style={{ color: trustColor }} />
             <span className="text-xs font-semibold" style={{ color: trustColor }}>
