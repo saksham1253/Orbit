@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const { enforceContentPolicy } = require("../utils/contentModeration");
 const { tierObjectFor } = require("../services/cosmicTier");
 const { createNotification } = require("../services/notify");
+const { masteryFor } = require("../services/skillMastery");
 
 // Lean cosmic standing for list cards (Browse/Matches). Computed in-memory from
 // the user's PERSISTED cosmic fields — no extra DB query, no N+1 (v7 §1). Same
@@ -211,9 +212,10 @@ exports.getAllSkills = async (req, res) => {
         ]);
 
         // Attach each user's cosmic standing for the Browse card mini-badge
-        // (in-memory; no extra DB round-trip — v7 §1).
+        // (in-memory; no extra DB round-trip — v7 §1) + per-skill mastery.
         for (const s of skills) {
             if (s.userId) s.userId.cosmicStanding = standingFromUser(s.userId);
+            s.mastery = masteryFor(s.sessionsTaught, s.skillOffered);
         }
 
         res.status(200).json(skills);
@@ -229,6 +231,7 @@ exports.getAllSkills = async (req, res) => {
 exports.getMySkills = async (req, res) => {
     try {
         const skills = await Skill.find({ userId: req.user.id }).lean();
+        for (const s of skills) s.mastery = masteryFor(s.sessionsTaught, s.skillOffered);
 
         res.status(200).json(skills);
 
