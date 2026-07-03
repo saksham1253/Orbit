@@ -9,8 +9,8 @@
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { Flame, Shield, Sparkles, Rocket, Clock, Trophy } from 'lucide-react';
-import { useOrbit, useBuyFreeze } from '../cosmic/useOrbit';
+import { Flame, Shield, Sparkles, Rocket, Clock, Trophy, Star, Bell, BellOff } from 'lucide-react';
+import { useOrbit, useBuyFreeze, useOrbitPrefs } from '../cosmic/useOrbit';
 import MissionsPanel from '../cosmic/MissionsPanel';
 import ConstellationsPanel from '../cosmic/ConstellationsPanel';
 import LeaguePanel from '../cosmic/LeaguePanel';
@@ -73,6 +73,7 @@ function StreakRing({ current, next, ringColor }) {
 export default function Orbit() {
   const { data, isLoading, isError, refetch } = useOrbit();
   const buyFreeze = useBuyFreeze();
+  const prefsMut = useOrbitPrefs();
   const { addToast } = useUIStore();
   const countdown = useUtcCountdown();
 
@@ -81,11 +82,21 @@ export default function Orbit() {
 
   const { streak, freeze, stardust, missions, nextMilestone, milestones } = data;
   const copy = STATE_COPY[streak.state] || STATE_COPY.idle;
+  // Part 3 — graduated streaks show pride, not pressure (hide the countdown).
+  const showCountdown = streak.state !== 'active' && streak.pressure !== 'none';
+  const remindersOn = data.prefs?.decayReminders !== false;
 
   const onBuyFreeze = () => {
     buyFreeze.mutate(undefined, {
       onSuccess: () => addToast('Gravity Assist banked 🛡️', 'success'),
       onError: (e) => addToast(e.response?.data?.message || 'Could not buy a freeze', 'error'),
+    });
+  };
+
+  const onToggleReminders = () => {
+    prefsMut.mutate({ decayReminders: !remindersOn }, {
+      onSuccess: (d) => addToast(d.prefs?.decayReminders ? 'Streak reminders on' : 'Streak reminders off', 'info'),
+      onError: (e) => addToast(e.response?.data?.message || 'Could not update preference', 'error'),
     });
   };
 
@@ -103,8 +114,17 @@ export default function Orbit() {
         <div className="flex flex-col sm:flex-row items-center gap-5">
           <StreakRing current={streak.current} next={nextMilestone} ringColor={copy.ring} />
           <div className="flex-1 text-center sm:text-left">
-            <div className="text-lg font-bold" style={{ color: copy.ring }}>{copy.label}</div>
-            <p className="text-sm text-slate-300 mt-0.5">{copy.sub}</p>
+            <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+              <span className="text-lg font-bold" style={{ color: copy.ring }}>{copy.label}</span>
+              {streak.badge && (
+                <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold text-amber-300 bg-amber-400/10 ring-1 ring-amber-400/30">
+                  <Star size={12} /> {streak.badge}
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-slate-300 mt-0.5">
+              {streak.graduated ? "Your habit is locked in — this status is permanent." : copy.sub}
+            </p>
             <div className="flex flex-wrap justify-center sm:justify-start gap-4 mt-3 text-sm">
               <span className="text-slate-400">Longest <b className="text-white">{streak.longest}</b></span>
               {nextMilestone && (
@@ -112,11 +132,18 @@ export default function Orbit() {
                   Next: <b className="text-white">{nextMilestone.name}</b> at {nextMilestone.days}d
                 </span>
               )}
-              {streak.state !== 'active' && (
+              {showCountdown && (
                 <span className="inline-flex items-center gap-1 text-rose-300">
                   <Clock size={14} /> resets in {countdown}
                 </span>
               )}
+              {/* Part 4 — user-controllable reminders */}
+              <button onClick={onToggleReminders} disabled={prefsMut.isPending}
+                className="inline-flex items-center gap-1 text-slate-400 hover:text-slate-200 transition-colors"
+                title={remindersOn ? 'Turn off streak reminders' : 'Turn on streak reminders'}>
+                {remindersOn ? <Bell size={14} /> : <BellOff size={14} />}
+                {remindersOn ? 'Reminders on' : 'Reminders off'}
+              </button>
             </div>
           </div>
         </div>

@@ -274,6 +274,22 @@ const userSchema = new mongoose.Schema({
             weekId:     { type: String, default: "" },              // "YYYY-Www" weekXp belongs to
             lastResult: { type: String, enum: ["promoted", "relegated", "held", ""], default: "" },
             highestDivisionId: { type: String, default: "asteroid_belt" }, // lifetime best
+            // Per-source XP already granted THIS week — enforces weekly per-source
+            // caps (anti-gaming, Part 2). Reset to 0 on the weekly rollover.
+            sourceXp: {
+                message: { type: Number, default: 0 },
+            },
+        },
+        // Anti-gaming: per-UTC-day message-credit ledger (Part 1). A message only
+        // earns streak/XP credit from a partner not already listed today.
+        msgCredit: {
+            day:      { type: String, default: null },   // "YYYY-MM-DD" UTC
+            partners: { type: [String], default: [] },   // partner ids credited today
+        },
+        // User-controllable engagement preferences (Part 4). Additive; default
+        // preserves current behavior (reminders on).
+        prefs: {
+            decayReminders: { type: Boolean, default: true },
         },
         // Cosmetics — what Stardust BUYS (the spend side of the economy). `owned`
         // holds catalog item keys the user has purchased; `nameGlow`/`background`

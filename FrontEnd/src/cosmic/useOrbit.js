@@ -35,3 +35,12 @@ export function useBuyFreeze() {
     onSuccess: (data) => qc.setQueryData(ORBIT_KEY, (prev) => ({ ...prev, ...data })),
   });
 }
+
+/** Update engagement preferences (e.g. decay-reminder opt-out — Part 4). */
+export function useOrbitPrefs() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (prefs) => api.post('/orbit/prefs', prefs).then((r) => r.data),
+    onSuccess: (data) => qc.setQueryData(ORBIT_KEY, (prev) => (prev ? { ...prev, prefs: data.prefs } : prev)),
+  });
+}

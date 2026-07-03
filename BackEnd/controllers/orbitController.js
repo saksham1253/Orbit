@@ -9,6 +9,7 @@
 const User = require("../models/user");
 const engine = require("../services/orbitEngine");
 const league = require("../services/leagueService");
+const cfg = require("../services/orbitConfig");
 const { utcDayStr, rollForward } = require("../services/orbitActivity");
 
 // Build the client payload from a fully-rolled orbit object.
@@ -16,6 +17,11 @@ function shapeOrbit(orbit, now = new Date()) {
     const today = utcDayStr(now);
     const decay = engine.decayState(orbit.streak, today);
     const next = engine.nextMilestone(orbit.streak.current);
+    // Graduation phase (Part 3): pressure eases as the habit matures.
+    const grad = engine.graduationStatus(orbit.streak.current, orbit.streak.longest, {
+        formationMax: cfg.PHASES.formationMax,
+        consistencyMax: cfg.PHASES.consistencyMax,
+    });
     return {
         streak: {
             current: orbit.streak.current,
@@ -23,7 +29,12 @@ function shapeOrbit(orbit, now = new Date()) {
             lastActionDay: orbit.streak.lastActionDay,
             state: decay.state,                    // active | decaying | idle
             actedToday: decay.state === "active",
+            phase: grad.phase,                     // formation | consistency | graduation
+            graduated: grad.graduated,             // sticky (from longest)
+            badge: grad.badge,                     // "Fixed Star" | "Constant" | null
+            pressure: grad.pressure,               // high | soft | none (UI countdown emphasis)
         },
+        prefs: { decayReminders: !(orbit.prefs && orbit.prefs.decayReminders === false) },
         freeze: {
             tokens: orbit.freeze.tokens,
             cap: engine.FREEZE_CAP,
@@ -60,6 +71,25 @@ exports.getMyOrbit = async (req, res) => {
         return res.status(200).json(shapeOrbit(orbit));
     } catch (err) {
         console.error("getMyOrbit error:", err);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+// POST /api/orbit/prefs — user-controllable engagement preferences (Part 4).
+// Currently the decay-reminder opt-out. Additive; body { decayReminders: bool }.
+exports.setPrefs = async (req, res) => {
+    try {
+        const set = {};
+        if (typeof req.body.decayReminders === "boolean") {
+            set["orbit.prefs.decayReminders"] = req.body.decayReminders;
+        }
+        if (!Object.keys(set).length) return res.status(400).json({ message: "No valid preferences supplied" });
+
+        await User.updateOne({ _id: req.user.id }, { $set: set });
+        const user = await User.findById(req.user.id).select("orbit.prefs").lean();
+        return res.status(200).json({ prefs: { decayReminders: !(user.orbit && user.orbit.prefs && user.orbit.prefs.decayReminders === false) } });
+    } catch (err) {
+        console.error("setPrefs error:", err);
         res.status(500).json({ message: "Server error" });
     }
 };

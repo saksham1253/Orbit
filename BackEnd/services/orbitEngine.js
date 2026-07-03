@@ -252,6 +252,39 @@ function nextMilestone(current) {
     return MILESTONES.find((m) => m.days > (current || 0)) || null;
 }
 
+// ── Streak graduation phases (Part 3) ────────────────────────────────────────
+// Formation (0–29) leans on the daily countdown; Consistency (30–59) softens it;
+// Graduation (60+) drops the pressure entirely for a permanent "Fixed Star"
+// pride badge. Thresholds are passed in (from orbitConfig) so they're tunable.
+const DEFAULT_PHASE_OPTS = { formationMax: 29, consistencyMax: 59 };
+
+/** Which streak phase a `current` day-count is in. */
+function phaseFor(current, opts = DEFAULT_PHASE_OPTS) {
+    const fMax = opts.formationMax ?? 29;
+    const cMax = opts.consistencyMax ?? 59;
+    const c = current || 0;
+    if (c > cMax) return "graduation";
+    if (c > fMax) return "consistency";
+    return "formation";
+}
+
+/**
+ * graduationStatus — a supportive, non-anxious view of the streak's phase.
+ * The "Fixed Star" badge is STICKY: it derives from `longest`, so a graduated
+ * user who misses a day keeps the badge (pride, not punishment).
+ *
+ * @returns {{ phase, graduated, badge, pressure }}
+ *   pressure: 'high'|'soft'|'none' — how much the daily countdown should be shown
+ */
+function graduationStatus(current, longest, opts = DEFAULT_PHASE_OPTS) {
+    const cMax = opts.consistencyMax ?? 59;
+    const phase = phaseFor(current, opts);
+    const graduated = (longest || 0) > cMax;                 // sticky, from lifetime best
+    const badge = graduated ? "Fixed Star" : (phaseFor(longest, opts) === "consistency" ? "Constant" : null);
+    const pressure = phase === "graduation" ? "none" : phase === "consistency" ? "soft" : "high";
+    return { phase, graduated, badge, pressure };
+}
+
 module.exports = {
     // constants
     FREEZE_CAP, WEEKLY_FREEZE_GRANT, FREEZE_STARDUST_COST, MISSIONS_PER_WEEK,
@@ -264,6 +297,8 @@ module.exports = {
     grantWeeklyFreeze,
     // missions
     seededOrder, pickMissions, rollMissions, applyMissionProgress, claimMission,
+    // graduation (Part 3)
+    phaseFor, graduationStatus,
     // misc
     nextMilestone,
 };

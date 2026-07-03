@@ -27,10 +27,13 @@ const GROUP_SIZE      = 30;   // target members per league group
 const PROMOTE_COUNT   = 5;    // top N of a group promote
 const RELEGATE_COUNT  = 5;    // bottom N of a group relegate (lowest division exempt)
 
-// XP per real action (weekly, resets Monday).
-const XP = Object.freeze({ swap: 30, rating: 15, message: 5 });
-const XP_MISSION_CLAIM = 40;  // bonus when a weekly mission is claimed
-const XP_MILESTONE     = 50;  // bonus when a personal streak milestone is reached
+// XP per real action (weekly, resets Monday). Sourced from orbitConfig so the
+// weights are a single, env-tunable source of truth (Part 2). `rating` is the
+// metric key for a review.
+const { XP: XP_CFG } = require("./orbitConfig");
+const XP = Object.freeze({ swap: XP_CFG.swap, rating: XP_CFG.review, message: XP_CFG.message });
+const XP_MISSION_CLAIM = XP_CFG.missionClaim;  // bonus when a weekly mission is claimed
+const XP_MILESTONE     = XP_CFG.milestone;     // bonus when a personal streak milestone is reached
 
 const clampIdx = (i) => Math.max(0, Math.min(DIVISION_IDS.length - 1, i));
 const divisionIndex = (id) => {

@@ -11,6 +11,8 @@
 const User = require("../models/user");
 const engine = require("./orbitEngine");
 const league = require("./leagueService");
+const antiGame = require("./orbitAntiGame");
+const cfg = require("./orbitConfig");
 const { createNotification } = require("./notify");
 
 // ── "now" helpers (UTC) ──────────────────────────────────────────────────────
@@ -57,6 +59,14 @@ function normalizeOrbit(orbit = {}) {
             weekId: (o.league && o.league.weekId) || "",
             lastResult: (o.league && o.league.lastResult) || "",
             highestDivisionId: (o.league && o.league.highestDivisionId) || (o.league && o.league.divisionId) || league.DIVISION_IDS[0],
+            sourceXp: { message: (o.league && o.league.sourceXp && o.league.sourceXp.message) || 0 },
+        },
+        msgCredit: {
+            day: (o.msgCredit && o.msgCredit.day) || null,
+            partners: (o.msgCredit && Array.isArray(o.msgCredit.partners)) ? [...o.msgCredit.partners] : [],
+        },
+        prefs: {
+            decayReminders: !(o.prefs && o.prefs.decayReminders === false),
         },
     };
 }
@@ -84,6 +94,7 @@ function rollForward(orbit, now = new Date()) {
     let leagueChanged = false;
     if (o.league.weekId !== weekId) {
         o.league.weekXp = 0;
+        o.league.sourceXp = { message: 0 };   // reset per-source weekly caps
         o.league.weekId = weekId;
         o.league.groupId = `${o.league.divisionId}:${weekId}:0`;
         leagueChanged = true;
@@ -117,34 +128,65 @@ async function recordOrbitAction(io, userId, metric, opts = {}) {
 
         let { orbit } = rollForward(user.orbit, now);
 
-        // 1) Streak — advance for this real-progress day. freezeTokens live on
-        //    orbit.freeze, so splice them in/out around the pure call.
-        const streakIn = { ...orbit.streak, freezeTokens: orbit.freeze.tokens };
-        const res = engine.applyAction(streakIn, today);
-        orbit.streak = {
-            current: res.streak.current,
-            longest: res.streak.longest,
-            lastActionDay: res.streak.lastActionDay,
-            milestonesHit: res.streak.milestonesHit,
-        };
-        orbit.freeze.tokens = res.streak.freezeTokens;
-        orbit.stardust += res.stardust;
-
-        // 2) Missions — bump the action's own metric every time; bump the
-        //    "streak_day" metric only on the first action of the day.
-        const completed = [];
-        let mp = engine.applyMissionProgress(orbit.missions, metric, amount);
-        orbit.missions = mp.missions; completed.push(...mp.completedNow);
-        if (res.counted) {
-            mp = engine.applyMissionProgress(orbit.missions, "streak_day", 1);
-            orbit.missions = mp.missions; completed.push(...mp.completedNow);
+        // 0) Anti-gaming (Part 1) — swaps & reviews are real value and always
+        //    count in full. A MESSAGE only earns credit from a partner not
+        //    already credited today (distinct-partner rule); XP tapers to 0 past
+        //    the daily cap. This makes messages a weak *fallback* streak trigger,
+        //    never the primary path, and impossible to farm.
+        let streakEligible = true;
+        let xpFactor = 1;
+        if (metric === "message") {
+            const q = antiGame.qualifyMessage(orbit.msgCredit, opts.partnerId, today, {
+                dailyXpCap: cfg.MSG.dailyXpCap,
+                quality: cfg.MSG.qualityGate ? opts.quality !== false : true,
+            });
+            orbit.msgCredit = q.msgCredit;
+            streakEligible = q.qualifiesForStreak;
+            xpFactor = q.xpFactor;
         }
 
-        // 3) Weekly League XP — fresh XP for this action's metric, plus a bonus
-        //    for any personal-streak milestone reached. (Mission-claim XP is
-        //    awarded in the controller when the reward is claimed.) rollForward
-        //    already reset weekXp to 0 if the ISO week changed.
-        orbit.league.weekXp += league.xpFor(metric) * amount + (res.milestone ? league.XP_MILESTONE : 0);
+        // 1) Streak — advance for this real-progress day (swap/review always; a
+        //    message only when it qualifies). freezeTokens live on orbit.freeze.
+        let res;
+        if (streakEligible) {
+            const streakIn = { ...orbit.streak, freezeTokens: orbit.freeze.tokens };
+            res = engine.applyAction(streakIn, today);
+            orbit.streak = {
+                current: res.streak.current,
+                longest: res.streak.longest,
+                lastActionDay: res.streak.lastActionDay,
+                milestonesHit: res.streak.milestonesHit,
+            };
+            orbit.freeze.tokens = res.streak.freezeTokens;
+            orbit.stardust += res.stardust;
+        } else {
+            // Non-qualifying message: no streak change, no drip, no milestone.
+            res = { counted: false, streak: orbit.streak, streakSaved: false, milestone: null, stardust: 0 };
+        }
+
+        // 2) Missions — bump the action's own metric only when it earned credit
+        //    (so message missions can't be farmed); bump "streak_day" once/day.
+        const completed = [];
+        if (streakEligible || metric !== "message") {
+            let mp = engine.applyMissionProgress(orbit.missions, metric, amount);
+            orbit.missions = mp.missions; completed.push(...mp.completedNow);
+        }
+        if (res.counted) {
+            const mp2 = engine.applyMissionProgress(orbit.missions, "streak_day", 1);
+            orbit.missions = mp2.missions; completed.push(...mp2.completedNow);
+        }
+
+        // 3) Weekly League XP — swap/review/mission/milestone dominate; message XP
+        //    is scaled by the daily taper AND clamped to a weekly per-source cap
+        //    (Part 2) so message-only play can never fund a promotion. rollForward
+        //    already reset weekXp + sourceXp to 0 when the ISO week changed.
+        let addXp = league.xpFor(metric) * amount * xpFactor + (res.milestone ? league.XP_MILESTONE : 0);
+        if (metric === "message" && addXp > 0) {
+            const capped = antiGame.applyWeeklyCap(orbit.league.sourceXp.message, addXp, cfg.MSG.weeklyXpCap);
+            orbit.league.sourceXp.message = capped.total;
+            addXp = capped.granted;
+        }
+        orbit.league.weekXp += addXp;
 
         await User.updateOne({ _id: userId }, { $set: { orbit } });
 

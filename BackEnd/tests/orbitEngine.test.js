@@ -178,3 +178,40 @@ describe("orbitEngine — weekly missions", () => {
         expect(r.reason).toBe("incomplete");
     });
 });
+
+const { phaseFor, graduationStatus } = require("../services/orbitEngine");
+
+describe("orbitEngine — streak graduation phases (Part 3)", () => {
+    it("classifies phases at the boundaries", () => {
+        expect(phaseFor(0)).toBe("formation");
+        expect(phaseFor(29)).toBe("formation");
+        expect(phaseFor(30)).toBe("consistency");
+        expect(phaseFor(59)).toBe("consistency");
+        expect(phaseFor(60)).toBe("graduation");
+        expect(phaseFor(365)).toBe("graduation");
+    });
+
+    it("graduation drops daily pressure to none", () => {
+        expect(graduationStatus(70, 70).pressure).toBe("none");
+        expect(graduationStatus(40, 40).pressure).toBe("soft");
+        expect(graduationStatus(5, 5).pressure).toBe("high");
+    });
+
+    it("Fixed Star badge is sticky — survives a miss (derives from longest)", () => {
+        // graduated user who broke back to a 1-day streak keeps the badge
+        const s = graduationStatus(1, 90);
+        expect(s.graduated).toBe(true);
+        expect(s.badge).toBe("Fixed Star");
+        expect(s.phase).toBe("formation");   // current phase reflects the short streak…
+        expect(s.pressure).toBe("high");     // …but pride badge remains
+    });
+
+    it("awards the interim Constant badge in the consistency band", () => {
+        expect(graduationStatus(35, 45).badge).toBe("Constant");
+        expect(graduationStatus(5, 10).badge).toBeNull();
+    });
+
+    it("respects custom thresholds", () => {
+        expect(phaseFor(20, { formationMax: 14, consistencyMax: 40 })).toBe("consistency");
+    });
+});

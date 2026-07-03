@@ -97,11 +97,12 @@ async function recordPairAction(io, userId, opts = {}) {
                     }
                 }
             } else if (res.recorded && engine.pairDecayState(con.streak, con.lastActionDay, memberIds, today).state === "waiting") {
-                // Nudge the partner that it's their turn to keep the streak alive today.
+                // Part 4 — gentle, non-coercive nudge to the person who can act.
+                // Never framed to make them feel they're letting their partner down.
                 createNotification(io, otherId, {
                     type: "constellation_your_turn",
-                    title: "🌗 Your Binary Star needs you",
-                    body: `Your partner showed up today. Do 1 action to keep your ${con.streak.current}-day shared streak alive.`,
+                    title: "✨ It's your turn to shine",
+                    body: `Your partner showed up today — whenever you're ready, one action keeps your ${con.streak.current}-day Binary Star glowing.`,
                     data: { link: "/orbit", constellationId: String(con._id), streak: con.streak.current },
                 }).catch(() => {});
             }

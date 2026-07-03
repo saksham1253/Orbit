@@ -229,9 +229,13 @@ exports.sendMessage = async (req, res) => {
 
         res.status(201).json(populated);
 
-        // Orbit Engine: messaging a partner is a real-progress day for the sender.
-        // Fire-and-forget — never affects the response.
-        recordOrbitAction(io, myId, "message");
+        // Orbit Engine: messaging a partner is a (fallback) real-progress signal.
+        // Pass the recipient + a quality flag so anti-gaming can enforce the
+        // distinct-partner rule + quality gate (Part 1). Fire-and-forget.
+        recordOrbitAction(io, myId, "message", {
+            partnerId: otherId,
+            quality: content.trim().length >= 2,
+        });
 
     } catch (err) {
         console.error('sendMessage error:', err);
