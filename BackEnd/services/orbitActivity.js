@@ -144,6 +144,11 @@ async function recordOrbitAction(io, userId, metric, opts = {}) {
             }).catch(() => {});
         }
 
+        // 4) Co-op Binary Star streaks — fan this action into the user's active
+        //    constellations. Required lazily to avoid a require cycle (constella-
+        //    tionActivity depends on this module's date helpers). Fire-and-forget.
+        require("./constellationActivity").recordPairAction(io, userId, { now }).catch(() => {});
+
         return {
             streak: orbit.streak.current,
             counted: res.counted,
