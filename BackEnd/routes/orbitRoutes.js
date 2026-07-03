@@ -3,6 +3,7 @@ const router  = express.Router();
 const auth    = require("../middleware/auth");
 
 const { getMyOrbit, claimMission, buyFreeze } = require("../controllers/orbitController");
+const { getMyLeague } = require("../controllers/leagueController");
 
 // The viewer's Orbit state — streak, Gravity Assist freezes, Stardust, missions.
 // Self-heals the weekly rollovers on read (protected).
@@ -13,5 +14,8 @@ router.post("/missions/:key/claim", auth, claimMission);
 
 // Spend Stardust to bank one extra Gravity Assist freeze (protected).
 router.post("/freeze/buy", auth, buyFreeze);
+
+// Weekly League — the viewer's division + live group standings (protected).
+router.get("/league", auth, getMyLeague);
 
 module.exports = router;

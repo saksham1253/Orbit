@@ -12,6 +12,7 @@ import { motion } from 'framer-motion';
 import { Flame, Shield, Sparkles, Rocket, Clock, Trophy } from 'lucide-react';
 import { useOrbit, useBuyFreeze } from '../cosmic/useOrbit';
 import MissionsPanel from '../cosmic/MissionsPanel';
+import LeaguePanel from '../cosmic/LeaguePanel';
 import CosmicLoader from '../cosmic/CosmicLoader';
 import ErrorState from '../components/common/ErrorState';
 import { useUIStore } from '../store/uiStore';
@@ -156,6 +157,9 @@ export default function Orbit() {
 
       {/* Missions */}
       <MissionsPanel missions={missions} />
+
+      {/* Weekly League — promotion/relegation by fresh weekly Orbit XP */}
+      <LeaguePanel />
 
       {/* Milestone ladder */}
       <section className="rounded-2xl border border-white/10 bg-slate-900/30 p-4">

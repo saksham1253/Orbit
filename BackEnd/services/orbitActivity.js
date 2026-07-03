@@ -10,6 +10,7 @@
 
 const User = require("../models/user");
 const engine = require("./orbitEngine");
+const league = require("./leagueService");
 const { createNotification } = require("./notify");
 
 // ── "now" helpers (UTC) ──────────────────────────────────────────────────────
@@ -49,6 +50,14 @@ function normalizeOrbit(orbit = {}) {
             weekId: (o.missions && o.missions.weekId) || "",
             items: (o.missions && Array.isArray(o.missions.items)) ? o.missions.items.map((i) => ({ ...i })) : [],
         },
+        league: {
+            divisionId: (o.league && o.league.divisionId) || league.DIVISION_IDS[0],
+            groupId: (o.league && o.league.groupId) || "",
+            weekXp: (o.league && o.league.weekXp) || 0,
+            weekId: (o.league && o.league.weekId) || "",
+            lastResult: (o.league && o.league.lastResult) || "",
+            highestDivisionId: (o.league && o.league.highestDivisionId) || (o.league && o.league.divisionId) || league.DIVISION_IDS[0],
+        },
     };
 }
 
@@ -68,7 +77,22 @@ function rollForward(orbit, now = new Date()) {
     const m = engine.rollMissions(o.missions, weekId);
     o.missions = m.missions;
 
-    return { orbit: o, changed: g.granted || m.rolled, weekId };
+    // League weekly reset: when the ISO week changes, this week's XP starts at 0
+    // and a provisional group is assigned in the current division (the rollover
+    // worker rebalances groups by CosmicScore at week boundaries). Self-heals a
+    // user the worker hasn't touched. Division/highest are preserved.
+    let leagueChanged = false;
+    if (o.league.weekId !== weekId) {
+        o.league.weekXp = 0;
+        o.league.weekId = weekId;
+        o.league.groupId = `${o.league.divisionId}:${weekId}:0`;
+        leagueChanged = true;
+    } else if (!o.league.groupId) {
+        o.league.groupId = `${o.league.divisionId}:${weekId}:0`;
+        leagueChanged = true;
+    }
+
+    return { orbit: o, changed: g.granted || m.rolled || leagueChanged, weekId };
 }
 
 /**
@@ -115,6 +139,12 @@ async function recordOrbitAction(io, userId, metric, opts = {}) {
             mp = engine.applyMissionProgress(orbit.missions, "streak_day", 1);
             orbit.missions = mp.missions; completed.push(...mp.completedNow);
         }
+
+        // 3) Weekly League XP — fresh XP for this action's metric, plus a bonus
+        //    for any personal-streak milestone reached. (Mission-claim XP is
+        //    awarded in the controller when the reward is claimed.) rollForward
+        //    already reset weekXp to 0 if the ISO week changed.
+        orbit.league.weekXp += league.xpFor(metric) * amount + (res.milestone ? league.XP_MILESTONE : 0);
 
         await User.updateOne({ _id: userId }, { $set: { orbit } });
 
