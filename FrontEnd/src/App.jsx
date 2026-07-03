@@ -17,7 +17,7 @@ import Spinner from './components/common/Spinner';
 import { connectSocket } from './services/socket';
 import { initDeepLinkAuth } from './services/nativeAuth';
 import { initNativeNotifications, postNativeNotification } from './utils/nativeNotify';
-import { initPushNotifications, unregisterPush } from './utils/pushNotify';
+import { initPushNotifications } from './utils/pushNotify';
 import { Toaster } from 'react-hot-toast';
 import BadgeDefsSprite from './cosmic/BadgeDefsSprite';
 import LiftoffWatcher from './cosmic/LiftoffWatcher';
