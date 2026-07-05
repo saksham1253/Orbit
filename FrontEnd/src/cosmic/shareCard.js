@@ -71,21 +71,58 @@ export function buildShareCard({ tierId, score = null, city = '' }) {
   return canvas.toDataURL('image/png');
 }
 
-/** Share via the Web Share API (files) when possible; otherwise download. */
-export async function shareOrDownload(dataUrl, { filename = 'cosmic-rankup.png', text = '' } = {}) {
+/**
+ * shareOrDownload — robust share ladder used by BOTH the rank-up and session
+ * cards (B-06). The old version tried file-share then an <a download> click;
+ * inside the Android WebView `canShare({files})` is false AND anchor-download is
+ * a silent no-op, so the button appeared dead. This walks a proper fallback
+ * ladder and ALWAYS returns a status so the caller can give visible feedback:
+ *   1) native file share (mobile/desktop that support it)
+ *   2) native text/URL share (WebViews that can't share files usually still can)
+ *   3) desktop download + copy-link
+ *
+ * @returns {Promise<'shared'|'cancelled'|'downloaded'|'failed'>}
+ */
+export async function shareOrDownload(dataUrl, { filename = 'cosmic-rankup.png', text = '', url = '' } = {}) {
+  const shareUrl = url || (typeof window !== 'undefined' ? window.location.origin : '');
+
+  // 1) Native FILE share.
   try {
     const res = await fetch(dataUrl);
     const blob = await res.blob();
     const file = new File([blob], filename, { type: 'image/png' });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], text });
-      return 'shared';
+      try {
+        await navigator.share({ files: [file], text, url: shareUrl || undefined });
+        return 'shared';
+      } catch (e) {
+        if (e && e.name === 'AbortError') return 'cancelled';
+        // else fall through to text/url share
+      }
     }
   } catch {
-    /* fall through to download */
+    /* fall through */
   }
-  const a = document.createElement('a');
-  a.href = dataUrl; a.download = filename;
-  document.body.appendChild(a); a.click(); a.remove();
-  return 'downloaded';
+
+  // 2) Native TEXT/URL share — the tier that rescues the APK WebView.
+  if (navigator.share) {
+    try {
+      await navigator.share({ text, url: shareUrl || undefined });
+      return 'shared';
+    } catch (e) {
+      if (e && e.name === 'AbortError') return 'cancelled';
+      /* fall through to download */
+    }
+  }
+
+  // 3) Desktop fallback: download the PNG + copy the link.
+  try {
+    const a = document.createElement('a');
+    a.href = dataUrl; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    if (shareUrl && navigator.clipboard) { try { await navigator.clipboard.writeText(shareUrl); } catch { /* clipboard optional */ } }
+    return 'downloaded';
+  } catch {
+    return 'failed';
+  }
 }

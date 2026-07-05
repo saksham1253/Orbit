@@ -33,6 +33,8 @@ const eventEmitter = require("./utils/events");
 const { startArchiveWorker } = require("./workers/archiveWorker");
 const { startSentimentWorker } = require("./workers/sentimentWorker");
 const { startSeasonWorker } = require("./workers/seasonWorker");
+const { startOrbitWorker } = require("./workers/orbitWorker");
+const { startLeagueWorker } = require("./workers/leagueWorker");
 
 const app = express();
 app.set("trust proxy", 1); // Trust first proxy (needed for express-rate-limit on Render)
@@ -52,9 +54,16 @@ const allowedOrigins = [
     : []),
 ];
 
+// Allow ONLY this project's own Vercel deployments (prod + branch previews like
+// react-skill-swap-fully-fledged-git-xyz.vercel.app). The previous
+// `origin.endsWith(".vercel.app")` allowed ANY third-party Vercel app to call
+// the API (A11). Capacitor APK origins remain in `allowedOrigins`, so the mobile
+// app is unaffected.
+const VERCEL_ORIGIN = /^https:\/\/react-skill-swap-fully-fledged[a-z0-9-]*\.vercel\.app$/i;
+
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+    if (!origin || allowedOrigins.includes(origin) || VERCEL_ORIGIN.test(origin)) {
         return callback(null, true);
     }
     return callback(new Error("Not allowed by CORS"));
@@ -70,7 +79,7 @@ app.use(cors(corsOptions));
 const io = new Server(server, {
     cors: {
         origin: function(origin, callback) {
-            if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+            if (!origin || allowedOrigins.includes(origin) || VERCEL_ORIGIN.test(origin)) {
                 return callback(null, true);
             }
             return callback(new Error("Not allowed by CORS"));
@@ -478,6 +487,7 @@ app.use("/api/video", videoRoutes);
 app.use("/api/connections", connectionRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/cosmic", cosmicRoutes);
+app.use("/api/orbit", require("./routes/orbitRoutes"));
 app.use("/api/notifications", require("./routes/notificationRoutes"));
 app.use("/api/device", require("./routes/deviceRoutes"));
 
@@ -510,7 +520,9 @@ if (indexHtmlPath) {
 } else {
     // Separate deployment mode: Render only hosts the Backend API
     app.get("/", (req, res) => {
-        res.json({ message: "Orbit API Server is running successfully." });
+        // Minimal root response in production (A11) — don't advertise the stack.
+        // A dedicated health probe lives at /api/health.
+        res.status(200).json({ status: "ok" });
     });
     
     // API welcome/fallback routes
@@ -536,6 +548,8 @@ mongoose.connect(process.env.MONGO_URI, {
         startArchiveWorker(); // Phase 3: Start the nightly archive worker
         startSentimentWorker(); // Cosmic: precompute review sentiment off the request path
         startSeasonWorker(); // Cosmic: monthly season lifecycle + rollover (idempotent)
+        startOrbitWorker(io); // Orbit: daily decaying-streak reminders (loss-aversion nudge)
+        startLeagueWorker(io); // Orbit: weekly League promotion/relegation + regroup
 
         // One-time admin bootstrap for hosts without a shell (e.g. Render free
         // tier): set RUN_ADMIN_SEED=true + ADMIN_EMAIL + ADMIN_INITIAL_PASSWORD,

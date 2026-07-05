@@ -6,10 +6,12 @@ import SkillCard from '../components/skills/SkillCard';
 import { SkillGridSkeleton } from '../components/skeletons';
 import ErrorState from '../components/common/ErrorState';
 import { useUIStore } from '../store/uiStore';
+import { useAuthStore } from '../store/authStore';
 import { Handshake, Sparkles } from 'lucide-react';
 
 const Matches = () => {
   const { addToast } = useUIStore();
+  const myId = useAuthStore((s) => s.user?._id);
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['skills', 'matches'],
@@ -22,7 +24,12 @@ const Matches = () => {
     onError: (e) => addToast(e.response?.data?.message || 'Failed to send request', 'error'),
   });
 
-  const matches = data?.matches || [];
+  // B-01 defence-in-depth (esp. APK, where a stale/failover backend or an
+  // unhydrated user could otherwise leak self): never show your own listings.
+  const matches = (data?.matches || []).filter((s) => {
+    const ownerId = s.userId?._id || s.userId;
+    return !myId || String(ownerId) !== String(myId);
+  });
 
   return (
     <div className="space-y-7">

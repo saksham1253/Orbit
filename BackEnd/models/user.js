@@ -217,7 +217,95 @@ const userSchema = new mongoose.Schema({
 
     // FCM device tokens for native push (Android APK). One user can have several
     // (multiple devices); dead tokens are pruned by services/fcm.js on send.
-    fcmTokens: { type: [String], default: [] }
+    fcmTokens: { type: [String], default: [] },
+
+    // ─────────────────────────────────────────────────────────────
+    //  ORBIT ENGINE (additive — Tier‑1 engagement: streak + freeze + missions).
+    //  All fields default-safe so existing users are unaffected (same rollout
+    //  strategy as `cosmic`). Advanced by services/orbitActivity.js on real
+    //  progress; the math lives in services/orbitEngine.js (pure). Day/week are
+    //  UTC-scoped, consistent with the cosmic activity heartbeat.
+    // ─────────────────────────────────────────────────────────────
+    orbit: {
+        streak: {
+            current:       { type: Number, default: 0 },
+            longest:       { type: Number, default: 0 },
+            lastActionDay: { type: String, default: null },   // "YYYY-MM-DD" UTC
+            milestonesHit: { type: [Number], default: [] },   // milestone day-counts already paid
+        },
+        // Gravity Assist — one free freeze token granted per ISO week (capped),
+        // auto-consumed to bridge a missed day so a long streak survives.
+        freeze: {
+            tokens:        { type: Number, default: 0 },
+            lastGrantWeek: { type: String, default: "" },     // "YYYY-Www"
+        },
+        // Cosmetic currency, earned from missions + streak milestones, spent on
+        // extra Gravity Assists (and future cosmetics). Separate from CosmicScore
+        // so rewards never inflate the ranking.
+        //
+        // NOTE (Part 0 rename): the user-facing name is "Photons"; the stored
+        // field stays `stardust` for now so no migration/downtime is needed. The
+        // API emits BOTH `stardust` and `photons` (same value) during the
+        // deprecation window — see controllers/orbitController.js.
+        stardust: { type: Number, default: 0 },
+        // The current week's rotating missions (regenerated lazily on read when
+        // the ISO week changes — no cron needed, mirrors the season self-heal).
+        missions: {
+            weekId: { type: String, default: "" },            // "YYYY-Www"
+            items:  {
+                type: [{
+                    key:         String,
+                    metric:      String,   // swap | message | rating | streak_day
+                    target:      Number,
+                    stardust:    Number,
+                    label:       String,
+                    description: String,
+                    progress:    { type: Number, default: 0 },
+                    claimed:     { type: Boolean, default: false },
+                    _id: false,
+                }],
+                default: [],
+            },
+        },
+        // Weekly League — fresh Orbit XP earned each ISO week (resets Monday UTC),
+        // ranked within a fixed-size group; top/bottom promote/relegate at the
+        // weekly rollover (workers/leagueWorker.js). `weekXp` self-heals to 0 on
+        // read when the week changes (services/leagueService.js), so a user the
+        // worker hasn't touched still starts each week at zero.
+        league: {
+            divisionId: { type: String, default: "asteroid_belt" }, // lowest tier
+            groupId:    { type: String, default: "" },              // "<divisionId>:<weekId>:<n>"
+            weekXp:     { type: Number, default: 0 },
+            weekId:     { type: String, default: "" },              // "YYYY-Www" weekXp belongs to
+            lastResult: { type: String, enum: ["promoted", "relegated", "held", ""], default: "" },
+            highestDivisionId: { type: String, default: "asteroid_belt" }, // lifetime best
+            // Per-source XP already granted THIS week — enforces weekly per-source
+            // caps (anti-gaming, Part 2). Reset to 0 on the weekly rollover.
+            sourceXp: {
+                message: { type: Number, default: 0 },
+            },
+        },
+        // Anti-gaming: per-UTC-day message-credit ledger (Part 1). A message only
+        // earns streak/XP credit from a partner not already listed today.
+        msgCredit: {
+            day:      { type: String, default: null },   // "YYYY-MM-DD" UTC
+            partners: { type: [String], default: [] },   // partner ids credited today
+        },
+        // User-controllable engagement preferences (Part 4). Additive; default
+        // preserves current behavior (reminders on).
+        prefs: {
+            decayReminders: { type: Boolean, default: true },
+        },
+        // Cosmetics — what Stardust BUYS (the spend side of the economy). `owned`
+        // holds catalog item keys the user has purchased; `nameGlow`/`background`
+        // are the currently-equipped items (must be owned). Purely visual; never
+        // touches CosmicScore or ranking.
+        cosmetics: {
+            owned:      { type: [String], default: [] },
+            nameGlow:   { type: String, default: null },   // equipped name-glow key
+            background: { type: String, default: null },   // equipped profile background key
+        },
+    }
 
 }, {
     timestamps: true
@@ -253,6 +341,10 @@ userSchema.index({ 'coordinates.lng': 1, 'coordinates.lat': 1 }); // Fallback co
 userSchema.index({ 'geo.point': '2dsphere' });
 // Season-scoped ranking: fetch a city's pool ordered by CosmicScore.
 userSchema.index({ 'cosmic.seasonId': 1, 'cosmic.score': -1 });
+
+// ── Orbit Weekly League index (additive) ───────────────────────────────────
+// Fetch a league group ordered by this week's XP (leaderboard + rollover).
+userSchema.index({ 'orbit.league.groupId': 1, 'orbit.league.weekXp': -1 });
 
 // ── Admin Command Center indexes (additive) ────────────────────────────────
 userSchema.index({ role: 1 });

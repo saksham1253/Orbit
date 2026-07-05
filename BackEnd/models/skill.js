@@ -25,6 +25,15 @@ const skillSchema = new mongoose.Schema({
         type: String,
         enum: ["beginner", "intermediate", "advanced"],
         default: "intermediate"
+    },
+
+    // ── Skill Mastery (Orbit Engine, Tier 3) ────────────────────────────────
+    // Count of completed swaps where this skill's owner did the teaching. Drives
+    // the per-skill mastery ladder (services/skillMastery.js). Incremented on
+    // swap completion; additive and default-safe for existing listings.
+    sessionsTaught: {
+        type: Number,
+        default: 0
     }
 }, {
     timestamps: true

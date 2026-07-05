@@ -24,6 +24,7 @@ import { getTier } from './tiers';
 import { LiftoffEngine } from './liftoffEngine';
 import { playLiftoffChime } from './liftoffSound';
 import { buildShareCard, shareOrDownload } from './shareCard';
+import { useUIStore } from '../store/uiStore';
 import RankMomentCard from './RankMomentCard';
 import { isPromotion, momentCopy } from './momentCopy';
 import './LiftoffOverlay.css';
@@ -37,6 +38,7 @@ export default function LiftoffOverlay() {
   const engineRef = useRef(null);
   const [revealed, setRevealed] = useState(false);
   const [sharing, setSharing] = useState(false);
+  const { addToast } = useUIStore();
 
   const promotion = event ? isPromotion(event.fromTierId, event.toTierId) : false;
   const isDown = event?.direction === 'down';
@@ -137,10 +139,18 @@ export default function LiftoffOverlay() {
     setSharing(true);
     try {
       const url = buildShareCard({ tierId: event.toTierId, score: event.score, city: event.city });
-      await shareOrDownload(url, {
+      const result = await shareOrDownload(url, {
         filename: `orbit-${event.toTierId}.png`,
         text: `${tier.displayName} — ${copy?.support} on Orbit`,
+        url: window.location.origin,
       });
+      // B-06: always give visible feedback — never a silent no-op.
+      if (result === 'downloaded') addToast('Card downloaded & link copied — share it anywhere! ✨', 'success');
+      else if (result === 'shared') addToast('Shared! ✨', 'success');
+      else if (result === 'failed') addToast('Could not prepare the card — please try again.', 'error');
+      // 'cancelled' → user dismissed the sheet; no toast.
+    } catch {
+      addToast('Could not share the card — please try again.', 'error');
     } finally {
       setSharing(false);
     }

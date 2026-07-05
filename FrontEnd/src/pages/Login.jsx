@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
@@ -23,6 +23,9 @@ const loginSchema = z.object({
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  // A10: return to the page the user originally requested (set by ProtectedRoute).
+  const from = location.state?.from?.pathname || '/dashboard';
   const { setToken, setUser } = useAuthStore();
   const { addToast } = useUIStore();
   const [showPass, setShowPass] = useState(false);
@@ -57,7 +60,7 @@ const Login = () => {
       } catch {
         // Even if profile fetch fails, token is set — user will be loaded by app
       }
-      navigate('/dashboard');
+      navigate(from, { replace: true });
     },
     onError: (err) => {
       addToast(err.response?.data?.message || 'Login failed', 'error');

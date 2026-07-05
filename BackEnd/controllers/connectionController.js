@@ -2,6 +2,8 @@ const Connection = require("../models/Connection");
 const Skill = require("../models/skill");
 const User = require("../models/user");
 const { createNotification } = require("../services/notify");
+const { recordOrbitAction } = require("../services/orbitActivity");
+const { creditTeaching } = require("../services/masteryActivity");
 
 // Send a connection request
 exports.requestConnection = async (req, res) => {
@@ -189,6 +191,16 @@ exports.markConnectionCompleted = async (req, res) => {
         await connection.save();
 
         res.status(200).json({ message: "Connection marked as completed", connection });
+
+        // Orbit Engine: a completed swap is a real-progress day for BOTH partners
+        // (one taught, one learned). Fire-and-forget — never affects the response.
+        const io = req.app.get("io");
+        recordOrbitAction(io, connection.requester, "swap");
+        recordOrbitAction(io, connection.receiver, "swap");
+
+        // Skill Mastery: credit the owner of the swapped skill with one session
+        // taught (advances their per-skill mastery ladder). Fire-and-forget.
+        creditTeaching(io, connection.skill);
 
     } catch (err) {
         console.error(err);

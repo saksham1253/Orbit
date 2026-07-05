@@ -1,6 +1,10 @@
 import { Link } from 'react-router-dom';
 import { Heart } from 'lucide-react';
+import { useAuthStore } from '../../store/authStore';
 const Footer = () => {
+  // A5: be honest about the login gate. Destination stays /browse so a logged-out
+  // click signs in and returns straight to Browse (see ProtectedRoute `from`).
+  const token = useAuthStore((s) => s.token);
   return (
     <footer className="border-t border-border-subtle mt-auto relative z-10 bg-surface backdrop-blur-xl">
       <div className="max-w-6xl mx-auto px-6 py-8">
@@ -17,7 +21,7 @@ const Footer = () => {
           
           {/* Links */}
           <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-text-secondary">
-            <Link to="/browse" className="hover:text-accent transition-colors">Browse Skills</Link>
+            <Link to="/browse" className="hover:text-accent transition-colors">{token ? 'Browse Skills' : 'Sign in to browse'}</Link>
             <Link to="/register" className="hover:text-text-primary transition-colors">Get Started</Link>
             <a href="https://github.com" target="_blank" rel="noreferrer noopener" className="hover:text-text-primary transition-colors" aria-label="GitHub">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

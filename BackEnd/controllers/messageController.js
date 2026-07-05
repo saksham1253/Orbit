@@ -22,6 +22,7 @@ const Message     = require('../models/Message');
 const ChatArchive = require('../models/ChatArchive');
 const User        = require('../models/user');
 const { decompress } = require('../services/archiveService');
+const { recordOrbitAction } = require('../services/orbitActivity');
 
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT     = 100;
@@ -227,6 +228,14 @@ exports.sendMessage = async (req, res) => {
             .catch(() => {});
 
         res.status(201).json(populated);
+
+        // Orbit Engine: messaging a partner is a (fallback) real-progress signal.
+        // Pass the recipient + a quality flag so anti-gaming can enforce the
+        // distinct-partner rule + quality gate (Part 1). Fire-and-forget.
+        recordOrbitAction(io, myId, "message", {
+            partnerId: otherId,
+            quality: content.trim().length >= 2,
+        });
 
     } catch (err) {
         console.error('sendMessage error:', err);

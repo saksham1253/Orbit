@@ -67,7 +67,40 @@
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <!--
+      First-paint placeholder (B-03). React's createRoot().render() replaces this
+      on mount, so it only shows during the brief pre-hydration window — keeping
+      the initial paint on-brand instead of a blank screen. It is NOT the error
+      boundary; that only renders on genuine runtime errors.
+    -->
+    <div id="root">
+      <div id="app-splash" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-family:'Poppins',system-ui,sans-serif;">
+        <div style="font-size:28px;font-weight:800;letter-spacing:.5px;background:linear-gradient(135deg,#00c6ff,#7c3aed);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">Orbit</div>
+        <div style="font-size:13px;opacity:.7;">Exchange skills, rise together.</div>
+      </div>
+    </div>
+
+    <!--
+      No-JS / non-JS-crawler fallback (B-03). Real, indexable content that matches
+      the static <title>/meta above, so a plain fetch never sees a blank page or a
+      crash screen. Progressive enhancement: the interactive app loads when JS runs.
+    -->
+    <noscript>
+      <div style="max-width:640px;margin:0 auto;padding:48px 20px;font-family:system-ui,-apple-system,'Open Sans',sans-serif;line-height:1.6;">
+        <h1 style="font-size:28px;margin:0 0 12px;">Orbit — Exchange Skills, Rise Together</h1>
+        <p style="opacity:.85;margin:0 0 16px;">
+          Orbit is a peer-to-peer skill-exchange platform. Teach what you know,
+          learn what you don't, connect with people near you, and climb the cosmos
+          together. Enable JavaScript to use the full interactive app.
+        </p>
+        <p>
+          <a href="/register">Create an account</a> ·
+          <a href="/login">Sign in</a> ·
+          <a href="/browse">Browse skills</a>
+        </p>
+      </div>
+    </noscript>
+
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

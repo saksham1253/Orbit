@@ -3,9 +3,14 @@ import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { Home, Compass } from 'lucide-react';
 import CometField from '../cosmic/CometField';
+import { useAuthStore } from '../store/authStore';
 
-const NotFound = () => (
-  <>
+const NotFound = () => {
+  // A5: honest label about the login gate; destination stays /browse so a
+  // logged-out user signs in and returns to Browse (ProtectedRoute `from`).
+  const token = useAuthStore((s) => s.token);
+  return (
+    <>
     <Helmet>
       <title>404 — Page Not Found | Orbit</title>
       <meta name="robots" content="noindex" />
@@ -81,12 +86,13 @@ const NotFound = () => (
             }}
           >
             <Compass size={15} />
-            Browse Skills
+            {token ? 'Browse Skills' : 'Sign in to browse'}
           </Link>
         </div>
       </motion.div>
     </div>
-  </>
-);
+    </>
+  );
+};
 
 export default NotFound;

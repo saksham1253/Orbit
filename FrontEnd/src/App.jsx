@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { lazy, Suspense, useEffect, useState, useCallback, useRef } from 'react';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import api from './services/api';
@@ -45,6 +45,7 @@ const BadgeGallery   = lazy(() => import('./pages/BadgeGallery'));
 const Leaderboard    = lazy(() => import('./pages/Leaderboard'));
 const Observatory    = lazy(() => import('./pages/Observatory'));
 const TierAtlas      = lazy(() => import('./pages/TierAtlas'));
+const Orbit          = lazy(() => import('./pages/Orbit'));
 // Heavy cinematics (canvas engine + share card) — split out of the initial
 // bundle; only fetched when a rank-up actually fires.
 const LiftoffOverlay = lazy(() => import('./cosmic/LiftoffOverlay'));
@@ -62,17 +63,22 @@ const PageLoader = () => (
   </div>
 );
 
-/** Redirect authenticated users away from public-only pages (login, register) */
+/** Redirect authenticated users away from public-only pages (login, register).
+ *  Honors a `from` location (A10) so a just-logged-in user returns to the page
+ *  they originally requested instead of always landing on /dashboard. */
 const PublicOnlyRoute = ({ children }) => {
   const token = useAuthStore((state) => state.token);
-  if (token) return <Navigate to="/dashboard" replace />;
+  const location = useLocation();
+  if (token) return <Navigate to={location.state?.from?.pathname || '/dashboard'} replace />;
   return children;
 };
 
-/** Require authentication; redirect to login if not logged in */
+/** Require authentication; redirect to login if not logged in, remembering the
+ *  originally-requested location so we can return there after login (A10). */
 const ProtectedRoute = ({ children }) => {
   const token = useAuthStore((state) => state.token);
-  if (!token) return <Navigate to="/login" replace />;
+  const location = useLocation();
+  if (!token) return <Navigate to="/login" replace state={{ from: location }} />;
   return (
     <Layout>
       <Suspense fallback={<PageLoader />}>
@@ -96,7 +102,19 @@ const RICH_FLASH_TYPES = new Set([
 function AppInner() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { user, token } = useAuthStore();
+  const { user, token, setUser } = useAuthStore();
+
+  // Ensure the signed-in user is hydrated app-wide. On native (APK) OAuth the
+  // token is stored even if the profile fetch blips, leaving `user` null — which
+  // makes every client-side self-exclusion filter (Browse/Matches/Nearby) no-op
+  // and was a likely cause of "I see myself in Browse" on the APK (B-01). A
+  // reliable user._id fixes those defenses. Also self-heals a stale persisted
+  // user that predates newer fields.
+  useEffect(() => {
+    if (token && !user?._id) {
+      api.get('/user/profile').then(({ data }) => { if (data && data._id) setUser(data); }).catch(() => {});
+    }
+  }, [token, user?._id, setUser]);
   const {
     notifications,
     dismissNotification,
@@ -399,6 +417,10 @@ function AppInner() {
         <Route path="/"               element={<Landing />} />
         <Route path="/login"          element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
         <Route path="/register"       element={<PublicOnlyRoute><Register /></PublicOnlyRoute>} />
+        {/* Friendly aliases for guessed URLs (B-04) → canonical routes */}
+        <Route path="/signup"         element={<Navigate to="/register" replace />} />
+        <Route path="/signin"         element={<Navigate to="/login" replace />} />
+        <Route path="/skills"         element={<Navigate to="/browse" replace />} />
         <Route path="/oauth/callback" element={<OAuthCallback />} />
         <Route path="/forgot-password"         element={<ForgotPassword />} />
         <Route path="/reset-password/:token"   element={<ResetPassword />} />
@@ -413,6 +435,7 @@ function AppInner() {
         <Route path="/nearby"      element={<ProtectedRoute><NearbyMap /></ProtectedRoute>} />
         <Route path="/trust"       element={<ProtectedRoute><TrustScore /></ProtectedRoute>} />
         <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
+        <Route path="/orbit"       element={<ProtectedRoute><Orbit /></ProtectedRoute>} />
         <Route path="/observatory" element={<ProtectedRoute><Observatory /></ProtectedRoute>} />
         <Route path="/cosmic-atlas" element={<Layout><Suspense fallback={<PageLoader />}><TierAtlas /></Suspense></Layout>} />
         <Route path="/settings"    element={<ProtectedRoute><Settings /></ProtectedRoute>} />

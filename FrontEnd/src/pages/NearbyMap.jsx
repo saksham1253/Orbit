@@ -6,6 +6,7 @@ import api from '../services/api';
 import { NearbyListSkeleton } from '../components/skeletons';
 import Spinner from '../components/common/Spinner';
 import { useUIStore } from '../store/uiStore';
+import { useAuthStore } from '../store/authStore';
 import { MapPin, Search, Navigation, Users, Sliders } from 'lucide-react';
 import RadiusDial from '../components/nearby/RadiusDial';
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
@@ -48,6 +49,7 @@ const FlyTo = ({ center, zoom }) => { const map = useMap(); if (center) map.flyT
 
 const NearbyMap = () => {
   const { addToast } = useUIStore();
+  const myId = useAuthStore((s) => s.user?._id);
   const [locationInput, setLocationInput] = useState('');
   const [radius, setRadius]               = useState(50);
   const [myCoords, setMyCoords]           = useState(null);
@@ -109,7 +111,12 @@ const NearbyMap = () => {
     },
   });
 
-  const skills = data?.skills || [];
+  // B-01 defence-in-depth: never plot yourself on the Nearby map, even if a
+  // stale/failover backend or an unhydrated user id slips through (APK).
+  const skills = (data?.skills || []).filter((s) => {
+    const ownerId = s.user?._id || s.userId;
+    return !myId || String(ownerId) !== String(myId);
+  });
   const mapCenter = myCoords || [20.5937, 78.9629];
 
   return (

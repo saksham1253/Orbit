@@ -7,6 +7,7 @@ import SkillCard from '../components/skills/SkillCard';
 import SkillForm from '../components/skills/SkillForm';
 import { SkillGridSkeleton } from '../components/skeletons';
 import ErrorState from '../components/common/ErrorState';
+import OrbitDashboardWidget from '../cosmic/OrbitDashboardWidget';
 import { Plus, Layers, Sparkles } from 'lucide-react';
 
 const MySkills = () => {
@@ -43,6 +44,9 @@ const MySkills = () => {
           <Plus size={16} /> Add Skill
         </button>
       </div>
+
+      {/* Orbit engagement summary — streak, Stardust, weekly missions */}
+      <OrbitDashboardWidget />
 
       {/* Error state */}
       {error && <ErrorState message="Failed to load your skills." onRetry={refetch} />}
