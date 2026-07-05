@@ -19,6 +19,7 @@ const { rollForward } = require("../services/orbitActivity");
 const { shapeOrbit } = require("./orbitController");
 const { masteryFor } = require("../services/skillMastery");
 const league = require("../services/leagueService");
+const flagStore = require("../services/flagStore");
 const { audit } = require("../utils/adminAudit");
 
 const CONFIRM_PHRASE = "SEED";
@@ -90,6 +91,34 @@ exports.teardown = async (req, res) => {
     } catch (err) {
         await audit(req, { ...actor(req), action: "orbit.teardown", success: false, reason: err.message });
         return fail(res, "teardown_failed", err.message, requestId, 500);
+    }
+};
+
+// ── C1 · Flag Cockpit ────────────────────────────────────────────────────────
+// GET /mission-control/flags — every managed flag + current/default/meta.
+exports.listFlags = async (req, res) => {
+    const requestId = reqId();
+    try {
+        return ok(res, { flags: await flagStore.list() }, requestId);
+    } catch (err) {
+        return fail(res, "flags_failed", err.message, requestId, 500);
+    }
+};
+
+// PATCH /mission-control/flags { key, value } — live flip (no redeploy).
+exports.setFlag = async (req, res) => {
+    const requestId = reqId();
+    try {
+        const { key, value } = req.body || {};
+        if (!key || value === undefined) return fail(res, "bad_request", "key and value are required", requestId);
+        if (!flagStore.REGISTRY[key]) return fail(res, "unknown_flag", `unknown flag: ${key}`, requestId);
+
+        const before = flagStore.get(key);
+        const updated = await flagStore.set(key, value, req.adminUser?.email || "");
+        await audit(req, { ...actor(req), action: "orbit.flag.set", targetType: "flag", targetId: key, before, after: updated.value });
+        return ok(res, updated, requestId);
+    } catch (err) {
+        return fail(res, "flag_set_failed", err.message, requestId, 400);
     }
 };
 

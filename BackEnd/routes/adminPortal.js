@@ -81,6 +81,9 @@ router.get("/audit", adminApiLimiter, requireAdmin, records.listAudit);
 // Fill an account so every gamification tier renders at once, warp time-gated
 // features, and undo exactly. Prod-guarded + audited inside the controller.
 const missionControl = require("../controllers/missionControlController");
+// C1 Flag Cockpit — live feature flags (no redeploy)
+router.get("/mission-control/flags", adminApiLimiter, requireAdmin, missionControl.listFlags);
+router.patch("/mission-control/flags", adminApiLimiter, requireAdmin, missionControl.setFlag);
 router.post("/mission-control/seed", adminApiLimiter, requireAdmin, missionControl.seed);
 router.post("/mission-control/warp", adminApiLimiter, requireAdmin, missionControl.warp);
 router.post("/mission-control/teardown", adminApiLimiter, requireAdmin, missionControl.teardown);

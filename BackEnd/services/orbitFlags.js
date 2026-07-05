@@ -1,32 +1,15 @@
 /**
- * orbitFlags.js — staged-rollout feature flags for the Orbit Engine (Part 8).
- *
- * Each tier can be switched off entirely OR rolled out to a deterministic
- * percentage cohort, so the social/competitive tiers (the highest wellbeing
- * risk) can be observed in isolation before full release. Pure + env-driven;
- * defaults keep every tier fully ON so existing behavior is unchanged.
+ * orbitFlags.js — staged-rollout feature flags for the Orbit Engine (Part 8),
+ * now backed by the runtime config store (Mission Control C1) so flips apply
+ * live without a redeploy. Reads are synchronous against flagStore's in-memory
+ * cache; env values are the defaults.
  *
  *   tier1 — streak + missions + Photons
  *   tier2 — Binary Star + Weekly Leagues
  *   tier3 — cosmetics + mastery + ritual
  */
 
-const bool = (v, d) => (v == null ? d : String(v).toLowerCase() !== "false");
-const int = (v, d) => { const n = parseInt(v, 10); return Number.isFinite(n) ? n : d; };
-
-// Master on/off per tier.
-const TIERS = Object.freeze({
-    tier1: bool(process.env.ORBIT_TIER1, true),
-    tier2: bool(process.env.ORBIT_TIER2, true),
-    tier3: bool(process.env.ORBIT_TIER3, true),
-});
-
-// Percentage rollout per tier (0–100). 100 = everyone; 0 = nobody.
-const ROLLOUT = Object.freeze({
-    tier1: int(process.env.ORBIT_TIER1_PCT, 100),
-    tier2: int(process.env.ORBIT_TIER2_PCT, 100),
-    tier3: int(process.env.ORBIT_TIER3_PCT, 100),
-});
+const store = require("./flagStore");
 
 /** Stable 0–99 bucket for a user id (deterministic across restarts/replicas). */
 function bucketOf(userId) {
@@ -35,13 +18,21 @@ function bucketOf(userId) {
     return h % 100;
 }
 
+// Live snapshots from the store (cheap, cached).
+function tiers() {
+    return { tier1: store.get("ORBIT_TIER1"), tier2: store.get("ORBIT_TIER2"), tier3: store.get("ORBIT_TIER3") };
+}
+function rollout() {
+    return { tier1: 100, tier2: store.get("ORBIT_TIER2_PCT"), tier3: store.get("ORBIT_TIER3_PCT") };
+}
+
 /**
  * tierEnabledFor — is `tier` live for this user? Master switch AND (percentage
  * cohort). Missing userId with a partial rollout → treated as not in cohort.
  */
 function tierEnabledFor(tier, userId) {
-    if (!TIERS[tier]) return false;
-    const pct = ROLLOUT[tier];
+    if (!tiers()[tier]) return false;
+    const pct = rollout()[tier];
     if (pct >= 100) return true;
     if (pct <= 0) return false;
     if (userId == null) return false;
@@ -57,4 +48,4 @@ function flagsFor(userId) {
     };
 }
 
-module.exports = { TIERS, ROLLOUT, bucketOf, tierEnabledFor, flagsFor };
+module.exports = { bucketOf, tierEnabledFor, flagsFor, tiers, rollout };
