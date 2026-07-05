@@ -21,6 +21,7 @@ const { masteryFor } = require("../services/skillMastery");
 const league = require("../services/leagueService");
 const flagStore = require("../services/flagStore");
 const analytics = require("../services/orbitAnalytics");
+const photonLedger = require("../services/photonLedger");
 const { audit } = require("../utils/adminAudit");
 
 const CONFIRM_PHRASE = "SEED";
@@ -92,6 +93,18 @@ exports.teardown = async (req, res) => {
     } catch (err) {
         await audit(req, { ...actor(req), action: "orbit.teardown", success: false, reason: err.message });
         return fail(res, "teardown_failed", err.message, requestId, 500);
+    }
+};
+
+// ── C6 · Gravimeter (Photons economy) ────────────────────────────────────────
+// GET /mission-control/economy/photons?from=&to=
+exports.economy = async (req, res) => {
+    const requestId = reqId();
+    try {
+        const data = await photonLedger.report({ from: req.query.from, to: req.query.to });
+        return ok(res, data, requestId);
+    } catch (err) {
+        return fail(res, "economy_failed", err.message, requestId, 500);
     }
 };
 

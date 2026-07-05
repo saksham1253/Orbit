@@ -235,7 +235,10 @@ async function recordOrbitAction(io, userId, metric, opts = {}) {
                 { userId: String(userId), metric, streak: res.streak.current });
         }
         if (res.milestone) analytics.track("streak.milestone", { userId: String(userId), name: res.milestone.name, streak: res.streak.current });
-        if (res.stardust > 0) analytics.track("photons.earn", { userId: String(userId), amount: res.stardust, source: metric });
+        if (res.stardust > 0) {
+            analytics.track("photons.earn", { userId: String(userId), amount: res.stardust, source: metric });
+            require("./photonLedger").record(userId, res.stardust, res.milestone ? "milestone" : "streak"); // C6 economy
+        }
         if (addXp > 0) analytics.track("league.xp", { userId: String(userId), amount: addXp, source: metric });
         for (const c of completed) analytics.track("mission.complete", { userId: String(userId), key: c.key });
 

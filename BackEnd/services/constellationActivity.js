@@ -69,6 +69,7 @@ async function recordPairAction(io, userId, opts = {}) {
                         { _id: { $in: con.members } },
                         { $inc: { "orbit.stardust": res.milestone.stardust } }
                     );
+                    for (const m of memberIds) require("./photonLedger").record(m, res.milestone.stardust, "constellation"); // C6
                     for (const m of memberIds) {
                         createNotification(io, m, {
                             type: "constellation_milestone",

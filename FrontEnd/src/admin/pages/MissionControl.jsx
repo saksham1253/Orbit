@@ -9,7 +9,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import adminApi from '../adminApi';
 import {
-  Rocket, ToggleLeft, FlaskConical, ClipboardCheck, Radar, User, Bell, Activity, ShieldCheck,
+  Rocket, ToggleLeft, FlaskConical, ClipboardCheck, Radar, User, Bell, Activity, ShieldCheck, Gauge,
 } from 'lucide-react';
 
 // Unwrap the standard { ok, data, error } envelope.
@@ -224,8 +224,33 @@ function Lint() {
   );
 }
 
+// ── C6 Gravimeter (economy) ──────────────────────────────────────────────────
+function Gravimeter() {
+  const [data, setData] = useState(null);
+  const load = useCallback(() => adminApi.get('/mission-control/economy/photons').then((r) => setData(unwrap(r))).catch((e) => setData({ error: errText(e) })), []);
+  useEffect(() => { load(); }, [load]);
+  if (!data) return <Card title="Gravimeter — Photons economy"><div style={{ opacity: .6 }}>Loading…</div></Card>;
+  if (data.error) return <Card title="Gravimeter — Photons economy"><div style={{ color: '#fb7185' }}>{data.error}</div></Card>;
+  return (
+    <Card title="Gravimeter — Photons economy" right={<button style={btn} onClick={load}>Refresh</button>}>
+      {data.inflationAlert && <div style={{ ...pill(false), display: 'inline-block', marginBottom: 8 }}>⚠ INFLATION: supply outpacing sinks</div>}
+      <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginBottom: 12 }}>
+        <div><div style={{ fontSize: 11, opacity: .5 }}>Earned</div><div style={{ fontSize: 20, fontWeight: 800, color: '#34d399' }}>{data.totalEarned}</div></div>
+        <div><div style={{ fontSize: 11, opacity: .5 }}>Spent</div><div style={{ fontSize: 20, fontWeight: 800, color: '#fb7185' }}>{data.totalSpent}</div></div>
+        <div><div style={{ fontSize: 11, opacity: .5 }}>Net supply</div><div style={{ fontSize: 20, fontWeight: 800 }}>{data.netSupply}</div></div>
+        <div><div style={{ fontSize: 11, opacity: .5 }}>Sink ratio</div><div style={{ fontSize: 20, fontWeight: 800 }}>{data.sinkRatio}</div></div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: 12 }}>
+        <div><b>Sources</b><pre style={{ fontSize: 11 }}>{JSON.stringify(data.sources, null, 2)}</pre></div>
+        <div><b>Sinks</b><pre style={{ fontSize: 11 }}>{JSON.stringify(data.sinks, null, 2)}</pre></div>
+      </div>
+    </Card>
+  );
+}
+
 const TABS = [
   { id: 'flags', label: 'Flags', Icon: ToggleLeft, Comp: FlagCockpit },
+  { id: 'economy', label: 'Gravimeter', Icon: Gauge, Comp: Gravimeter },
   { id: 'seeder', label: 'Seeder + Warp', Icon: Rocket, Comp: SeederWarp },
   { id: 'preflight', label: 'Pre-Flight', Icon: ClipboardCheck, Comp: PreFlight },
   { id: 'sim', label: 'Simulator', Icon: FlaskConical, Comp: Simulator },

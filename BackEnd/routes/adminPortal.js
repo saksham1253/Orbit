@@ -95,6 +95,8 @@ router.get("/mission-control/push/tokens/:userId", adminApiLimiter, requireAdmin
 router.post("/mission-control/push/test", adminApiLimiter, requireAdmin, missionControl.pushTest);
 // C4 Notification Linter · C7 Telemetry
 router.get("/mission-control/notifications/lint", adminApiLimiter, requireAdmin, missionControl.notificationLint);
+// C6 Gravimeter — Photons economy
+router.get("/mission-control/economy/photons", adminApiLimiter, requireAdmin, missionControl.economy);
 router.get("/mission-control/analytics/recent", adminApiLimiter, requireAdmin, missionControl.analyticsRecent);
 router.get("/mission-control/analytics/funnels", adminApiLimiter, requireAdmin, missionControl.analyticsFunnels);
 
