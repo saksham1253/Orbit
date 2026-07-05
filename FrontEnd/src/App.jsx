@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { lazy, Suspense, useEffect, useState, useCallback, useRef } from 'react';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import api from './services/api';
@@ -63,17 +63,22 @@ const PageLoader = () => (
   </div>
 );
 
-/** Redirect authenticated users away from public-only pages (login, register) */
+/** Redirect authenticated users away from public-only pages (login, register).
+ *  Honors a `from` location (A10) so a just-logged-in user returns to the page
+ *  they originally requested instead of always landing on /dashboard. */
 const PublicOnlyRoute = ({ children }) => {
   const token = useAuthStore((state) => state.token);
-  if (token) return <Navigate to="/dashboard" replace />;
+  const location = useLocation();
+  if (token) return <Navigate to={location.state?.from?.pathname || '/dashboard'} replace />;
   return children;
 };
 
-/** Require authentication; redirect to login if not logged in */
+/** Require authentication; redirect to login if not logged in, remembering the
+ *  originally-requested location so we can return there after login (A10). */
 const ProtectedRoute = ({ children }) => {
   const token = useAuthStore((state) => state.token);
-  if (!token) return <Navigate to="/login" replace />;
+  const location = useLocation();
+  if (!token) return <Navigate to="/login" replace state={{ from: location }} />;
   return (
     <Layout>
       <Suspense fallback={<PageLoader />}>
