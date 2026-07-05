@@ -32,6 +32,13 @@ function msUntilNextRun(hour = RUN_HOUR_UTC, minute = 7) {
 }
 
 async function runOrbitReminders(io) {
+    // Live flag (C1): honor the runtime ORBIT_DECAY_REMINDERS toggle each run so
+    // reminders can be silenced from the Flag Cockpit without a redeploy.
+    if (!require("../services/flagStore").get("ORBIT_DECAY_REMINDERS")) {
+        console.log("[OrbitWorker] Decay reminders disabled via flag — skipping this run.");
+        setTimeout(() => runOrbitReminders(io), 24 * 60 * 60 * 1000);
+        return;
+    }
     const today = utcDayStr();
     console.log("[OrbitWorker] Scanning for decaying orbits…");
     let sent = 0;

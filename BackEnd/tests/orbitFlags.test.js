@@ -2,12 +2,12 @@
 delete process.env.ORBIT_TIER1; delete process.env.ORBIT_TIER2; delete process.env.ORBIT_TIER3;
 delete process.env.ORBIT_TIER1_PCT; delete process.env.ORBIT_TIER2_PCT; delete process.env.ORBIT_TIER3_PCT;
 
-const { bucketOf, tierEnabledFor, flagsFor, TIERS, ROLLOUT } = require("../services/orbitFlags");
+const { bucketOf, tierEnabledFor, flagsFor, tiers, rollout } = require("../services/orbitFlags");
 
-describe("orbitFlags — defaults", () => {
+describe("orbitFlags — defaults (backed by flagStore cache)", () => {
     it("has every tier ON at 100% by default (no behavior change)", () => {
-        expect(TIERS).toEqual({ tier1: true, tier2: true, tier3: true });
-        expect(ROLLOUT).toEqual({ tier1: 100, tier2: 100, tier3: 100 });
+        expect(tiers()).toEqual({ tier1: true, tier2: true, tier3: true });
+        expect(rollout()).toEqual({ tier1: 100, tier2: 100, tier3: 100 });
         expect(tierEnabledFor("tier1", "anyone")).toBe(true);
         expect(flagsFor("u1")).toEqual({ tier1: true, tier2: true, tier3: true });
     });

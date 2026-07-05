@@ -14,6 +14,7 @@ const league = require("./leagueService");
 const antiGame = require("./orbitAntiGame");
 const cfg = require("./orbitConfig");
 const flags = require("./orbitFlags");
+const flagStore = require("./flagStore");
 const analytics = require("./orbitAnalytics");
 const { createNotification } = require("./notify");
 
@@ -142,9 +143,13 @@ async function recordOrbitAction(io, userId, metric, opts = {}) {
         let streakEligible = true;
         let xpFactor = 1;
         if (metric === "message") {
+            // Live flags (C1): the message cap + quality gate come from the config
+            // store so they can be tuned without a redeploy (defaults = env cfg).
+            const dailyXpCap = flagStore.get("ORBIT_MSG_XP_CAP");
+            const qualityGate = flagStore.get("ORBIT_MSG_QUALITY_GATE");
             const q = antiGame.qualifyMessage(orbit.msgCredit, opts.partnerId, today, {
-                dailyXpCap: cfg.MSG.dailyXpCap,
-                quality: cfg.MSG.qualityGate ? opts.quality !== false : true,
+                dailyXpCap,
+                quality: qualityGate ? opts.quality !== false : true,
             });
             orbit.msgCredit = q.msgCredit;
             streakEligible = q.qualifiesForStreak;
@@ -230,7 +235,10 @@ async function recordOrbitAction(io, userId, metric, opts = {}) {
                 { userId: String(userId), metric, streak: res.streak.current });
         }
         if (res.milestone) analytics.track("streak.milestone", { userId: String(userId), name: res.milestone.name, streak: res.streak.current });
-        if (res.stardust > 0) analytics.track("photons.earn", { userId: String(userId), amount: res.stardust, source: metric });
+        if (res.stardust > 0) {
+            analytics.track("photons.earn", { userId: String(userId), amount: res.stardust, source: metric });
+            require("./photonLedger").record(userId, res.stardust, res.milestone ? "milestone" : "streak"); // C6 economy
+        }
         if (addXp > 0) analytics.track("league.xp", { userId: String(userId), amount: addXp, source: metric });
         for (const c of completed) analytics.track("mission.complete", { userId: String(userId), key: c.key });
 

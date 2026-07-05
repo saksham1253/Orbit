@@ -77,6 +77,29 @@ router.get("/records/:collection", adminApiLimiter, requireAdmin, records.listRe
 // Audit log viewer (append-only; no delete route exists by design)
 router.get("/audit", adminApiLimiter, requireAdmin, records.listAudit);
 
+// ── Mission Control: Orbit demo seeder + time-travel (C2 / §5) ──────────────
+// Fill an account so every gamification tier renders at once, warp time-gated
+// features, and undo exactly. Prod-guarded + audited inside the controller.
+const missionControl = require("../controllers/missionControlController");
+// C1 Flag Cockpit — live feature flags (no redeploy)
+router.get("/mission-control/flags", adminApiLimiter, requireAdmin, missionControl.listFlags);
+router.patch("/mission-control/flags", adminApiLimiter, requireAdmin, missionControl.setFlag);
+router.post("/mission-control/seed", adminApiLimiter, requireAdmin, missionControl.seed);
+router.post("/mission-control/warp", adminApiLimiter, requireAdmin, missionControl.warp);
+router.post("/mission-control/teardown", adminApiLimiter, requireAdmin, missionControl.teardown);
+// C5 Player Inspector · C3 Anti-Gaming Simulator · C8 Pre-Flight · C9 Push Bench
+router.get("/mission-control/users/:id/orbit", adminApiLimiter, requireAdmin, missionControl.inspectUser);
+router.post("/mission-control/sim/anti-gaming", adminApiLimiter, requireAdmin, missionControl.simAntiGaming);
+router.post("/mission-control/preflight/run", adminApiLimiter, requireAdmin, missionControl.preflight);
+router.get("/mission-control/push/tokens/:userId", adminApiLimiter, requireAdmin, missionControl.pushTokens);
+router.post("/mission-control/push/test", adminApiLimiter, requireAdmin, missionControl.pushTest);
+// C4 Notification Linter · C7 Telemetry
+router.get("/mission-control/notifications/lint", adminApiLimiter, requireAdmin, missionControl.notificationLint);
+// C6 Gravimeter — Photons economy
+router.get("/mission-control/economy/photons", adminApiLimiter, requireAdmin, missionControl.economy);
+router.get("/mission-control/analytics/recent", adminApiLimiter, requireAdmin, missionControl.analyticsRecent);
+router.get("/mission-control/analytics/funnels", adminApiLimiter, requireAdmin, missionControl.analyticsFunnels);
+
 // Moderation
 router.get("/reports", adminApiLimiter, requireAdmin, system.listReports);
 router.post("/reports/:id/resolve", adminApiLimiter, requireAdmin, system.resolveReport);

@@ -116,6 +116,7 @@ exports.claimMission = async (req, res) => {
         }
         orbit.missions = result.missions;
         orbit.stardust += result.stardust;
+        require("../services/photonLedger").record(req.user.id, result.stardust, "mission"); // C6 economy
         // Claiming a mission also grants weekly League XP.
         orbit.league.weekXp += league.XP_MISSION_CLAIM;
 
@@ -142,6 +143,7 @@ exports.buyFreeze = async (req, res) => {
         }
         orbit.stardust -= engine.FREEZE_STARDUST_COST;
         orbit.freeze.tokens = Math.min(engine.FREEZE_CAP, orbit.freeze.tokens + 1);
+        require("../services/photonLedger").record(req.user.id, -engine.FREEZE_STARDUST_COST, "freeze"); // C6 sink
 
         await User.updateOne({ _id: req.user.id }, { $set: { orbit } });
         return res.status(200).json({ spent: engine.FREEZE_STARDUST_COST, ...shapeOrbit(orbit) });
@@ -150,3 +152,7 @@ exports.buyFreeze = async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 };
+
+// Exposed so the admin Player Inspector (Mission Control C5) can render the exact
+// same shape the end-user sees.
+exports.shapeOrbit = shapeOrbit;

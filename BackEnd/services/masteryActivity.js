@@ -39,6 +39,7 @@ async function creditTeaching(io, skillId) {
         if (crossed) {
             // Award Stardust to the teacher (the skill owner) for the new rank.
             await User.updateOne({ _id: skill.userId }, { $inc: { "orbit.stardust": crossed.stardust } });
+            require("./photonLedger").record(skill.userId, crossed.stardust, "mastery"); // C6 economy
             const view = masteryFor(newCount, skill.skillOffered);
             createNotification(io, skill.userId, {
                 type: "skill_mastery",
