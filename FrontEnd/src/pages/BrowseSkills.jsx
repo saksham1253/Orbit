@@ -5,6 +5,7 @@ import { Helmet } from 'react-helmet-async';
 import { useDebounce } from 'use-debounce';
 import { useInView } from 'react-intersection-observer';
 import api from '../services/api';
+import { useAuthStore } from '../store/authStore';
 import SkillCard from '../components/skills/SkillCard';
 import { SkillGridSkeleton } from '../components/skeletons';
 import ErrorState from '../components/common/ErrorState';
@@ -57,9 +58,17 @@ const BrowseSkills = () => {
     setDisplayCount(ITEMS_PER_PAGE);
   };
 
+  const myId = useAuthStore((s) => s.user?._id);
+
   const filteredAndSorted = useMemo(() => {
-    let list = [...skills];
-    
+    // B-01 defence-in-depth: the server already excludes self (/skills/all),
+    // but a stale react-query cache could momentarily leak your own listings.
+    // Filter them out client-side so you never see yourself in Browse.
+    let list = skills.filter((s) => {
+      const ownerId = s.userId?._id || s.userId;
+      return !myId || String(ownerId) !== String(myId);
+    });
+
     // Search filter
     if (debouncedSearch.trim()) {
       const q = debouncedSearch.toLowerCase();
@@ -81,7 +90,7 @@ const BrowseSkills = () => {
     }
     
     return list;
-  }, [skills, debouncedSearch, sortBy]);
+  }, [skills, debouncedSearch, sortBy, myId]);
 
   const displayedSkills = filteredAndSorted.slice(0, displayCount);
 
