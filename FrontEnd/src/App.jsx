@@ -97,7 +97,19 @@ const RICH_FLASH_TYPES = new Set([
 function AppInner() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { user, token } = useAuthStore();
+  const { user, token, setUser } = useAuthStore();
+
+  // Ensure the signed-in user is hydrated app-wide. On native (APK) OAuth the
+  // token is stored even if the profile fetch blips, leaving `user` null — which
+  // makes every client-side self-exclusion filter (Browse/Matches/Nearby) no-op
+  // and was a likely cause of "I see myself in Browse" on the APK (B-01). A
+  // reliable user._id fixes those defenses. Also self-heals a stale persisted
+  // user that predates newer fields.
+  useEffect(() => {
+    if (token && !user?._id) {
+      api.get('/user/profile').then(({ data }) => { if (data && data._id) setUser(data); }).catch(() => {});
+    }
+  }, [token, user?._id, setUser]);
   const {
     notifications,
     dismissNotification,
