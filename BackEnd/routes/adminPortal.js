@@ -84,6 +84,12 @@ const missionControl = require("../controllers/missionControlController");
 router.post("/mission-control/seed", adminApiLimiter, requireAdmin, missionControl.seed);
 router.post("/mission-control/warp", adminApiLimiter, requireAdmin, missionControl.warp);
 router.post("/mission-control/teardown", adminApiLimiter, requireAdmin, missionControl.teardown);
+// C5 Player Inspector · C3 Anti-Gaming Simulator · C8 Pre-Flight · C9 Push Bench
+router.get("/mission-control/users/:id/orbit", adminApiLimiter, requireAdmin, missionControl.inspectUser);
+router.post("/mission-control/sim/anti-gaming", adminApiLimiter, requireAdmin, missionControl.simAntiGaming);
+router.post("/mission-control/preflight/run", adminApiLimiter, requireAdmin, missionControl.preflight);
+router.get("/mission-control/push/tokens/:userId", adminApiLimiter, requireAdmin, missionControl.pushTokens);
+router.post("/mission-control/push/test", adminApiLimiter, requireAdmin, missionControl.pushTest);
 
 // Moderation
 router.get("/reports", adminApiLimiter, requireAdmin, system.listReports);

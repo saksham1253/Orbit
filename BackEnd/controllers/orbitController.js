@@ -150,3 +150,7 @@ exports.buyFreeze = async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 };
+
+// Exposed so the admin Player Inspector (Mission Control C5) can render the exact
+// same shape the end-user sees.
+exports.shapeOrbit = shapeOrbit;

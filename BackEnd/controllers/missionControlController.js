@@ -9,6 +9,16 @@
 
 const crypto = require("crypto");
 const seeder = require("../services/orbitSeeder");
+const antiGameSim = require("../services/antiGameSim");
+const preflight = require("../services/orbitPreflight");
+const fcm = require("../services/fcm");
+const User = require("../models/user");
+const Skill = require("../models/skill");
+const Constellation = require("../models/Constellation");
+const { rollForward } = require("../services/orbitActivity");
+const { shapeOrbit } = require("./orbitController");
+const { masteryFor } = require("../services/skillMastery");
+const league = require("../services/leagueService");
 const { audit } = require("../utils/adminAudit");
 
 const CONFIRM_PHRASE = "SEED";
@@ -80,5 +90,103 @@ exports.teardown = async (req, res) => {
     } catch (err) {
         await audit(req, { ...actor(req), action: "orbit.teardown", success: false, reason: err.message });
         return fail(res, "teardown_failed", err.message, requestId, 500);
+    }
+};
+
+// ── C5 · Player Inspector ────────────────────────────────────────────────────
+// GET /mission-control/users/:id/orbit — full gamification state for a user
+// (the exact user-facing shape + cosmic + league + Binary Star + mastery).
+exports.inspectUser = async (req, res) => {
+    const requestId = reqId();
+    try {
+        const user = await User.findById(req.params.id).select("name email orbit cosmic").lean();
+        if (!user) return fail(res, "not_found", "user not found", requestId, 404);
+
+        const { orbit } = rollForward(user.orbit);
+        const cons = await Constellation.find({ members: user._id, status: "active" })
+            .populate("members", "name").lean();
+        const skills = await Skill.find({ userId: user._id }).select("skillOffered sessionsTaught").lean();
+
+        const data = {
+            user: { id: String(user._id), name: user.name, email: user.email },
+            orbit: shapeOrbit(orbit),
+            cosmic: { score: user.cosmic?.score ?? null, tierId: user.cosmic?.tierId ?? null },
+            league: { division: league.divisionMeta(orbit.league.divisionId), weekXp: orbit.league.weekXp, lastResult: orbit.league.lastResult },
+            constellations: cons.map((c) => ({
+                id: String(c._id), streak: c.streak?.current || 0,
+                partner: (c.members || []).map((m) => m.name).filter((n) => n !== user.name),
+            })),
+            mastery: skills.map((s) => masteryFor(s.sessionsTaught, s.skillOffered)).filter((m) => m.sessionsTaught > 0),
+            rawOrbit: orbit,
+        };
+        await audit(req, { ...actor(req), action: "orbit.inspect", targetType: "user", targetId: String(user._id) });
+        return ok(res, data, requestId);
+    } catch (err) {
+        return fail(res, "inspect_failed", err.message, requestId, 500);
+    }
+};
+
+// ── C3 · Anti-Gaming Simulator (no DB writes) ────────────────────────────────
+// POST /mission-control/sim/anti-gaming { targets:[], count, date?, dailyXpCap?, weeklyCap? }
+exports.simAntiGaming = async (req, res) => {
+    const requestId = reqId();
+    try {
+        const { targets = [], count = 0, date, dailyXpCap, weeklyCap } = req.body || {};
+        if (!Array.isArray(targets) || !count) return fail(res, "bad_request", "targets[] and count are required", requestId);
+        const result = antiGameSim.simulate({ targets, count: Number(count), date, dailyXpCap, weeklyCap });
+        return ok(res, result, requestId); // pure sim — nothing persisted, no audit needed
+    } catch (err) {
+        return fail(res, "sim_failed", err.message, requestId, 500);
+    }
+};
+
+// ── C8 · Pre-Flight Checks ───────────────────────────────────────────────────
+// POST /mission-control/preflight/run { checkId? }
+exports.preflight = async (req, res) => {
+    const requestId = reqId();
+    try {
+        const results = preflight.run(req.body && req.body.checkId);
+        const green = results.every((r) => r.status === "pass");
+        return ok(res, { green, results, available: preflight.CHECK_IDS }, requestId);
+    } catch (err) {
+        return fail(res, "preflight_failed", err.message, requestId, 500);
+    }
+};
+
+// ── C9 · Push Test Bench ─────────────────────────────────────────────────────
+const PUSH_TEMPLATES = {
+    message:               { title: "New message (test)", body: "This is a test message push.", link: "/dashboard" },
+    connection_request:    { title: "Connection request (test)", body: "Someone wants to connect (test).", link: "/connections" },
+    incoming_call:         { title: "Incoming call (test)", body: "Test incoming video call.", link: "/video" },
+    constellation_your_turn:{ title: "✨ Your turn to shine (test)", body: "Keep your Binary Star glowing (test).", link: "/orbit" },
+    orbit_decay:           { title: "🌌 Orbit decaying (test)", body: "One action keeps your streak alive (test).", link: "/orbit" },
+};
+
+// GET /mission-control/push/tokens/:userId
+exports.pushTokens = async (req, res) => {
+    const requestId = reqId();
+    try {
+        const user = await User.findById(req.params.userId).select("fcmTokens").lean();
+        if (!user) return fail(res, "not_found", "user not found", requestId, 404);
+        return ok(res, { count: (user.fcmTokens || []).length, tokens: (user.fcmTokens || []).map((t) => `${t.slice(0, 12)}…`) }, requestId);
+    } catch (err) {
+        return fail(res, "tokens_failed", err.message, requestId, 500);
+    }
+};
+
+// POST /mission-control/push/test { userId, eventType }
+exports.pushTest = async (req, res) => {
+    const requestId = reqId();
+    try {
+        const { userId, eventType } = req.body || {};
+        const tpl = PUSH_TEMPLATES[eventType];
+        if (!userId || !tpl) return fail(res, "bad_request", `userId and a known eventType (${Object.keys(PUSH_TEMPLATES).join(", ")}) required`, requestId);
+        if (!fcm.isEnabled()) return fail(res, "fcm_disabled", "FCM is not configured on this server", requestId, 503);
+
+        await fcm.sendToUser(userId, { title: tpl.title, body: tpl.body, data: { link: tpl.link, type: eventType, test: "1" } });
+        await audit(req, { ...actor(req), action: "orbit.push.test", targetType: "user", targetId: String(userId), after: { eventType } });
+        return ok(res, { sent: true, eventType }, requestId);
+    } catch (err) {
+        return fail(res, "push_failed", err.message, requestId, 500);
     }
 };
