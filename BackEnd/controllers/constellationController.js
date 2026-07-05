@@ -128,6 +128,7 @@ exports.respond = async (req, res) => {
         }
 
         // Accept → activate + seed the first weekly shared Gravity Assist.
+        require("../services/orbitAnalytics").track("binary_star.create", { userId: String(meId), constellationId: String(con._id) });
         con.status = "active";
         con.activatedAt = new Date();
         const g = engine.grantWeeklyFreezePair(con.freeze, isoWeekId());
@@ -160,6 +161,7 @@ exports.dissolve = async (req, res) => {
         con.status = "dissolved";
         con.dissolvedAt = new Date();
         await con.save();
+        require("../services/orbitAnalytics").track("binary_star.dissolve", { userId: String(meId), constellationId: String(con._id) });
 
         const otherId = con.members.map(String).find((m) => m !== String(meId));
         if (otherId) {

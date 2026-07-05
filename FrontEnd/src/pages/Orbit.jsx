@@ -85,6 +85,9 @@ export default function Orbit() {
   // Part 0 — currency renamed to Photons; read new field, fall back to legacy.
   const photons = data.photons ?? data.stardust ?? 0;
   const freezeCost = freeze.costPhotons ?? freeze.costStardust;
+  // Part 8 — staged-rollout flags (default true when the API omits them).
+  const tier2 = data.flags?.tier2 !== false;
+  const tier3 = data.flags?.tier3 !== false;
   const copy = STATE_COPY[streak.state] || STATE_COPY.idle;
   // Part 3 — graduated streaks show pride, not pressure (hide the countdown).
   const showCountdown = streak.state !== 'active' && streak.pressure !== 'none';
@@ -194,14 +197,20 @@ export default function Orbit() {
       {/* Missions */}
       <MissionsPanel missions={missions} />
 
-      {/* Weekly League — promotion/relegation by fresh weekly Orbit XP */}
-      <LeaguePanel />
+      {/* Tier 2 (Leagues + Binary Star) — hidden when not in the user's cohort (Part 8) */}
+      {tier2 && <>
+        {/* Weekly League — promotion/relegation by fresh weekly Orbit XP */}
+        <LeaguePanel />
 
-      {/* Constellations — co-op Binary Star streaks */}
-      <ConstellationsPanel />
+        {/* Constellations — co-op Binary Star streaks */}
+        <ConstellationsPanel />
+      </>}
 
-      {/* Photons Cosmetics Shop — the spend side of the economy */}
-      <ShopPanel />
+      {/* Tier 3 (cosmetics) — hidden when not in the user's cohort (Part 8) */}
+      {tier3 && (
+        /* Photons Cosmetics Shop — the spend side of the economy */
+        <ShopPanel />
+      )}
 
       {/* Milestone ladder */}
       <section className="rounded-2xl border border-white/10 bg-slate-900/30 p-4">

@@ -10,6 +10,7 @@ const User = require("../models/user");
 const engine = require("../services/orbitEngine");
 const league = require("../services/leagueService");
 const cfg = require("../services/orbitConfig");
+const flags = require("../services/orbitFlags");
 const { utcDayStr, rollForward } = require("../services/orbitActivity");
 
 // Build the client payload from a fully-rolled orbit object.
@@ -75,7 +76,8 @@ exports.getMyOrbit = async (req, res) => {
         const { orbit, changed } = rollForward(user.orbit);
         if (changed) User.updateOne({ _id: req.user.id }, { $set: { orbit } }).catch(() => {});
 
-        return res.status(200).json(shapeOrbit(orbit));
+        // Staged-rollout flags (Part 8) so the UI can hide tiers not live for this user.
+        return res.status(200).json({ ...shapeOrbit(orbit), flags: flags.flagsFor(req.user.id) });
     } catch (err) {
         console.error("getMyOrbit error:", err);
         res.status(500).json({ message: "Server error" });

@@ -13,6 +13,8 @@ const engine = require("./orbitEngine");
 const league = require("./leagueService");
 const antiGame = require("./orbitAntiGame");
 const cfg = require("./orbitConfig");
+const flags = require("./orbitFlags");
+const analytics = require("./orbitAnalytics");
 const { createNotification } = require("./notify");
 
 // ── "now" helpers (UTC) ──────────────────────────────────────────────────────
@@ -119,6 +121,10 @@ function rollForward(orbit, now = new Date()) {
  */
 async function recordOrbitAction(io, userId, metric, opts = {}) {
     try {
+        // Staged rollout (Part 8): Tier‑1 (streak/missions/Photons) gate. When a
+        // user isn't in the tier‑1 cohort, engagement tracking is a no-op.
+        if (!flags.tierEnabledFor("tier1", userId)) return null;
+
         const now = opts.now || new Date();
         const amount = opts.amount || 1;
         const today = utcDayStr(now);
@@ -180,8 +186,10 @@ async function recordOrbitAction(io, userId, metric, opts = {}) {
         //    is scaled by the daily taper AND clamped to a weekly per-source cap
         //    (Part 2) so message-only play can never fund a promotion. rollForward
         //    already reset weekXp + sourceXp to 0 when the ISO week changed.
-        let addXp = league.xpFor(metric) * amount * xpFactor + (res.milestone ? league.XP_MILESTONE : 0);
-        if (metric === "message" && addXp > 0) {
+        // League XP only accrues for users in the Tier‑2 (Leagues) cohort (Part 8).
+        const tier2 = flags.tierEnabledFor("tier2", userId);
+        let addXp = tier2 ? league.xpFor(metric) * amount * xpFactor + (res.milestone ? league.XP_MILESTONE : 0) : 0;
+        if (tier2 && metric === "message" && addXp > 0) {
             const capped = antiGame.applyWeeklyCap(orbit.league.sourceXp.message, addXp, cfg.MSG.weeklyXpCap);
             orbit.league.sourceXp.message = capped.total;
             addXp = capped.granted;
@@ -216,10 +224,23 @@ async function recordOrbitAction(io, userId, metric, opts = {}) {
             }).catch(() => {});
         }
 
+        // Analytics (Part 8): emit measurable engagement events.
+        if (res.counted) {
+            analytics.track(res.streak.current === 1 ? "streak.start" : "streak.advance",
+                { userId: String(userId), metric, streak: res.streak.current });
+        }
+        if (res.milestone) analytics.track("streak.milestone", { userId: String(userId), name: res.milestone.name, streak: res.streak.current });
+        if (res.stardust > 0) analytics.track("photons.earn", { userId: String(userId), amount: res.stardust, source: metric });
+        if (addXp > 0) analytics.track("league.xp", { userId: String(userId), amount: addXp, source: metric });
+        for (const c of completed) analytics.track("mission.complete", { userId: String(userId), key: c.key });
+
         // 4) Co-op Binary Star streaks — fan this action into the user's active
         //    constellations. Required lazily to avoid a require cycle (constella-
         //    tionActivity depends on this module's date helpers). Fire-and-forget.
-        require("./constellationActivity").recordPairAction(io, userId, { now }).catch(() => {});
+        //    Gated on the Tier‑2 cohort (Part 8).
+        if (flags.tierEnabledFor("tier2", userId)) {
+            require("./constellationActivity").recordPairAction(io, userId, { now }).catch(() => {});
+        }
 
         return {
             streak: orbit.streak.current,

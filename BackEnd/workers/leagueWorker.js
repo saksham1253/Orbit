@@ -115,6 +115,7 @@ async function runLeagueRollover(io) {
                     : `You slipped to ${meta.name} this week. Climb back with more Orbit XP.`,
                 data: { link: "/orbit", divisionId: o.nextDivisionId, result: o.result },
             }).catch(() => {});
+            require("../services/orbitAnalytics").track(`league.${o.result}`, { userId, division: o.nextDivisionId });
             notified++;
         }
 
