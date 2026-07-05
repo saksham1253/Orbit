@@ -33,7 +33,9 @@ jobs:
 
     - name: Run Backend Unit Tests
       working-directory: ./BackEnd
-      run: npx jest --passWithNoTests
+      # --runInBand: the DB suites spin up mongodb-memory-server; running them
+      # serially avoids parallel-worker port/connection races on the 2-core runner.
+      run: npx jest --runInBand --passWithNoTests
 
     # Frontend Tests & Build
     - name: Install Frontend Dependencies

@@ -199,7 +199,7 @@ function Telemetry() {
     <Card title="Telemetry — live event stream" right={<span style={{ fontSize: 11, opacity: .5 }}>auto-refresh 5s</span>}>
       {events.length === 0 ? <div style={{ opacity: .6 }}>No events yet — act in the app.</div> : (
         <pre style={{ fontSize: 11, background: 'rgba(0,0,0,.3)', padding: 10, borderRadius: 8, overflow: 'auto', maxHeight: 320 }}>
-          {events.map((e, i) => `${e.at?.slice(11, 19)} ${e.evt}${e.userId ? ' u=' + String(e.userId).slice(-6) : ''}`).join('\n')}
+          {events.map((e) => `${e.at?.slice(11, 19)} ${e.evt}${e.userId ? ' u=' + String(e.userId).slice(-6) : ''}`).join('\n')}
         </pre>
       )}
     </Card>
