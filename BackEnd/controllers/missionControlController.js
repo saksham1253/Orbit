@@ -20,6 +20,7 @@ const { shapeOrbit } = require("./orbitController");
 const { masteryFor } = require("../services/skillMastery");
 const league = require("../services/leagueService");
 const flagStore = require("../services/flagStore");
+const analytics = require("../services/orbitAnalytics");
 const { audit } = require("../utils/adminAudit");
 
 const CONFIRM_PHRASE = "SEED";
@@ -91,6 +92,40 @@ exports.teardown = async (req, res) => {
     } catch (err) {
         await audit(req, { ...actor(req), action: "orbit.teardown", success: false, reason: err.message });
         return fail(res, "teardown_failed", err.message, requestId, 500);
+    }
+};
+
+// ── C4 · Notification Copy Linter ────────────────────────────────────────────
+// GET /mission-control/notifications/lint — runtime shame-phrase lint (B4).
+exports.notificationLint = async (req, res) => {
+    const requestId = reqId();
+    try {
+        const [result] = preflight.run("notification_copy_clean");
+        return ok(res, { clean: result.status === "pass", ...result.evidence, status: result.status }, requestId);
+    } catch (err) {
+        return fail(res, "lint_failed", err.message, requestId, 500);
+    }
+};
+
+// ── C7 · Telemetry (live analytics tail) ─────────────────────────────────────
+// GET /mission-control/analytics/recent?limit=&evt=&userId=
+exports.analyticsRecent = async (req, res) => {
+    const requestId = reqId();
+    try {
+        const { limit, evt, userId } = req.query || {};
+        return ok(res, { events: analytics.recent({ limit: Number(limit) || 100, evt, userId }) }, requestId);
+    } catch (err) {
+        return fail(res, "analytics_failed", err.message, requestId, 500);
+    }
+};
+
+// GET /mission-control/analytics/funnels
+exports.analyticsFunnels = async (req, res) => {
+    const requestId = reqId();
+    try {
+        return ok(res, { funnels: analytics.funnels() }, requestId);
+    } catch (err) {
+        return fail(res, "funnels_failed", err.message, requestId, 500);
     }
 };
 

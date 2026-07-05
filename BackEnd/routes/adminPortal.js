@@ -93,6 +93,10 @@ router.post("/mission-control/sim/anti-gaming", adminApiLimiter, requireAdmin, m
 router.post("/mission-control/preflight/run", adminApiLimiter, requireAdmin, missionControl.preflight);
 router.get("/mission-control/push/tokens/:userId", adminApiLimiter, requireAdmin, missionControl.pushTokens);
 router.post("/mission-control/push/test", adminApiLimiter, requireAdmin, missionControl.pushTest);
+// C4 Notification Linter · C7 Telemetry
+router.get("/mission-control/notifications/lint", adminApiLimiter, requireAdmin, missionControl.notificationLint);
+router.get("/mission-control/analytics/recent", adminApiLimiter, requireAdmin, missionControl.analyticsRecent);
+router.get("/mission-control/analytics/funnels", adminApiLimiter, requireAdmin, missionControl.analyticsFunnels);
 
 // Moderation
 router.get("/reports", adminApiLimiter, requireAdmin, system.listReports);
