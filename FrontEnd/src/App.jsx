@@ -400,6 +400,10 @@ function AppInner() {
         <Route path="/"               element={<Landing />} />
         <Route path="/login"          element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
         <Route path="/register"       element={<PublicOnlyRoute><Register /></PublicOnlyRoute>} />
+        {/* Friendly aliases for guessed URLs (B-04) → canonical routes */}
+        <Route path="/signup"         element={<Navigate to="/register" replace />} />
+        <Route path="/signin"         element={<Navigate to="/login" replace />} />
+        <Route path="/skills"         element={<Navigate to="/browse" replace />} />
         <Route path="/oauth/callback" element={<OAuthCallback />} />
         <Route path="/forgot-password"         element={<ForgotPassword />} />
         <Route path="/reset-password/:token"   element={<ResetPassword />} />
