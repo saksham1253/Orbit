@@ -1,6 +1,6 @@
 /**
  * OrbitDashboardWidget — a compact Orbit summary for the dashboard: the streak
- * state, Stardust balance, and this week's mission progress, with a link to the
+ * state, Photons balance, and this week's mission progress, with a link to the
  * full /orbit hub. Reads the shared ['orbit','me'] query. Renders nothing until
  * data is available so it never flashes an empty card.
  */
@@ -18,7 +18,8 @@ export default function OrbitDashboardWidget() {
   const { data } = useOrbit();
   if (!data) return null;
 
-  const { streak, stardust, freeze, missions } = data;
+  const { streak, freeze, missions } = data;
+  const photons = data.photons ?? data.stardust ?? 0;   // Part 0 rename, legacy fallback
   const st = STATE[streak.state] || STATE.idle;
   const done = missions.filter((m) => m.complete).length;
   const claimable = missions.some((m) => m.complete && !m.claimed);
@@ -35,7 +36,7 @@ export default function OrbitDashboardWidget() {
       <div className="flex-1 min-w-0">
         <div className="text-sm font-semibold" style={{ color: st.color }}>{st.text}</div>
         <div className="flex items-center gap-3 text-xs text-slate-400 mt-0.5">
-          <span className="inline-flex items-center gap-1"><Sparkles size={12} className="text-violet-300" />{stardust}</span>
+          <span className="inline-flex items-center gap-1"><Sparkles size={12} className="text-violet-300" />{photons}</span>
           <span className="inline-flex items-center gap-1"><Shield size={12} className="text-sky-300" />{freeze.tokens}/{freeze.cap}</span>
           <span className="inline-flex items-center gap-1"><Target size={12} className="text-amber-300" />{done}/{missions.length} missions</span>
           {claimable && <span className="text-emerald-400 font-semibold">· reward ready</span>}

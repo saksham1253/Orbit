@@ -2,7 +2,7 @@
  * SignalLegend — "Your Progress" explainer (Part 6, signal clarity).
  *
  * Three separate progression signals now coexist and are easy to confuse:
- *   • Stardust    — spendable soft currency (cosmetics only)
+ *   • Photons     — spendable soft currency (cosmetics only)
  *   • CosmicScore — long-term, all-time standing
  *   • Orbit XP    — this week's league race (resets Monday)
  * This surface gives each a DISTINCT icon + color + one-line "what is this?" so
@@ -12,10 +12,10 @@ import { Sparkles, Orbit as OrbitIcon, Zap } from 'lucide-react';
 
 const SIGNALS = [
   {
-    key: 'stardust',
+    key: 'photons',
     Icon: Sparkles,
     color: '#c4b5fd',                 // violet
-    label: 'Stardust',
+    label: 'Photons',
     what: 'Spend on looks — name glows & nebula backgrounds. Never buys ranking.',
   },
   {

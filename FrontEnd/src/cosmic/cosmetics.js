@@ -1,5 +1,5 @@
 /**
- * cosmetics.js — front-end render metadata for Stardust-shop cosmetics.
+ * cosmetics.js — front-end render metadata for Photon-shop cosmetics.
  * Maps a catalog `key` (owned by the backend) to the CSS class in cosmetics.css
  * plus a small preview swatch. Render-only; the server owns the economy.
  */

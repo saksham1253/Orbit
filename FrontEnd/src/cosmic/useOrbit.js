@@ -27,7 +27,7 @@ export function useClaimMission() {
   });
 }
 
-/** Spend Stardust to bank one extra Gravity Assist freeze. */
+/** Spend Photons to bank one extra Gravity Assist freeze. */
 export function useBuyFreeze() {
   const qc = useQueryClient();
   return useMutation({

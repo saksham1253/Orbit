@@ -242,6 +242,11 @@ const userSchema = new mongoose.Schema({
         // Cosmetic currency, earned from missions + streak milestones, spent on
         // extra Gravity Assists (and future cosmetics). Separate from CosmicScore
         // so rewards never inflate the ranking.
+        //
+        // NOTE (Part 0 rename): the user-facing name is "Photons"; the stored
+        // field stays `stardust` for now so no migration/downtime is needed. The
+        // API emits BOTH `stardust` and `photons` (same value) during the
+        // deprecation window — see controllers/orbitController.js.
         stardust: { type: Number, default: 0 },
         // The current week's rotating missions (regenerated lazily on read when
         // the ISO week changes — no cron needed, mirrors the season self-heal).

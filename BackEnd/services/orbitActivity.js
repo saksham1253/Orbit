@@ -195,8 +195,8 @@ async function recordOrbitAction(io, userId, metric, opts = {}) {
             createNotification(io, userId, {
                 type: "orbit_milestone",
                 title: `🚀 ${res.milestone.name} reached!`,
-                body: `${res.streak.current}-day orbit — +${res.milestone.stardust} Stardust.`,
-                data: { link: "/orbit", streak: res.streak.current, stardust: res.milestone.stardust },
+                body: `${res.streak.current}-day orbit — recognized with +${res.milestone.stardust} ✨ Photons.`,
+                data: { link: "/orbit", streak: res.streak.current, stardust: res.milestone.stardust, photons: res.milestone.stardust },
             }).catch(() => {});
         }
         if (res.streakSaved) {
@@ -211,8 +211,8 @@ async function recordOrbitAction(io, userId, metric, opts = {}) {
             createNotification(io, userId, {
                 type: "orbit_mission_complete",
                 title: "🎯 Mission complete",
-                body: `“${c.label}” is done — claim +${c.stardust} Stardust.`,
-                data: { link: "/orbit", missionKey: c.key, stardust: c.stardust },
+                body: `“${c.label}” is done — claim +${c.stardust} ✨ Photons.`,
+                data: { link: "/orbit", missionKey: c.key, stardust: c.stardust, photons: c.stardust },
             }).catch(() => {});
         }
 

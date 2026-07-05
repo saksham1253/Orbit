@@ -13,6 +13,8 @@ function shapeShop(orbit) {
     const cosmetics = shop.normalizeCosmetics(orbit && orbit.cosmetics);
     const stardust = (orbit && orbit.stardust) || 0;
     return {
+        // Part 0: `photons` canonical, `stardust` kept for the compat window.
+        photons: stardust,
         stardust,
         owned: cosmetics.owned,
         equipped: { name_glow: cosmetics.nameGlow, background: cosmetics.background },
@@ -63,7 +65,7 @@ exports.buy = async (req, res) => {
         );
 
         const fresh = await User.findById(req.user.id).select("orbit.cosmetics orbit.stardust").lean();
-        return res.status(200).json({ bought: key, spent: result.item.cost, ...shapeShop(fresh.orbit) });
+        return res.status(200).json({ bought: key, spent: result.item.cost, spentPhotons: result.item.cost, ...shapeShop(fresh.orbit) });
     } catch (err) {
         console.error("buy (shop) error:", err);
         res.status(500).json({ message: "Server error" });

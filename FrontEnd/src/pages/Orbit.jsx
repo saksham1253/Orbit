@@ -3,7 +3,7 @@
  *
  * Shows the live Orbit streak (with decay framing + a countdown to the UTC
  * reset), the milestone ladder, the Gravity Assist freeze inventory (buyable
- * with Stardust), the Stardust wallet, and this week's rotating missions.
+ * with Photons), the Photons wallet, and this week's rotating missions.
  * Read-only data comes from ['orbit','me']; claims/purchases mutate it.
  */
 import { useEffect, useState } from 'react';
@@ -81,7 +81,10 @@ export default function Orbit() {
   if (isLoading) return <CosmicLoader />;
   if (isError || !data) return <ErrorState onRetry={refetch} message="Couldn't load your Orbit." />;
 
-  const { streak, freeze, stardust, missions, nextMilestone, milestones } = data;
+  const { streak, freeze, missions, nextMilestone, milestones } = data;
+  // Part 0 — currency renamed to Photons; read new field, fall back to legacy.
+  const photons = data.photons ?? data.stardust ?? 0;
+  const freezeCost = freeze.costPhotons ?? freeze.costStardust;
   const copy = STATE_COPY[streak.state] || STATE_COPY.idle;
   // Part 3 — graduated streaks show pride, not pressure (hide the countdown).
   const showCountdown = streak.state !== 'active' && streak.pressure !== 'none';
@@ -155,8 +158,8 @@ export default function Orbit() {
         <section className="rounded-2xl border border-white/10 bg-slate-900/30 p-4 flex items-center gap-3">
           <Sparkles size={26} className="text-violet-300" />
           <div>
-            <div className="text-xs uppercase tracking-wide text-slate-400">Stardust</div>
-            <div className="text-2xl font-black text-white tabular-nums">{stardust}</div>
+            <div className="text-xs uppercase tracking-wide text-slate-400">Photons</div>
+            <div className="text-2xl font-black text-white tabular-nums">{photons}</div>
           </div>
         </section>
 
@@ -171,12 +174,12 @@ export default function Orbit() {
             </div>
             <button
               onClick={onBuyFreeze}
-              disabled={buyFreeze.isPending || freeze.tokens >= freeze.cap || stardust < freeze.costStardust}
+              disabled={buyFreeze.isPending || freeze.tokens >= freeze.cap || photons < freezeCost}
               className="rounded-full px-3 py-1.5 text-xs font-bold bg-white/5 text-sky-200 ring-1 ring-sky-400/30
                          enabled:hover:bg-sky-400/10 disabled:opacity-40 disabled:cursor-not-allowed"
-              title={freeze.tokens >= freeze.cap ? 'Inventory full' : `Costs ${freeze.costStardust} Stardust`}
+              title={freeze.tokens >= freeze.cap ? 'Inventory full' : `Costs ${freezeCost} Photons`}
             >
-              +1 · {freeze.costStardust} ✨
+              +1 · {freezeCost} ✨
             </button>
           </div>
           <p className="text-[11px] text-slate-500 mt-2">
@@ -185,7 +188,7 @@ export default function Orbit() {
         </section>
       </div>
 
-      {/* Signal clarity — Stardust vs CosmicScore vs Orbit XP */}
+      {/* Signal clarity — Photons vs CosmicScore vs Orbit XP */}
       <SignalLegend />
 
       {/* Missions */}
@@ -197,7 +200,7 @@ export default function Orbit() {
       {/* Constellations — co-op Binary Star streaks */}
       <ConstellationsPanel />
 
-      {/* Stardust Cosmetics Shop — the spend side of the economy */}
+      {/* Photons Cosmetics Shop — the spend side of the economy */}
       <ShopPanel />
 
       {/* Milestone ladder */}

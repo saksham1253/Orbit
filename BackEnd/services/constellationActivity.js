@@ -73,8 +73,8 @@ async function recordPairAction(io, userId, opts = {}) {
                         createNotification(io, m, {
                             type: "constellation_milestone",
                             title: `⭐ ${res.milestone.name}!`,
-                            body: `Your Binary Star hit a ${con.streak.current}-day shared streak — +${res.milestone.stardust} Stardust each.`,
-                            data: { link: "/orbit", constellationId: String(con._id), stardust: res.milestone.stardust },
+                            body: `Your Binary Star hit a ${con.streak.current}-day shared streak — +${res.milestone.stardust} ✨ Photons each.`,
+                            data: { link: "/orbit", constellationId: String(con._id), stardust: res.milestone.stardust, photons: res.milestone.stardust },
                         }).catch(() => {});
                     }
                 } else {

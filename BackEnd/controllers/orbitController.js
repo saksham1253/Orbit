@@ -38,8 +38,14 @@ function shapeOrbit(orbit, now = new Date()) {
         freeze: {
             tokens: orbit.freeze.tokens,
             cap: engine.FREEZE_CAP,
+            // Currency rename (Part 0): `costPhotons` is canonical; `costStardust`
+            // kept for one release so lagging clients don't break.
+            costPhotons: engine.FREEZE_STARDUST_COST,
             costStardust: engine.FREEZE_STARDUST_COST,
         },
+        // Part 0: `photons` is the canonical currency field; `stardust` is emitted
+        // in parallel through the deprecation window (remove next release).
+        photons: orbit.stardust,
         stardust: orbit.stardust,
         missions: (orbit.missions.items || []).map((m) => ({
             key: m.key,
@@ -48,6 +54,7 @@ function shapeOrbit(orbit, now = new Date()) {
             metric: m.metric,
             target: m.target,
             progress: m.progress,
+            photons: m.stardust,
             stardust: m.stardust,
             claimed: m.claimed,
             complete: m.progress >= m.target,
@@ -111,7 +118,7 @@ exports.claimMission = async (req, res) => {
         orbit.league.weekXp += league.XP_MISSION_CLAIM;
 
         await User.updateOne({ _id: req.user.id }, { $set: { orbit } });
-        return res.status(200).json({ awarded: result.stardust, ...shapeOrbit(orbit) });
+        return res.status(200).json({ awarded: result.stardust, awardedPhotons: result.stardust, ...shapeOrbit(orbit) });
     } catch (err) {
         console.error("claimMission error:", err);
         res.status(500).json({ message: "Server error" });

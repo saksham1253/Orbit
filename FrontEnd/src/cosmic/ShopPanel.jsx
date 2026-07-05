@@ -1,10 +1,10 @@
 /**
- * ShopPanel — the Stardust Cosmetics Shop on the /orbit hub (Tier 3).
+ * ShopPanel — the Photon Cosmetics Shop on the /orbit hub (Tier 3).
  *
- * The SPEND side of the Stardust economy: buy name-glows and nebula profile
+ * The SPEND side of the Photon economy: buy name-glows and nebula profile
  * backgrounds, then equip/unequip them. Each card previews the cosmetic live
  * and reflects owned / equipped / affordable state. Purchases refresh the
- * Stardust balance shown elsewhere on the page.
+ * Photons balance shown elsewhere on the page.
  */
 import { Sparkles, Check, Lock } from 'lucide-react';
 import { useShop, useBuyCosmetic, useEquipCosmetic } from './useShop';
@@ -72,7 +72,7 @@ export default function ShopPanel() {
   if (!data) return null;
 
   const onBuy = (key) => buy.mutate(key, {
-    onSuccess: (d) => addToast(`Purchased — ${d.spent} Stardust spent ✨`, 'success'),
+    onSuccess: (d) => addToast(`Purchased — ${d.spentPhotons ?? d.spent} Photons spent ✨`, 'success'),
     onError: (e) => addToast(e.response?.data?.message || 'Purchase failed', 'error'),
   });
   const onEquip = (type, key) => equip.mutate({ type, key }, {
@@ -88,9 +88,9 @@ export default function ShopPanel() {
     <section className="rounded-2xl border border-white/10 bg-slate-900/30 p-4">
       <div className="flex items-center gap-2 mb-3">
         <Sparkles size={18} className="text-violet-300" />
-        <h2 className="text-base font-bold text-white">Stardust Shop</h2>
+        <h2 className="text-base font-bold text-white">Photon Shop</h2>
         <span className="ml-auto inline-flex items-center gap-1 text-sm font-bold text-violet-200">
-          <Sparkles size={14} /> {data.stardust}
+          <Sparkles size={14} /> {data.photons ?? data.stardust}
         </span>
       </div>
 

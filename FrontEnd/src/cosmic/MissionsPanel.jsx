@@ -1,7 +1,7 @@
 /**
  * MissionsPanel — the week's 3 rotating Orbit missions with progress bars and
  * claim buttons. Reads the shared ['orbit','me'] query and claims via the Orbit
- * API; a claimed mission pays Stardust (handled server-side).
+ * API; a claimed mission pays Photons (handled server-side).
  */
 import { motion } from 'framer-motion';
 import { Target, Check, Sparkles } from 'lucide-react';
@@ -19,7 +19,7 @@ function MissionCard({ m, onClaim, claiming }) {
           <div className="text-xs text-slate-400">{m.description}</div>
         </div>
         <span className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold text-violet-300">
-          <Sparkles size={13} /> {m.stardust}
+          <Sparkles size={13} /> {m.photons ?? m.stardust}
         </span>
       </div>
 
@@ -61,7 +61,7 @@ export default function MissionsPanel({ missions = [] }) {
 
   const onClaim = (key) => {
     claim.mutate(key, {
-      onSuccess: (data) => addToast(`+${data.awarded} Stardust claimed! ✨`, 'success'),
+      onSuccess: (data) => addToast(`+${data.awardedPhotons ?? data.awarded} Photons claimed! ✨`, 'success'),
       onError: (e) => addToast(e.response?.data?.message || 'Could not claim mission', 'error'),
     });
   };
