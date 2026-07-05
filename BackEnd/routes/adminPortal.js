@@ -77,6 +77,14 @@ router.get("/records/:collection", adminApiLimiter, requireAdmin, records.listRe
 // Audit log viewer (append-only; no delete route exists by design)
 router.get("/audit", adminApiLimiter, requireAdmin, records.listAudit);
 
+// ── Mission Control: Orbit demo seeder + time-travel (C2 / §5) ──────────────
+// Fill an account so every gamification tier renders at once, warp time-gated
+// features, and undo exactly. Prod-guarded + audited inside the controller.
+const missionControl = require("../controllers/missionControlController");
+router.post("/mission-control/seed", adminApiLimiter, requireAdmin, missionControl.seed);
+router.post("/mission-control/warp", adminApiLimiter, requireAdmin, missionControl.warp);
+router.post("/mission-control/teardown", adminApiLimiter, requireAdmin, missionControl.teardown);
+
 // Moderation
 router.get("/reports", adminApiLimiter, requireAdmin, system.listReports);
 router.post("/reports/:id/resolve", adminApiLimiter, requireAdmin, system.resolveReport);
