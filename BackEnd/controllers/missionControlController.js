@@ -120,6 +120,19 @@ exports.notificationLint = async (req, res) => {
     }
 };
 
+// ── C6 · Gravimeter (Photons economy) ────────────────────────────────────────
+// GET /mission-control/economy/photons?from=&to=
+exports.economy = async (req, res) => {
+    const requestId = reqId();
+    try {
+        const { from, to } = req.query || {};
+        const report = await require("../services/photonLedger").report({ from, to });
+        return ok(res, report, requestId);
+    } catch (err) {
+        return fail(res, "economy_failed", err.message, requestId, 500);
+    }
+};
+
 // ── C7 · Telemetry (live analytics tail) ─────────────────────────────────────
 // GET /mission-control/analytics/recent?limit=&evt=&userId=
 exports.analyticsRecent = async (req, res) => {
