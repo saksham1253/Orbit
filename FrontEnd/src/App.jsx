@@ -2,7 +2,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocat
 import { lazy, Suspense, useEffect, useState, useCallback, useRef } from 'react';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import api from './services/api';
+import soundManager from './utils/soundManager';
 import { useAuthStore } from './store/authStore';
+import { useUIStore } from './store/uiStore';
 import { useNotificationStore } from './store/notificationStore';
 import { useThemeStore } from './store/themeStore';
 import useAppearanceStore from './store/appearanceStore';
@@ -115,6 +117,24 @@ function AppInner() {
       api.get('/user/profile').then(({ data }) => { if (data && data._id) setUser(data); }).catch(() => {});
     }
   }, [token, user?._id, setUser]);
+
+  // Ambient music is a GLOBAL, persistent preference — not tied to any single
+  // page. Previously it lived on the Landing page and its unmount stopped the
+  // track, so navigating away (e.g. to Settings to switch theme) killed the music
+  // and it never resumed — which read as "switching theme breaks the music".
+  // Start it once here if enabled; the soundManager singleton then survives all
+  // navigation + theme changes. Autoplay policy (mobile) is handled inside the
+  // manager via a one-time gesture-unlock.
+  useEffect(() => {
+    if (soundManager.isMusicEnabled()) soundManager.startAmbientMusic();
+  }, []);
+
+  // Pause ambient music while a video call is active, resume when it ends — so
+  // the (now global) track never plays over a call.
+  const isVideoCallActive = useUIStore((s) => s.isVideoCallActive);
+  useEffect(() => {
+    soundManager.pauseAmbientForCall(isVideoCallActive);
+  }, [isVideoCallActive]);
   const {
     notifications,
     dismissNotification,

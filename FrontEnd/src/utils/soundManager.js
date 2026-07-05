@@ -27,6 +27,7 @@ class SoundManager {
     // tab is hidden and resume when it's visible again. We only auto-resume what
     // WE paused, so a user who turned music off stays off.
     this._pausedByVisibility = false;
+    this._pausedByCall = false; // ambient paused during a video call (v: global music)
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', () => this._handleVisibility());
     }
@@ -87,8 +88,26 @@ class SoundManager {
     document.addEventListener('keydown', resume, { once: true });
   }
 
+  // Pause the ambient track while a video call is active, then resume after —
+  // so global ambient music never plays over a call. Only auto-resumes what WE
+  // paused (a user who turned music off stays off).
+  pauseAmbientForCall(active) {
+    if (active) {
+      if (this.ambientAudio && !this.ambientAudio.paused) {
+        this.ambientAudio.pause();
+        this._pausedByCall = true;
+      }
+    } else if (this._pausedByCall) {
+      this._pausedByCall = false;
+      if (this.musicEnabled && this.ambientAudio) {
+        this.ambientAudio.play().catch(() => {});
+      }
+    }
+  }
+
   stopAmbientMusic() {
     this._pausedByVisibility = false; // user-driven stop — don't auto-resume
+    this._pausedByCall = false;
     if (!this.ambientAudio) return;
 
     try {

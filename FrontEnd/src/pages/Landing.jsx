@@ -116,7 +116,7 @@ const Landing = () => {
   const navigate = useNavigate();
   const { token } = useAuthStore();
   const heroRef = useRef(null);
-  const { startMusic, stopMusic, isMusicEnabled } = useSound();
+  const { startMusic, isMusicEnabled } = useSound();
   const [quoteIndex, setQuoteIndex] = useState(0);
 
   // Rotate motivational quotes every 6 seconds
@@ -134,16 +134,13 @@ const Landing = () => {
     staleTime: 60000, // Cache for 1 minute
   });
 
-  // Start ambient music on hero page if enabled
+  // Nudge ambient music to start when landing on the hero (if the user enabled
+  // it). Ambient music is a GLOBAL preference now managed in App.jsx, so we do
+  // NOT stop it on unmount — navigating away (e.g. to Settings to change theme)
+  // must not kill the track. startMusic() is a no-op if it's already playing.
   useEffect(() => {
-    if (isMusicEnabled()) {
-      startMusic();
-    }
-    
-    return () => {
-      stopMusic();
-    };
-  }, []);
+    if (isMusicEnabled()) startMusic();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     // reducedMotion="user" makes every whileInView reveal below honor the OS
