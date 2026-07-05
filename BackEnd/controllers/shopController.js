@@ -67,6 +67,7 @@ exports.buy = async (req, res) => {
         const fresh = await User.findById(req.user.id).select("orbit.cosmetics orbit.stardust").lean();
         require("../services/orbitAnalytics").track("cosmetic.purchase", { userId: String(req.user.id), key, spent: result.item.cost });
         require("../services/photonLedger").record(req.user.id, -result.item.cost, "cosmetic"); // C6 sink
+        require("../services/photonLedger").record(req.user.id, -result.item.cost, "cosmetic"); // C6 sink
         return res.status(200).json({ bought: key, spent: result.item.cost, spentPhotons: result.item.cost, ...shapeShop(fresh.orbit) });
     } catch (err) {
         console.error("buy (shop) error:", err);
