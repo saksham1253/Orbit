@@ -54,9 +54,16 @@ const allowedOrigins = [
     : []),
 ];
 
+// Allow ONLY this project's own Vercel deployments (prod + branch previews like
+// react-skill-swap-fully-fledged-git-xyz.vercel.app). The previous
+// `origin.endsWith(".vercel.app")` allowed ANY third-party Vercel app to call
+// the API (A11). Capacitor APK origins remain in `allowedOrigins`, so the mobile
+// app is unaffected.
+const VERCEL_ORIGIN = /^https:\/\/react-skill-swap-fully-fledged[a-z0-9-]*\.vercel\.app$/i;
+
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+    if (!origin || allowedOrigins.includes(origin) || VERCEL_ORIGIN.test(origin)) {
         return callback(null, true);
     }
     return callback(new Error("Not allowed by CORS"));
@@ -72,7 +79,7 @@ app.use(cors(corsOptions));
 const io = new Server(server, {
     cors: {
         origin: function(origin, callback) {
-            if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+            if (!origin || allowedOrigins.includes(origin) || VERCEL_ORIGIN.test(origin)) {
                 return callback(null, true);
             }
             return callback(new Error("Not allowed by CORS"));
@@ -513,7 +520,9 @@ if (indexHtmlPath) {
 } else {
     // Separate deployment mode: Render only hosts the Backend API
     app.get("/", (req, res) => {
-        res.json({ message: "Orbit API Server is running successfully." });
+        // Minimal root response in production (A11) — don't advertise the stack.
+        // A dedicated health probe lives at /api/health.
+        res.status(200).json({ status: "ok" });
     });
     
     // API welcome/fallback routes
