@@ -303,6 +303,73 @@ io.on("connection", (socket) => {
         socket.leave(roomId);
         socket.to(roomId).emit("user-left");
     });
+
+    // ===== COLLABORATIVE WHITEBOARD (relay + membership gate) =====
+    // The call signaling socket may be unauthenticated by design, but whiteboard
+    // WRITES are gated: a socket must prove (via its JWT userId) that it is a
+    // participant of the room before the server relays its ops. The P2P
+    // DataChannel path (already authorized by the call itself) is unaffected —
+    // this only guards the socket fallback relay. Fail-closed: unverified
+    // sockets get no relay.
+    const wbAllowed = (roomId) => socket.wbRooms && socket.wbRooms.has(roomId);
+
+    socket.on("whiteboard-join", async ({ roomId, name }) => {
+        if (!roomId) return;
+        try {
+            if (!socket.userId) return; // unauthenticated → no socket relay (P2P still works)
+            const { verifyRoomMember } = require("./utils/roomMembership");
+            const { ok } = await verifyRoomMember(socket.userId, roomId);
+            if (!ok) return;
+            socket.wbRooms = socket.wbRooms || new Set();
+            socket.wbRooms.add(roomId);
+            socket.join(roomId); // ensure membership even if media join hasn't run
+            // Nudge any present peer to (re)share the current board with the joiner.
+            socket.to(roomId).emit("whiteboard-snapshot-request", { from: socket.userId, name });
+        } catch (err) {
+            console.error("whiteboard-join error:", err.message);
+        }
+    });
+
+    socket.on("whiteboard-op", ({ roomId, op }) => {
+        if (!wbAllowed(roomId) || !op) return;
+        socket.to(roomId).emit("whiteboard-op", { op });
+    });
+    socket.on("whiteboard-cursor", ({ roomId, data }) => {
+        if (!wbAllowed(roomId)) return;
+        socket.to(roomId).emit("whiteboard-cursor", { data });
+    });
+    socket.on("whiteboard-live", ({ roomId, userId, stroke }) => {
+        if (!wbAllowed(roomId)) return;
+        socket.to(roomId).emit("whiteboard-live", { userId, stroke });
+    });
+    socket.on("whiteboard-laser", ({ roomId, x, y, color }) => {
+        if (!wbAllowed(roomId)) return;
+        socket.to(roomId).emit("whiteboard-laser", { x, y, color });
+    });
+    socket.on("whiteboard-snapshot-request", ({ roomId, from }) => {
+        if (!wbAllowed(roomId)) return;
+        socket.to(roomId).emit("whiteboard-snapshot-request", { from });
+    });
+    socket.on("whiteboard-snapshot", ({ roomId, snapshot }) => {
+        if (!wbAllowed(roomId) || !snapshot) return;
+        socket.to(roomId).emit("whiteboard-snapshot", { snapshot });
+    });
+    socket.on("whiteboard-chat", ({ roomId, msg }) => {
+        if (!wbAllowed(roomId) || !msg) return;
+        socket.to(roomId).emit("whiteboard-chat", { msg });
+    });
+    socket.on("whiteboard-reaction", ({ roomId, emoji, name, from }) => {
+        if (!wbAllowed(roomId)) return;
+        socket.to(roomId).emit("whiteboard-reaction", { emoji, name, from });
+    });
+    socket.on("whiteboard-raise-hand", ({ roomId, state, name, from }) => {
+        if (!wbAllowed(roomId)) return;
+        socket.to(roomId).emit("whiteboard-raise-hand", { state, name, from });
+    });
+    socket.on("whiteboard-leave", ({ roomId, userId }) => {
+        if (roomId && socket.wbRooms) socket.wbRooms.delete(roomId);
+        if (roomId) socket.to(roomId).emit("whiteboard-peer-left", { userId });
+    });
     
     socket.on("call-user", async ({ roomId, targetUserId, callerName, callerId }) => {
         // Forward callerId so the callee can role-guard (never ring the caller's
@@ -484,6 +551,7 @@ app.use("/api/user", userRoutes);
 app.use("/api/trust", trustRoutes);
 app.use("/api/geo", geoRoutes);
 app.use("/api/video", videoRoutes);
+app.use("/api/whiteboard", require("./routes/whiteboardRoutes"));
 app.use("/api/connections", connectionRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/cosmic", cosmicRoutes);

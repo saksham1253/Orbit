@@ -69,6 +69,7 @@ export default defineConfig({
           if (id.includes('node_modules/socket.io-client/') || id.includes('node_modules/engine.io-client/')) return 'socket';
           if (id.includes('node_modules/react-hook-form/') || id.includes('node_modules/@hookform/') || id.includes('node_modules/zod/')) return 'forms';
           if (id.includes('node_modules/zustand/')) return 'state';
+          if (id.includes('/src/whiteboard/')) return 'whiteboard';
           if (id.includes('node_modules/lucide-react/') || id.includes('node_modules/date-fns/') || id.includes('node_modules/axios/')) return 'utils';
         },
       },
