@@ -11,8 +11,9 @@ import { unregisterPush } from '../../utils/pushNotify';
 import OrbitStreakBadge from '../../cosmic/OrbitStreakBadge';
 import {
   LogOut, Layers, Compass, Users, Map,
-  ShieldCheck, UserCircle, Menu, X, Handshake, Settings as SettingsIcon, MessageCircle, Phone, Trophy, Rocket
+  ShieldCheck, UserCircle, Menu, X, Handshake, Settings as SettingsIcon, MessageCircle, Phone, Trophy, Rocket, Music, VolumeX
 } from 'lucide-react';
+import soundManager from '../../utils/soundManager';
 
 const NAV = [
   { name: 'Skills',       path: '/dashboard',   Icon: Layers     },
@@ -38,6 +39,10 @@ const Navbar = () => {
   );
   const [chatOpen, setChatOpen] = useState(false);
   const [chatInitialUser, setChatInitialUser] = useState(null);
+  // Ambient-music toggle, surfaced here so it's reachable from anywhere (not
+  // buried in Settings). Mirrors the global soundManager preference.
+  const [musicOn, setMusicOn] = useState(soundManager.isMusicEnabled());
+  const toggleMusic = () => setMusicOn(soundManager.toggleMusic());
   const drawerRef = useRef(null);
   const hamburgerRef = useRef(null);
 
@@ -243,6 +248,16 @@ const Navbar = () => {
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
+              </button>
+              {/* Ambient music toggle — reachable from anywhere */}
+              <button
+                onClick={toggleMusic}
+                aria-label={musicOn ? 'Mute ambient music' : 'Play ambient music'}
+                aria-pressed={musicOn}
+                title={musicOn ? 'Ambient music: on' : 'Ambient music: off'}
+                className={`hidden sm:flex items-center justify-center w-8 h-8 rounded-xl transition-all bg-surface border border-border-subtle ${musicOn ? 'text-accent' : 'text-text-muted hover:text-text-primary'}`}
+              >
+                {musicOn ? <Music size={15} /> : <VolumeX size={15} />}
               </button>
               <NavLink to="/settings"
                 aria-label="Settings"

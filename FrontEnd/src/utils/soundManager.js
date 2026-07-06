@@ -28,6 +28,7 @@ class SoundManager {
     // WE paused, so a user who turned music off stays off.
     this._pausedByVisibility = false;
     this._pausedByCall = false; // ambient paused during a video call (v: global music)
+    this._audioCtx = null;      // shared Web Audio context (reused across sounds)
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', () => this._handleVisibility());
     }
@@ -136,9 +137,26 @@ class SoundManager {
     return this.musicEnabled;
   }
 
+  // Lazily create and REUSE a single AudioContext. Previously every UI sound did
+  // `new AudioContext()` and never closed it — browsers/WebViews cap the number
+  // of live contexts (~6) and each leaks memory, so minutes of clicking could
+  // exhaust them and destabilize the APK. One shared, resumed context fixes both.
+  _getAudioContext() {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    if (!this._audioCtx || this._audioCtx.state === 'closed') {
+      this._audioCtx = new Ctx();
+    }
+    if (this._audioCtx.state === 'suspended') {
+      this._audioCtx.resume().catch(() => {});
+    }
+    return this._audioCtx;
+  }
+
   // Generate motivational sounds matching peer-to-peer learning platform
   createSound(type) {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const audioContext = this._getAudioContext();
+    if (!audioContext) return;
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
     const filter = audioContext.createBiquadFilter();

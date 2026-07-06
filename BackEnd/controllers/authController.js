@@ -116,10 +116,15 @@ exports.login = async (req, res) => {
 
         await user.save();
 
+        // Native app (APK) sessions are long-lived so users aren't forced to
+        // re-login daily — the app is a trusted install, not a shared browser.
+        // The website keeps a short 1-day session. The client signals its
+        // platform via the X-Client-Platform header (set by the Capacitor build).
+        const isNative = String(req.headers["x-client-platform"] || "").toLowerCase() === "native";
         const token = jwt.sign(
             { id: user._id },
             process.env.JWT_SECRET,
-            { expiresIn: "1d" }
+            { expiresIn: isNative ? "30d" : "1d" }
         );
 
         // Asynchronously send the email notification (don't block the response),
