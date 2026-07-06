@@ -6,19 +6,15 @@
 <title>Orbit — Stardust Reveal</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
-  :root{
-    --c1:#00c6ff; --c2:#7c3aed; --c3:#ff0076; --pink:#ff5fa2;
-  }
+  :root{ --c1:#00c6ff; --c2:#7c3aed; --c3:#ff0076; --pink:#ff5fa2; }
   *{box-sizing:border-box; margin:0; padding:0;}
   html,body{height:100%;}
   body{
-    background:#04030c;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    min-height:100vh; gap:18px; padding:24px;
-    font-family:'Inter',system-ui,sans-serif; color:#cdd3e6;
+    background:#04030c; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    min-height:100vh; gap:18px; padding:24px; font-family:'Inter',system-ui,sans-serif; color:#cdd3e6;
   }
 
-  /* ── Recordable stage: 1280×720 (true 16:9, as the prompt asks) ── */
+  /* ── Recordable stage: 1280×720 (true 16:9) ── */
   .stage{
     position:relative; width:1280px; height:720px; flex:none;
     border-radius:18px; overflow:hidden;
@@ -28,10 +24,9 @@
       radial-gradient(120% 120% at 46% 42%, #141134 0%, #0a0820 48%, #05040f 100%);
     box-shadow:0 30px 90px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.06);
   }
-  /* Slow, near-imperceptible dolly push-in across the whole shot */
   .dolly{position:absolute; inset:0; transform-origin:46% 50%;
-    animation:dolly 8s cubic-bezier(.4,0,.2,1) forwards;}
-  @keyframes dolly{from{transform:scale(1);}to{transform:scale(1.035);}}
+    animation:dolly 8.5s cubic-bezier(.4,0,.2,1) forwards;}
+  @keyframes dolly{from{transform:scale(1);}to{transform:scale(1.04);}}
 
   /* Starfield */
   .stars{position:absolute; inset:0;}
@@ -40,118 +35,81 @@
   .star.big{width:3px;height:3px;}
   @keyframes tw{0%,100%{opacity:.12; transform:scale(.8);}50%{opacity:.85; transform:scale(1.2);}}
 
-  /* Comet streaking in from the top-right */
+  /* Comet */
   .comet{position:absolute; top:60px; right:-80px; width:150px; height:2px;
     background:linear-gradient(90deg,transparent,#fff,transparent); opacity:0;
-    filter:drop-shadow(0 0 6px #bfe0ff);
-    animation:comet 7s ease-in 1s infinite;}
-  @keyframes comet{
-    0%{opacity:0; transform:translate(0,0) rotate(150deg);}
-    5%{opacity:.9;}
-    16%{opacity:0; transform:translate(-620px,300px) rotate(150deg);}
-    100%{opacity:0;}
-  }
+    filter:drop-shadow(0 0 6px #bfe0ff); animation:comet 7s ease-in 1s infinite;}
+  @keyframes comet{0%{opacity:0; transform:translate(0,0) rotate(150deg);}
+    5%{opacity:.9;}16%{opacity:0; transform:translate(-620px,300px) rotate(150deg);}100%{opacity:0;}}
 
-  /* ── Saturn planet (matches the teaser mark) ── */
-  .planet{position:absolute; left:330px; top:360px; width:340px; height:340px;
-    transform:translate(-50%,-50%);}
-  .planet .float{position:absolute; inset:0; animation:floaty 7s ease-in-out infinite;}
+  /* ── Saturn mark — the exact orbit-app.svg logo, scaled up ── */
+  .planet{position:absolute; left:330px; top:360px; width:360px; height:360px; transform:translate(-50%,-50%);}
+  .planet .float{position:absolute; inset:0; animation:floaty 7s ease-in-out infinite;
+    filter:drop-shadow(0 0 44px rgba(120,150,255,.42));}
   @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
-  .core{
-    position:absolute; left:50%; top:50%; width:150px; height:150px; border-radius:50%;
-    transform:translate(-50%,-50%); overflow:hidden;
-    background:radial-gradient(circle at 38% 32%, #ffffff, #bfe0ff 40%, #7aa2ff 68%, #4b2ad0 100%);
-    box-shadow:0 0 55px rgba(120,150,255,.55), inset -12px -14px 34px rgba(30,15,80,.6);
-  }
-  /* light-sweep gliding across the planet near the settle (6.5s) */
-  .core::after{content:""; position:absolute; top:-40%; left:-60%; width:60%; height:180%;
-    background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);
-    transform:translateX(0) rotate(8deg); opacity:0;
-    animation:sweep 1.5s ease-in-out 6.4s 1;}
-  @keyframes sweep{0%{opacity:0; transform:translateX(0) rotate(8deg);}
-    30%{opacity:.8;}70%{opacity:.8;}100%{opacity:0; transform:translateX(360px) rotate(8deg);}}
-  .ring{
-    position:absolute; left:50%; top:50%; width:330px; height:118px;
-    transform:translate(-50%,-50%) rotate(-22deg);
-    border-radius:50%; border:10px solid transparent;
-    background:linear-gradient(90deg,var(--c1),var(--c2),var(--c3)) border-box;
-    -webkit-mask:linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite:xor; mask-composite:exclude;
-    filter:drop-shadow(0 0 12px rgba(124,58,237,.5));
-  }
-  /* single bright shimmer pass over the rings at the settle */
-  .ring.shimmer{animation:ringShimmer 1.3s ease-in-out 6.5s 1;}
-  @keyframes ringShimmer{0%,100%{filter:drop-shadow(0 0 12px rgba(124,58,237,.5)) brightness(1);}
-    50%{filter:drop-shadow(0 0 22px rgba(0,198,255,.85)) brightness(1.5);}}
-  .orbiter{position:absolute; left:50%; top:50%; width:330px; height:118px;
-    transform:translate(-50%,-50%) rotate(-22deg); animation:orbit 6s linear infinite;}
-  .orbiter::before{content:""; position:absolute; right:-6px; top:50%; width:14px; height:14px;
-    border-radius:50%; transform:translateY(-50%);
-    background:radial-gradient(circle at 35% 35%, #fff, #dfeaff);
-    box-shadow:0 0 14px #bfe0ff;}
-  @keyframes orbit{to{transform:translate(-50%,-50%) rotate(338deg);}}
+  .mark{width:100%; height:100%; display:block; animation:markShimmer 1.4s ease-in-out 6.6s 1;}
+  @keyframes markShimmer{0%,100%{filter:none;}50%{filter:drop-shadow(0 0 16px rgba(0,198,255,.8)) brightness(1.25);}}
 
-  /* ── Wordmark + taglines (right side) ── */
+  /* ── Wordmark + taglines ── */
   .copy{position:absolute; left:700px; top:360px; transform:translateY(-50%); width:540px;}
   .word{
     font-family:'Poppins'; font-weight:800; font-size:150px; line-height:.9; letter-spacing:-4px;
     background:linear-gradient(120deg,var(--c1) 8%,#a07bff 50%,var(--pink) 92%);
     -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
-    /* Start heavily blurred with a chromatic-aberration split; resolve to sharp. */
-    filter:blur(15px) drop-shadow(4px 0 rgba(0,198,255,.7)) drop-shadow(-4px 0 rgba(255,0,118,.7));
-    animation:focusIn 1.5s cubic-bezier(.3,0,.2,1) 1.5s forwards;
+    filter:drop-shadow(0 0 26px rgba(124,58,237,.35));   /* name already revealed */
   }
+  /* The "tank" drains SLOWLY and CONTINUOUSLY across the whole transfer window,
+     in parallel with the cards (buckets) filling. */
   .tagline{
     font-family:'Poppins'; font-weight:700; font-size:34px; color:#eef1fb; margin-top:14px;
-    filter:blur(10px) drop-shadow(3px 0 rgba(0,198,255,.6)) drop-shadow(-3px 0 rgba(255,0,118,.6));
-    animation:focusIn 1.5s cubic-bezier(.3,0,.2,1) 1.7s forwards;
+    filter:blur(13px) drop-shadow(3px 0 rgba(0,198,255,.6)) drop-shadow(-3px 0 rgba(255,0,118,.6));
+    animation:focusIn 3.8s cubic-bezier(.45,0,.55,1) 2.0s forwards;
   }
   .sub{
     font-size:22px; color:#aeb6d6; margin-top:12px; font-weight:500;
-    filter:blur(9px);
-    animation:focusIn 1.5s cubic-bezier(.3,0,.2,1) 1.85s forwards;
+    filter:blur(12px) drop-shadow(2px 0 rgba(0,198,255,.5)) drop-shadow(-2px 0 rgba(255,0,118,.5));
+    animation:focusIn 3.8s cubic-bezier(.45,0,.55,1) 2.2s forwards;
   }
   @keyframes focusIn{to{filter:blur(0) drop-shadow(0 0 0 transparent) drop-shadow(0 0 0 transparent);}}
 
-  /* ── Stardust particles (generated in JS) ── */
+  /* ── Stardust: lifts off the slogans and FLIES to its card, in four groups.
+       The particles ARE the streams (no drawn lines). They fade as they land,
+       "absorbed" into the card that builds up there. ── */
   .dust{position:absolute; border-radius:50%; pointer-events:none; opacity:0;
     left:var(--sx); top:var(--sy);
-    animation:fly var(--dur) cubic-bezier(.45,0,.25,1) 1.5s forwards;}
+    animation:fly var(--dur) cubic-bezier(.4,0,.35,1) var(--delay) forwards;}
   @keyframes fly{
-    0%   {opacity:0;   transform:translate(0,0) scale(.5);}
-    12%  {opacity:1;   transform:translate(calc(var(--dx)*.02),-16px) scale(1);}   /* lift off letters */
-    42%  {opacity:1;   transform:translate(calc(var(--dx)*.06),-24px) scale(1);}   /* hover + glitter */
-    56%  {opacity:1;   transform:translate(calc(var(--dx)*.12),calc(var(--dy)*.06 - 18px)) scale(.95);}
-    100% {opacity:0;   transform:translate(var(--dx),var(--dy)) scale(.45);}       /* fly to its card */
+    0%   {opacity:0; transform:translate(0,0) scale(.45);}
+    16%  {opacity:1; transform:translate(calc(var(--dx)*.04),-16px) scale(1);}                       /* lift off letters */
+    46%  {opacity:1; transform:translate(calc(var(--dx)*.4),calc(var(--dy)*.4 - 24px)) scale(1);}    /* arc across */
+    84%  {opacity:.95; transform:translate(calc(var(--dx)*.88),calc(var(--dy)*.88)) scale(.8);}       /* nearing card */
+    100% {opacity:0; transform:translate(var(--dx),var(--dy)) scale(.4);}                             /* absorbed */
   }
 
-  /* ── UI cards along the orbit rings ── */
+  /* ── UI cards — build up SLOWLY out of the arriving ashes ── */
   .card{
     position:absolute; transform:translate(-50%,-50%);
-    display:flex; align-items:center; gap:11px;
-    padding:14px 18px; border-radius:18px;
+    display:flex; align-items:center; gap:11px; padding:14px 18px; border-radius:18px;
     background:linear-gradient(160deg, rgba(22,20,52,.82), rgba(12,10,32,.72));
     border:1px solid rgba(255,255,255,.10);
     box-shadow:0 14px 40px rgba(0,0,0,.5), 0 0 0 1px rgba(0,198,255,.12) inset;
-    backdrop-filter:blur(9px); color:#eef1fb;
-    opacity:0; overflow:hidden;
-    animation:cardIn .8s cubic-bezier(.34,1.56,.64,1) var(--in) forwards,
+    backdrop-filter:blur(9px); color:#eef1fb; opacity:0; overflow:hidden;
+    /* Each card is a BUCKET that fills bottom-up, in parallel with the others,
+       as the ash stream pours in. */
+    animation:cardFill 3.6s cubic-bezier(.4,0,.55,1) var(--in) forwards,
               cardFloat 6s ease-in-out var(--floatStart) infinite;
   }
-  /* luminous cyan-pink border */
   .card::before{content:""; position:absolute; inset:0; border-radius:18px; padding:1px;
     background:linear-gradient(135deg,var(--c1),var(--c3)); opacity:.55;
     -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite:xor; mask-composite:exclude;}
-  /* glint that sweeps once as the card locks in */
   .card::after{content:""; position:absolute; top:0; left:-70%; width:55%; height:100%;
     background:linear-gradient(100deg,transparent,rgba(255,255,255,.5),transparent);
-    transform:skewX(-18deg); opacity:0;
-    animation:glint .9s ease-out var(--glint) 1;}
-  @keyframes cardIn{
-    0%  {opacity:0; transform:translate(-50%,-50%) scale(.4);  filter:blur(6px);}
-    60% {opacity:1; transform:translate(-50%,-50%) scale(1.06); filter:blur(0);}
-    100%{opacity:1; transform:translate(-50%,-50%) scale(1);}
+    transform:skewX(-18deg); opacity:0; animation:glint 1s ease-out var(--glint) 1;}
+  /* Bucket fill: reveal the card from the bottom up (clip rises like a level). */
+  @keyframes cardFill{
+    0%  {opacity:1; clip-path:inset(100% 0 0 0 round 18px);}
+    100%{opacity:1; clip-path:inset(0 0 0 0 round 18px);}
   }
   @keyframes cardFloat{0%,100%{margin-top:0;}50%{margin-top:-9px;}}
   @keyframes glint{0%{opacity:0; left:-70%;}30%{opacity:.9;}100%{opacity:0; left:130%;}}
@@ -161,21 +119,21 @@
   .card .lbl{font-size:13px; color:#aab2d4; font-weight:600; letter-spacing:.2px;}
   .card .name{font-family:'Poppins'; font-weight:700; font-size:19px;}
 
-  /* card anchor positions (centres) — riding the orbit rings */
-  .c-streak{left:150px; top:210px;  --in:3.50s; --glint:4.30s; --floatStart:4.5s;}
-  .c-board {left:470px; top:150px;  --in:3.75s; --glint:4.55s; --floatStart:4.7s;}
-  .c-league{left:520px; top:520px;  --in:4.00s; --glint:4.80s; --floatStart:5.0s;}
-  .c-points{left:210px; top:560px;  --in:4.25s; --glint:5.05s; --floatStart:5.3s;}
+  /* card centres (must match CARDS[] below). All four fill in PARALLEL over the
+     same window (tiny offsets only, for life), coupled to the tank draining. */
+  .c-streak{left:150px; top:210px; --in:2.3s; --glint:6.2s; --floatStart:6.4s;}
+  .c-board {left:470px; top:150px; --in:2.4s; --glint:6.3s; --floatStart:6.5s;}
+  .c-league{left:520px; top:520px; --in:2.5s; --glint:6.4s; --floatStart:6.6s;}
+  .c-points{left:210px; top:560px; --in:2.6s; --glint:6.5s; --floatStart:6.7s;}
 
   /* ── controls (outside the recordable frame) ── */
   .bar{display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:center;}
   .btn{font-family:'Inter'; font-weight:600; font-size:14px; color:#fff;
-    background:linear-gradient(135deg,var(--c1),var(--c2)); border:none;
-    padding:10px 18px; border-radius:10px; cursor:pointer;}
+    background:linear-gradient(135deg,var(--c1),var(--c2)); border:none; padding:10px 18px;
+    border-radius:10px; cursor:pointer;}
   .btn.ghost{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); color:#cdd3e6;}
   .hint{font-size:12.5px; color:#7d87a6; max-width:1280px; text-align:center; line-height:1.6;}
-  .hint b{color:#aeb6d4;}
-  code{background:rgba(255,255,255,.08); padding:1px 6px; border-radius:5px;}
+  .hint b{color:#aeb6d4;} code{background:rgba(255,255,255,.08); padding:1px 6px; border-radius:5px;}
   @media (max-width:1360px){ .stage{transform:scale(.66); margin:-122px 0;} }
 </style>
 </head>
@@ -185,12 +143,29 @@
       <div class="stars" id="stars"></div>
       <div class="comet"></div>
 
-      <!-- Saturn mark -->
+      <!-- Saturn mark: the exact orbit-app.svg logo -->
       <div class="planet">
         <div class="float">
-          <div class="ring shimmer"></div>
-          <div class="core"></div>
-          <div class="orbiter"></div>
+          <svg class="mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none">
+            <defs>
+              <linearGradient id="hSp" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#00c6ff"/><stop offset=".5" stop-color="#7c3aed"/><stop offset="1" stop-color="#ff0076"/>
+              </linearGradient>
+              <radialGradient id="hSpp" cx=".36" cy=".32" r=".8">
+                <stop offset="0" stop-color="#e8f3ff"/><stop offset=".4" stop-color="#86acff"/><stop offset="1" stop-color="#4b1fb8"/>
+              </radialGradient>
+            </defs>
+            <circle cx="78" cy="24" r="3" fill="#cfe6ff" opacity=".9"/>
+            <g transform="rotate(-24 50 50)">
+              <ellipse cx="50" cy="50" rx="41" ry="14.5" fill="none" stroke="url(#hSp)" stroke-width="5.5"/>
+              <circle cx="50" cy="50" r="22" fill="url(#hSpp)"/>
+              <ellipse cx="42" cy="42" rx="9" ry="6" fill="#fff" opacity=".18"/>
+              <path d="M10 50 A41 14.5 0 0 0 90 50" fill="none" stroke="url(#hSp)" stroke-width="5.5" stroke-linecap="round"/>
+              <circle r="2.4" fill="#fff" opacity=".95">
+                <animateMotion dur="7s" repeatCount="indefinite" path="M9,50 a41,14.5 0 1,0 82,0 a41,14.5 0 1,0 -82,0"/>
+              </circle>
+            </g>
+          </svg>
         </div>
       </div>
 
@@ -201,105 +176,163 @@
         <div class="sub">Teach what you know. Learn what you don't.</div>
       </div>
 
-      <!-- Stardust layer (particles injected here) -->
+      <!-- Stardust streams (particles fly to the cards) -->
       <div class="dust-layer" id="dust"></div>
 
-      <!-- UI cards that reform from the stardust -->
-      <div class="card c-streak">
-        <span class="ico">🔥</span>
-        <span><span class="big">14</span> <span class="lbl">day streak</span></span>
-      </div>
-      <div class="card c-board">
-        <span class="ico">🏆</span><span class="name">Leaderboard</span>
-      </div>
-      <div class="card c-league">
-        <span class="ico">💎</span><span class="name">League</span>
-      </div>
-      <div class="card c-points">
-        <span class="ico">✨</span><span class="name">Points: 5,200</span>
-      </div>
+      <!-- UI cards -->
+      <div class="card c-streak"><span class="ico">🔥</span><span><span class="big">14</span> <span class="lbl">day streak</span></span></div>
+      <div class="card c-board"><span class="ico">🏆</span><span class="name">Leaderboard</span></div>
+      <div class="card c-league"><span class="ico">💎</span><span class="name">League</span></div>
+      <div class="card c-points"><span class="ico">✨</span><span class="name">Points: 5,200</span></div>
     </div>
   </div>
 
   <div class="bar">
     <button class="btn" id="replay">↻ Replay</button>
+    <button class="btn" id="sound">🔊 Sound on</button>
     <button class="btn ghost" id="rec">● Record to .webm</button>
     <span id="recstate" class="hint"></span>
   </div>
   <p class="hint">
-    8-second brand reveal built from <code>og-image-teaser.png</code>. Click <b>Record to .webm</b>
-    (share <b>this tab</b>, ~8.5s clip downloads), or screen-record the 1280×720 card with
-    <code>Win+G</code> / <code>Cmd+Shift+5</code>. For social, convert:
+    ~8s brand reveal built from <code>og-image-teaser.png</code>. Click <b>Record to .webm</b>
+    (share <b>this tab</b>), or screen-record the 1280×720 card. Convert for social:
     <code>ffmpeg -i orbit-teaser-reveal.webm -movflags +faststart -pix_fmt yuv420p orbit-teaser-reveal.mp4</code>.
   </p>
 
 <script>
-  // Card centres (must match the .c-* CSS above) — particle stream destinations.
+  // The four cards (buckets). Ashes pour into all four in parallel.
   const CARDS = [
-    { x: 150, y: 210 },  // streak
-    { x: 470, y: 150 },  // leaderboard
-    { x: 520, y: 520 },  // league
-    { x: 210, y: 560 },  // points
+    { x: 150, y: 210 },  // streak  (upper-left)
+    { x: 470, y: 150 },  // board   (top-center)
+    { x: 520, y: 520 },  // league  (lower-center)
+    { x: 210, y: 560 },  // points  (lower-left)
   ];
-  // Wordmark + taglines bounding box (stage px) the stardust lifts off from.
-  const TEXT = { x0: 705, y0: 250, x1: 1215, y1: 470 };
+  const PER_CARD = 100;                      // grains per bucket (dense, visible ash)
+  const EMIT_START = 2.1, EMIT_SPREAD = 3.2; // steady, continuous stream window (s)
+  const SLOGAN = { x0: 705, y0: 396, x1: 1210, y1: 486 };   // the draining "tank"
   const PALETTE = ['#ffffff', '#eaf6ff', '#bfe6ff', '#8ad4ff', '#ffd0e8', '#ffc46b'];
 
   function fillStars(host){
     for(let i=0;i<80;i++){
       const s=document.createElement('div');
       s.className='star'+(Math.random()>.8?' big':'');
-      s.style.left=(Math.random()*100)+'%';
-      s.style.top=(Math.random()*100)+'%';
-      s.style.animationDelay=(Math.random()*3.4)+'s';
-      host.appendChild(s);
+      s.style.left=(Math.random()*100)+'%'; s.style.top=(Math.random()*100)+'%';
+      s.style.animationDelay=(Math.random()*3.4)+'s'; host.appendChild(s);
     }
   }
-
   function fillDust(host){
-    const N = 132;                       // ~33 particles per stream
-    for(let i=0;i<N;i++){
-      const card = CARDS[i % CARDS.length];
-      const sx = TEXT.x0 + Math.random()*(TEXT.x1-TEXT.x0);
-      const sy = TEXT.y0 + Math.random()*(TEXT.y1-TEXT.y0);
-      // land in a small scatter around the card centre
-      const ex = card.x + (Math.random()*2-1)*46;
-      const ey = card.y + (Math.random()*2-1)*30;
-      const size = 1.6 + Math.random()*3.4;
-      const col  = PALETTE[(Math.random()*PALETTE.length)|0];
-      const d=document.createElement('div');
-      d.className='dust';
-      d.style.setProperty('--sx', sx+'px');
-      d.style.setProperty('--sy', sy+'px');
-      d.style.setProperty('--dx', (ex-sx)+'px');
-      d.style.setProperty('--dy', (ey-sy)+'px');
-      d.style.setProperty('--dur', (1.9 + Math.random()*0.35)+'s');  // arrive ~3.4–3.75s
-      d.style.width=size+'px'; d.style.height=size+'px';
-      d.style.background='radial-gradient(circle,'+col+', rgba(255,255,255,0) 72%)';
-      d.style.boxShadow='0 0 '+(4+size)+'px '+col;
-      host.appendChild(d);
-    }
+    CARDS.forEach((card)=>{
+      for(let i=0;i<PER_CARD;i++){
+        const sx = SLOGAN.x0 + Math.random()*(SLOGAN.x1-SLOGAN.x0);
+        const sy = SLOGAN.y0 + Math.random()*(SLOGAN.y1-SLOGAN.y0);
+        const ex = card.x + (Math.random()*2-1)*46;   // land scattered on the card
+        const ey = card.y + (Math.random()*2-1)*26;
+        const size = 2.6 + Math.random()*5.0;          // bigger, clearly-visible grains
+        const col  = PALETTE[(Math.random()*PALETTE.length)|0];
+        // Delay spread evenly across the emit window → a continuous stream, so
+        // the tank drains and the buckets fill smoothly rather than in one burst.
+        const delay = EMIT_START + (i/PER_CARD)*EMIT_SPREAD + Math.random()*0.22;
+        const d=document.createElement('div'); d.className='dust';
+        d.style.setProperty('--sx', sx+'px'); d.style.setProperty('--sy', sy+'px');
+        d.style.setProperty('--dx', (ex-sx)+'px'); d.style.setProperty('--dy', (ey-sy)+'px');
+        d.style.setProperty('--delay', delay+'s');
+        d.style.setProperty('--dur', (1.0 + Math.random()*0.4)+'s');
+        d.style.width=size+'px'; d.style.height=size+'px';
+        d.style.background='radial-gradient(circle,'+col+', rgba(255,255,255,0) 70%)';
+        d.style.boxShadow='0 0 '+(6+size*1.6)+'px '+col;   // stronger glow
+        host.appendChild(d);
+      }
+    });
   }
-
-  function build(){
-    fillStars(document.getElementById('stars'));
-    fillDust(document.getElementById('dust'));
-  }
+  function build(){ fillStars(document.getElementById('stars')); fillDust(document.getElementById('dust')); }
   build();
 
-  // Replay: clone the stage subtree to restart every CSS animation from 0.
+  /* ── Space-oriented transition sound, synthesised with the Web Audio API and
+     scheduled to the animation timeline (t = seconds from reveal start):
+       • 0.0s  deep sub-bass space drone swells in
+       • 1.6s  airy shimmering riser as the ashes begin to stream
+       • 2.0s  continuous filtered-noise "stardust stream", slowly panning
+       • 2.7s+ soft glitter chimes as the buckets fill
+       • 6.1s  warm resolving chord + gentle down-whoosh as it settles
+     No audio files — fully self-contained. Autoplay is blocked until a user
+     gesture, so this fires from Replay/Record (perfectly synced to the restart). */
+  function playSpaceReveal(){
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if(!Ctx) return;
+    const ctx = playSpaceReveal._ctx || (playSpaceReveal._ctx = new Ctx());
+    if(ctx.state === 'suspended') ctx.resume();
+    const t0 = ctx.currentTime + 0.03;
+    const master = ctx.createGain(); master.gain.value = 0.85; master.connect(ctx.destination);
+    const noise = (sec)=>{ const b=ctx.createBuffer(1, Math.max(1,ctx.sampleRate*sec), ctx.sampleRate);
+      const d=b.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1; return b; };
+    const gainAt=(g,v,t)=>g.gain.setValueAtTime(v,t), ramp=(g,v,t)=>g.gain.linearRampToValueAtTime(v,t);
+
+    // 1) sub-bass space drone (with a slow vibrato)
+    const drone=ctx.createOscillator(); drone.type='sine'; drone.frequency.value=48;
+    const droneG=ctx.createGain(); gainAt(droneG,0.0001,t0);
+    droneG.gain.exponentialRampToValueAtTime(0.22,t0+1.3); gainAt(droneG,0.22,t0+5.4);
+    droneG.gain.exponentialRampToValueAtTime(0.0001,t0+8.0);
+    const dLFO=ctx.createOscillator(); dLFO.frequency.value=0.15; const dLFOg=ctx.createGain(); dLFOg.gain.value=6;
+    dLFO.connect(dLFOg).connect(drone.frequency); drone.connect(droneG).connect(master);
+    drone.start(t0); drone.stop(t0+8.1); dLFO.start(t0); dLFO.stop(t0+8.1);
+
+    // 2) rising shimmer whoosh (riser)
+    const riser=ctx.createBufferSource(); riser.buffer=noise(3.2);
+    const rBP=ctx.createBiquadFilter(); rBP.type='bandpass'; rBP.Q.value=1.1;
+    rBP.frequency.setValueAtTime(320,t0+1.5); rBP.frequency.exponentialRampToValueAtTime(4600,t0+3.1);
+    const rG=ctx.createGain(); gainAt(rG,0.0001,t0+1.5); ramp(rG,0.17,t0+2.4); ramp(rG,0.0001,t0+3.4);
+    riser.connect(rBP).connect(rG).connect(master); riser.start(t0+1.5); riser.stop(t0+3.5);
+
+    // 3) continuous stardust-stream bed (filtered noise), slowly panning + sweeping
+    const stream=ctx.createBufferSource(); stream.buffer=noise(5); stream.loop=true;
+    const sBP=ctx.createBiquadFilter(); sBP.type='bandpass'; sBP.Q.value=0.8; sBP.frequency.value=1700;
+    const sLFO=ctx.createOscillator(); sLFO.frequency.value=0.45; const sLFOg=ctx.createGain(); sLFOg.gain.value=1000;
+    sLFO.connect(sLFOg).connect(sBP.frequency);
+    const sG=ctx.createGain(); gainAt(sG,0.0001,t0+2.0); ramp(sG,0.13,t0+2.9); gainAt(sG,0.13,t0+5.0); ramp(sG,0.0001,t0+6.3);
+    const pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    if(pan){ const pLFO=ctx.createOscillator(); pLFO.frequency.value=0.3; const pLFOg=ctx.createGain(); pLFOg.gain.value=0.85;
+      pLFO.connect(pLFOg).connect(pan.pan); stream.connect(sBP).connect(pan).connect(sG); pLFO.start(t0); pLFO.stop(t0+7); }
+    else { stream.connect(sBP).connect(sG); }
+    sG.connect(master); sLFO.start(t0); sLFO.stop(t0+7); stream.start(t0+2.0); stream.stop(t0+6.5);
+
+    // 4) glitter chimes as the buckets fill
+    const chimeT=[2.7,3.2,3.8,4.3,4.9,5.4,5.9], notes=[1568,1760,2093,2349,2637,1976,3136];
+    chimeT.forEach((tt,i)=>{ const o=ctx.createOscillator(); o.type='sine'; o.frequency.value=notes[i%notes.length];
+      const g=ctx.createGain(); gainAt(g,0.0001,t0+tt); g.gain.exponentialRampToValueAtTime(0.085,t0+tt+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,t0+tt+0.5); o.connect(g).connect(master); o.start(t0+tt); o.stop(t0+tt+0.55); });
+
+    // 5) warm resolving chord + settle down-whoosh
+    [261.63,329.63,392.0,523.25].forEach((f,i)=>{ const o=ctx.createOscillator(); o.type=i===3?'triangle':'sine'; o.frequency.value=f;
+      const g=ctx.createGain(); gainAt(g,0.0001,t0+6.1); ramp(g,0.10,t0+6.6); ramp(g,0.0001,t0+8.0);
+      o.connect(g).connect(master); o.start(t0+6.1); o.stop(t0+8.1); });
+    const dn=ctx.createBufferSource(); dn.buffer=noise(2);
+    const dBP=ctx.createBiquadFilter(); dBP.type='bandpass'; dBP.Q.value=1.4;
+    dBP.frequency.setValueAtTime(3200,t0+6.1); dBP.frequency.exponentialRampToValueAtTime(520,t0+6.9);
+    const dnG=ctx.createGain(); gainAt(dnG,0.0001,t0+6.1); ramp(dnG,0.12,t0+6.35); ramp(dnG,0.0001,t0+7.0);
+    dn.connect(dBP).connect(dnG).connect(master); dn.start(t0+6.1); dn.stop(t0+7.1);
+  }
+
   document.getElementById('replay').onclick = ()=>{
     const stage = document.getElementById('stage');
     const clone = stage.cloneNode(true);
-    stage.parentNode.replaceChild(clone, stage);
-    clone.id='stage';
-    clone.querySelector('#stars').innerHTML='';
-    clone.querySelector('#dust').innerHTML='';
-    fillStars(clone.querySelector('#stars'));
-    fillDust(clone.querySelector('#dust'));
+    stage.parentNode.replaceChild(clone, stage); clone.id='stage';
+    clone.querySelector('#stars').innerHTML=''; clone.querySelector('#dust').innerHTML='';
+    fillStars(clone.querySelector('#stars')); fillDust(clone.querySelector('#dust'));
+    if(soundOn) playSpaceReveal();   // re-sync the space sound to the restart
   };
 
-  // Best-effort in-browser recording of the whole tab (crops to the card in edit).
+  // Sound toggle (default ON). The very first reveal on page load can't have
+  // audio — browsers block autoplay until a gesture — so the first click of any
+  // button (Replay/Record/Sound) starts it in sync.
+  let soundOn = true;
+  const soundBtn = document.getElementById('sound');
+  soundBtn.onclick = ()=>{
+    soundOn = !soundOn;
+    soundBtn.textContent = soundOn ? '🔊 Sound on' : '🔇 Sound off';
+    soundBtn.classList.toggle('ghost', !soundOn);
+    if(soundOn) document.getElementById('replay').click();   // replay + play sound together
+  };
+
   document.getElementById('rec').onclick = async ()=>{
     const state = document.getElementById('recstate');
     if(!window.MediaRecorder){ state.textContent='MediaRecorder unsupported — use OS screen capture.'; return; }
@@ -307,8 +340,7 @@
       state.textContent='Pick THIS tab in the share dialog…';
       const stream = await navigator.mediaDevices.getDisplayMedia({ video:{ frameRate:30 }, audio:false });
       const rec = new MediaRecorder(stream, { mimeType:'video/webm;codecs=vp9' });
-      const chunks=[];
-      rec.ondataavailable = e=>{ if(e.data.size) chunks.push(e.data); };
+      const chunks=[]; rec.ondataavailable = e=>{ if(e.data.size) chunks.push(e.data); };
       rec.onstop = ()=>{
         stream.getTracks().forEach(t=>t.stop());
         const blob = new Blob(chunks,{type:'video/webm'});
@@ -317,9 +349,8 @@
         state.textContent='Saved orbit-teaser-reveal.webm — convert to .mp4 for social.';
       };
       document.getElementById('replay').click();
-      rec.start();
-      state.textContent='Recording ~8.5s…';
-      setTimeout(()=>rec.stop(), 8500);
+      rec.start(); state.textContent='Recording ~9s…';
+      setTimeout(()=>rec.stop(), 9000);
     }catch(err){ state.textContent='Recording cancelled or blocked: '+err.message; }
   };
 </script>
