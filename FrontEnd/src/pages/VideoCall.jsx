@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { PhoneOff, Video, Clock, Phone, PhoneIncoming, PhoneMissed, Mic, MicOff, VideoIcon, VideoOff, Trash2 } from 'lucide-react';
+import { PhoneOff, Video, Clock, Phone, PhoneIncoming, PhoneMissed, Mic, MicOff, VideoIcon, VideoOff, Trash2, PenTool, MonitorUp } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
 import { useNotificationStore } from '../store/notificationStore';
@@ -13,16 +13,25 @@ import { VideoCallHistorySkeleton } from '../components/skeletons';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 import io from 'socket.io-client';
 
+// Whiteboard is a large module — load it only when a call actually opens it.
+const Whiteboard = lazy(() => import('../whiteboard/Whiteboard'));
+
+// Capacitor Android/iOS WebView detection (screen-share APIs differ there).
+const isNativeApp = () => !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+const canScreenShare = () => typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getDisplayMedia && !isNativeApp();
+
 /* ── Direct WebRTC Video Call Component ── */
-const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller }) => {
-  const { user } = useAuthStore();
+const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller, autoBoard }) => {
+  const { user, token } = useAuthStore();
   const { addToast, setVideoCallActive } = useUIStore();
-  
+
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
+  const remotePipRef = useRef(null);
   const peerConnectionRef = useRef(null);
   const socketRef = useRef(null);
   const localStreamRef = useRef(null);
+  const screenStreamRef = useRef(null);
   const callStartTimeRef = useRef(null);
   const endedRef = useRef(false);      // guard: teardown runs exactly once
   const iceTimerRef = useRef(null);    // grace timer for transient ICE "disconnected"
@@ -31,11 +40,16 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller }) => {
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(true);
+  const [showWhiteboard, setShowWhiteboard] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
 
   useEffect(() => {
     setVideoCallActive(true);
     return () => setVideoCallActive(false);
   }, [setVideoCallActive]);
+
+  // Reopened from call history → jump straight into the saved board.
+  useEffect(() => { if (autoBoard) setShowWhiteboard(true); }, [autoBoard]);
 
   useEffect(() => {
     let mounted = true;
@@ -76,9 +90,10 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller }) => {
           localVideoRef.current.srcObject = stream;
         }
 
-        // 2. Connect to signaling server
+        // 2. Connect to signaling server. Send the JWT so the server can derive
+        // socket.userId (used to gate whiteboard writes to real participants).
         const socketUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || (import.meta.env.PROD ? 'https://skillswap-backend-mb4k.onrender.com' : 'http://localhost:8000');
-        socketRef.current = io(socketUrl);
+        socketRef.current = io(socketUrl, token ? { auth: { token } } : undefined);
 
         // 3. Setup WebRTC
         // TURN relay is required for symmetric-NAT / cellular peers. Credentials
@@ -282,6 +297,44 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller }) => {
     }
   };
 
+  // Screen share: swap the outgoing video track via replaceTrack (no
+  // renegotiation needed). Requires a camera video sender to swap back to.
+  const stopShare = async () => {
+    const pc = peerConnectionRef.current;
+    const sender = pc?.getSenders().find((s) => s.track && s.track.kind === 'video');
+    const cam = localStreamRef.current?.getVideoTracks()[0];
+    if (sender && cam) { try { await sender.replaceTrack(cam); } catch { /* */ } }
+    if (localVideoRef.current) localVideoRef.current.srcObject = localStreamRef.current;
+    screenStreamRef.current?.getTracks().forEach((t) => t.stop());
+    screenStreamRef.current = null;
+    setIsSharing(false);
+  };
+
+  const toggleScreenShare = async () => {
+    const pc = peerConnectionRef.current;
+    if (!pc) return;
+    if (!canScreenShare()) { addToast('Screen sharing isn\'t supported on this device.', 'warning'); return; }
+    if (isSharing) { stopShare(); return; }
+    const sender = pc.getSenders().find((s) => s.track && s.track.kind === 'video');
+    if (!sender) { addToast('Turn on your camera before sharing your screen.', 'warning'); return; }
+    try {
+      const screen = await navigator.mediaDevices.getDisplayMedia({ video: true });
+      screenStreamRef.current = screen;
+      const track = screen.getVideoTracks()[0];
+      await sender.replaceTrack(track);
+      if (localVideoRef.current) localVideoRef.current.srcObject = screen;
+      track.onended = () => stopShare();   // user hit the browser "Stop sharing" chip
+      setIsSharing(true);
+    } catch { /* user cancelled the picker */ }
+  };
+
+  // Keep a small remote-video PiP in sync while the whiteboard covers the stage.
+  useEffect(() => {
+    if (showWhiteboard && remotePipRef.current && remoteVideoRef.current) {
+      remotePipRef.current.srcObject = remoteVideoRef.current.srcObject;
+    }
+  }, [showWhiteboard, isConnected]);
+
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#000', display: 'flex', flexDirection: 'column', zIndex: 9999 }}>
       {/* Remote video area */}
@@ -304,8 +357,31 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller }) => {
           </div>
         )}
 
+        {/* Whiteboard overlay (board-focus). Video shrinks to PiPs. */}
+        {showWhiteboard && (
+          <Suspense fallback={<div style={{ position: 'absolute', inset: 0, background: '#060810', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#00c6ff', zIndex: 20 }}>Loading board…</div>}>
+            <div style={{ position: 'absolute', inset: 0, zIndex: 20 }}>
+              <Whiteboard
+                socket={socketRef.current}
+                pc={peerConnectionRef.current}
+                roomId={roomId}
+                user={user}
+                otherUser={otherUser}
+                onClose={() => setShowWhiteboard(false)}
+              />
+            </div>
+          </Suspense>
+        )}
+
+        {/* Remote video PiP — shown top-left while the board is open */}
+        {showWhiteboard && (
+          <div style={{ position: 'absolute', top: 60, left: 12, width: 150, height: 100, borderRadius: 12, overflow: 'hidden', border: '2px solid rgba(255,255,255,0.25)', boxShadow: '0 8px 32px rgba(0,0,0,0.6)', zIndex: 30, background: '#111' }}>
+            <video ref={remotePipRef} autoPlay playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          </div>
+        )}
+
         {/* Local video PiP — bottom-right */}
-        <div style={{ position: 'absolute', bottom: 16, right: 16, width: 160, height: 120, borderRadius: 12, overflow: 'hidden', border: '2px solid rgba(255,255,255,0.25)', boxShadow: '0 8px 32px rgba(0,0,0,0.6)', zIndex: 10 }}>
+        <div style={{ position: 'absolute', bottom: 16, right: 16, width: 160, height: 120, borderRadius: 12, overflow: 'hidden', border: '2px solid rgba(255,255,255,0.25)', boxShadow: '0 8px 32px rgba(0,0,0,0.6)', zIndex: 30 }}>
           <video
             ref={localVideoRef}
             autoPlay
@@ -360,6 +436,28 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller }) => {
         >
           {isVideoEnabled ? <VideoIcon size={22} color="#fff" /> : <VideoOff size={22} color="#fff" />}
         </button>
+
+        {/* Screen share (desktop web only — Android WebView has no getDisplayMedia) */}
+        {canScreenShare() && (
+          <button
+            onClick={toggleScreenShare}
+            title={isSharing ? 'Stop sharing screen' : 'Share screen'}
+            aria-label={isSharing ? 'Stop sharing screen' : 'Share screen'}
+            style={{ width: 56, height: 56, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: isSharing ? 'linear-gradient(135deg,#00c6ff,#7c3aed)' : 'rgba(255,255,255,0.12)', border: '2px solid rgba(255,255,255,0.18)', cursor: 'pointer', transition: 'background 0.2s' }}
+          >
+            <MonitorUp size={22} color="#fff" />
+          </button>
+        )}
+
+        {/* Whiteboard */}
+        <button
+          onClick={() => setShowWhiteboard((s) => !s)}
+          title={showWhiteboard ? 'Close whiteboard' : 'Open whiteboard'}
+          aria-label={showWhiteboard ? 'Close whiteboard' : 'Open whiteboard'}
+          style={{ width: 56, height: 56, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: showWhiteboard ? 'linear-gradient(135deg,#00c6ff,#7c3aed)' : 'rgba(255,255,255,0.12)', border: '2px solid rgba(255,255,255,0.18)', cursor: 'pointer', transition: 'background 0.2s' }}
+        >
+          <PenTool size={22} color="#fff" />
+        </button>
       </div>
     </div>
   );
@@ -388,6 +486,7 @@ const VideoCall = () => {
   const [activeRoom, setActiveRoom] = useState(roomId || null);
   const [currentOtherUser, setCurrentOtherUser] = useState(location.state?.otherUser || null);
   const [isCallerState, setIsCallerState] = useState(location.state?.isCaller || false);
+  const [autoBoard, setAutoBoard] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState(new Set());
 
   /* Fetch call history */
@@ -477,8 +576,9 @@ const VideoCall = () => {
 
   const handleEnd = (callDuration, otherUser) => {
     setActiveRoom(null);
+    setAutoBoard(false);
     navigate('/video');
-    
+
     // If call had duration and other user, open rating modal
     if (callDuration && callDuration > 5 && otherUser) {
       openRatingModal(otherUser, callDuration);
@@ -499,12 +599,22 @@ const VideoCall = () => {
 
     setCurrentOtherUser(other);
     setIsCallerState(true);
+    setAutoBoard(false);
     setActiveRoom(Date.now().toString()); // Generate unique room ID
+  };
+
+  // Reopen a saved whiteboard from a past call (keyed by the call's roomName).
+  // Works solo — no need for the other person to be online.
+  const handleOpenBoard = (other, call) => {
+    setCurrentOtherUser(other);
+    setIsCallerState(false);
+    setAutoBoard(true);
+    setActiveRoom(call.roomName);
   };
 
   /* In an active call */
   if (activeRoom) {
-    return <DirectVideoCall roomId={activeRoom} onEnd={handleEnd} otherUser={currentOtherUser} isCaller={isCallerState} />;
+    return <DirectVideoCall roomId={activeRoom} onEnd={handleEnd} otherUser={currentOtherUser} isCaller={isCallerState} autoBoard={autoBoard} />;
   }
 
   /* Lobby */
@@ -588,15 +698,24 @@ const VideoCall = () => {
                     {call.createdAt ? formatDistanceToNow(new Date(call.createdAt), { addSuffix: true }) : ''}
                   </span>
                   {(call.status === 'ended' || call.status === 'accepted') && (
-                    <button
-                      onClick={() => handleCallAgain(other)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all relative bg-accent text-text-on-accent hover:brightness-110 shadow-sm"
-                    >
-                      <Video size={12} /> Call Again
-                      {!isOtherOnline && (
-                        <span className="absolute -top-1 -right-1 w-2 h-2 bg-danger rounded-full" title="User offline" />
-                      )}
-                    </button>
+                    <>
+                      <button
+                        onClick={() => handleOpenBoard(other, call)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border border-border-subtle text-text-secondary hover:text-accent hover:border-accent/40"
+                        title="Open the whiteboard from this session"
+                      >
+                        <PenTool size={12} /> Board
+                      </button>
+                      <button
+                        onClick={() => handleCallAgain(other)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all relative bg-accent text-text-on-accent hover:brightness-110 shadow-sm"
+                      >
+                        <Video size={12} /> Call Again
+                        {!isOtherOnline && (
+                          <span className="absolute -top-1 -right-1 w-2 h-2 bg-danger rounded-full" title="User offline" />
+                        )}
+                      </button>
+                    </>
                   )}
                   <button
                     onClick={() => setConfirmDelete(call)}
