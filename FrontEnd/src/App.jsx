@@ -48,6 +48,9 @@ const Leaderboard    = lazy(() => import('./pages/Leaderboard'));
 const Observatory    = lazy(() => import('./pages/Observatory'));
 const TierAtlas      = lazy(() => import('./pages/TierAtlas'));
 const Orbit          = lazy(() => import('./pages/Orbit'));
+// Marketing "stardust reveal" brand animation — reachable by URL for preview /
+// recording, not in nav. Mirrors marketing/orbit-teaser-reveal.html.
+const OrbitTeaserReveal = lazy(() => import('./cosmic/OrbitTeaserReveal'));
 // Heavy cinematics (canvas engine + share card) — split out of the initial
 // bundle; only fetched when a rank-up actually fires.
 const LiftoffOverlay = lazy(() => import('./cosmic/LiftoffOverlay'));
@@ -64,6 +67,21 @@ const PageLoader = () => (
     <Spinner variant="orbit" size={48} label="Loading page" />
   </div>
 );
+
+/** True inside the Capacitor native shell (APK), false on the web. */
+const isNativeApp = () => {
+  try { return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); }
+  catch { return false; }
+};
+
+/** Root "/" route. The website shows the marketing hero (Landing); the APK is a
+ *  logged-in app shell, so it skips the hero and goes straight to the dashboard
+ *  (or /login when signed out). APK-only behavior — the web is unchanged. */
+const HomeRoute = () => {
+  const token = useAuthStore((state) => state.token);
+  if (isNativeApp()) return <Navigate to={token ? '/dashboard' : '/login'} replace />;
+  return <Landing />;
+};
 
 /** Redirect authenticated users away from public-only pages (login, register).
  *  Honors a `from` location (A10) so a just-logged-in user returns to the page
@@ -434,7 +452,7 @@ function AppInner() {
 
       <Routes>
         {/* Public — redirect logged-in users away */}
-        <Route path="/"               element={<Landing />} />
+        <Route path="/"               element={<HomeRoute />} />
         <Route path="/login"          element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
         <Route path="/register"       element={<PublicOnlyRoute><Register /></PublicOnlyRoute>} />
         {/* Friendly aliases for guessed URLs (B-04) → canonical routes */}
@@ -464,6 +482,9 @@ function AppInner() {
 
         {/* Cosmic badge gallery — dev/QA route, reachable by URL, not in nav */}
         <Route path="/cosmic-gallery" element={<Layout><Suspense fallback={<PageLoader />}><BadgeGallery /></Suspense></Layout>} />
+
+        {/* Marketing brand-reveal preview — full-screen, no chrome, not in nav */}
+        <Route path="/reveal" element={<Suspense fallback={null}><OrbitTeaserReveal standalone /></Suspense>} />
 
         {/* 404 — catch-all. AdminGate renders the hidden portal only when the
             path hashes to VITE_ADMIN_SLUG_HASH; otherwise it returns this 404. */}

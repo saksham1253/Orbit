@@ -12,10 +12,10 @@ class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    // Log to console in development; swap for a real error service in prod
-    if (import.meta.env.DEV) {
-      console.error('[ErrorBoundary]', error, info);
-    }
+    // Always log (dev console AND production / APK Logcat) so intermittent
+    // crashes are diagnosable — the message + component stack surface in
+    // `adb logcat` / the on-device WebView console.
+    console.error('[ErrorBoundary]', error?.message || error, error?.stack, info?.componentStack);
   }
 
   handleReset = () => {
