@@ -1,0 +1,161 @@
+/* ──────────────────────────────────────────────────────────────────────────
+   OrbitTeaserReveal — the "stardust reveal" brand animation, in-app port of
+   marketing/orbit-teaser-reveal.html. Everything is scoped under `.otr`.
+   The stage is authored at a fixed 1280×720 (16:9) and scaled to fit by JS
+   (--otr-scale), so the choreography positions stay pixel-exact at any size.
+   ────────────────────────────────────────────────────────────────────────── */
+.otr {
+  --c1:#00c6ff; --c2:#7c3aed; --c3:#ff0076; --pink:#ff5fa2;
+  position:relative; width:100%; min-height:100vh; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+  background:#04030c;
+}
+.otr-fit{ transform:scale(var(--otr-scale,1)); transform-origin:center center; }
+
+.otr-stage{
+  position:relative; width:1280px; height:720px; flex:none;
+  border-radius:18px; overflow:hidden;
+  background:
+    radial-gradient(90% 80% at 78% 78%, rgba(255,0,118,.20), transparent 55%),
+    radial-gradient(80% 80% at 20% 22%, rgba(0,120,255,.16), transparent 55%),
+    radial-gradient(120% 120% at 46% 42%, #141134 0%, #0a0820 48%, #05040f 100%);
+  box-shadow:0 30px 90px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.06);
+}
+.otr-dolly{ position:absolute; inset:0; transform-origin:46% 50%;
+  animation:otr-dolly 8s cubic-bezier(.4,0,.2,1) forwards; }
+@keyframes otr-dolly{ from{transform:scale(1);} to{transform:scale(1.035);} }
+
+/* Starfield */
+.otr-star{ position:absolute; width:2px; height:2px; border-radius:50%; background:#fff;
+  opacity:0; animation:otr-tw 3.4s ease-in-out infinite; }
+.otr-star.big{ width:3px; height:3px; }
+@keyframes otr-tw{ 0%,100%{opacity:.12; transform:scale(.8);} 50%{opacity:.85; transform:scale(1.2);} }
+
+/* Comet */
+.otr-comet{ position:absolute; top:60px; right:-80px; width:150px; height:2px;
+  background:linear-gradient(90deg,transparent,#fff,transparent); opacity:0;
+  filter:drop-shadow(0 0 6px #bfe0ff); animation:otr-comet 7s ease-in 1s infinite; }
+@keyframes otr-comet{
+  0%{opacity:0; transform:translate(0,0) rotate(150deg);}
+  5%{opacity:.9;} 16%{opacity:0; transform:translate(-620px,300px) rotate(150deg);}
+  100%{opacity:0;}
+}
+
+/* Saturn planet */
+.otr-planet{ position:absolute; left:330px; top:360px; width:340px; height:340px;
+  transform:translate(-50%,-50%); }
+.otr-planet .otr-float{ position:absolute; inset:0; animation:otr-floaty 7s ease-in-out infinite; }
+@keyframes otr-floaty{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+.otr-core{
+  position:absolute; left:50%; top:50%; width:150px; height:150px; border-radius:50%;
+  transform:translate(-50%,-50%); overflow:hidden;
+  background:radial-gradient(circle at 38% 32%, #ffffff, #bfe0ff 40%, #7aa2ff 68%, #4b2ad0 100%);
+  box-shadow:0 0 55px rgba(120,150,255,.55), inset -12px -14px 34px rgba(30,15,80,.6);
+}
+.otr-core::after{ content:""; position:absolute; top:-40%; left:-60%; width:60%; height:180%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);
+  transform:translateX(0) rotate(8deg); opacity:0; animation:otr-sweep 1.5s ease-in-out 6.4s 1; }
+@keyframes otr-sweep{ 0%{opacity:0; transform:translateX(0) rotate(8deg);}
+  30%{opacity:.8;} 70%{opacity:.8;} 100%{opacity:0; transform:translateX(360px) rotate(8deg);} }
+.otr-ring{
+  position:absolute; left:50%; top:50%; width:330px; height:118px;
+  transform:translate(-50%,-50%) rotate(-22deg); border-radius:50%; border:10px solid transparent;
+  background:linear-gradient(90deg,var(--c1),var(--c2),var(--c3)) border-box;
+  -webkit-mask:linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor; mask-composite:exclude;
+  filter:drop-shadow(0 0 12px rgba(124,58,237,.5));
+  animation:otr-ringShimmer 1.3s ease-in-out 6.5s 1;
+}
+@keyframes otr-ringShimmer{ 0%,100%{filter:drop-shadow(0 0 12px rgba(124,58,237,.5)) brightness(1);}
+  50%{filter:drop-shadow(0 0 22px rgba(0,198,255,.85)) brightness(1.5);} }
+.otr-orbiter{ position:absolute; left:50%; top:50%; width:330px; height:118px;
+  transform:translate(-50%,-50%) rotate(-22deg); animation:otr-orbit 6s linear infinite; }
+.otr-orbiter::before{ content:""; position:absolute; right:-6px; top:50%; width:14px; height:14px;
+  border-radius:50%; transform:translateY(-50%);
+  background:radial-gradient(circle at 35% 35%, #fff, #dfeaff); box-shadow:0 0 14px #bfe0ff; }
+@keyframes otr-orbit{ to{transform:translate(-50%,-50%) rotate(338deg);} }
+
+/* Wordmark + taglines */
+.otr-copy{ position:absolute; left:700px; top:360px; transform:translateY(-50%); width:540px; }
+.otr-word{
+  font-family:'Poppins',sans-serif; font-weight:800; font-size:150px; line-height:.9; letter-spacing:-4px;
+  background:linear-gradient(120deg,var(--c1) 8%,#a07bff 50%,var(--pink) 92%);
+  -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+  filter:blur(15px) drop-shadow(4px 0 rgba(0,198,255,.7)) drop-shadow(-4px 0 rgba(255,0,118,.7));
+  animation:otr-focusIn 1.5s cubic-bezier(.3,0,.2,1) 1.5s forwards;
+}
+.otr-tagline{
+  font-family:'Poppins',sans-serif; font-weight:700; font-size:34px; color:#eef1fb; margin-top:14px;
+  filter:blur(10px) drop-shadow(3px 0 rgba(0,198,255,.6)) drop-shadow(-3px 0 rgba(255,0,118,.6));
+  animation:otr-focusIn 1.5s cubic-bezier(.3,0,.2,1) 1.7s forwards;
+}
+.otr-sub{
+  font-size:22px; color:#aeb6d6; margin-top:12px; font-weight:500;
+  filter:blur(9px); animation:otr-focusIn 1.5s cubic-bezier(.3,0,.2,1) 1.85s forwards;
+}
+@keyframes otr-focusIn{ to{filter:blur(0) drop-shadow(0 0 0 transparent) drop-shadow(0 0 0 transparent);} }
+
+/* Stardust */
+.otr-dust{ position:absolute; border-radius:50%; pointer-events:none; opacity:0;
+  left:var(--sx); top:var(--sy);
+  animation:otr-fly var(--dur) cubic-bezier(.45,0,.25,1) 1.5s forwards; }
+@keyframes otr-fly{
+  0%   {opacity:0; transform:translate(0,0) scale(.5);}
+  12%  {opacity:1; transform:translate(calc(var(--dx)*.02),-16px) scale(1);}
+  42%  {opacity:1; transform:translate(calc(var(--dx)*.06),-24px) scale(1);}
+  56%  {opacity:1; transform:translate(calc(var(--dx)*.12),calc(var(--dy)*.06 - 18px)) scale(.95);}
+  100% {opacity:0; transform:translate(var(--dx),var(--dy)) scale(.45);}
+}
+
+/* UI cards */
+.otr-card{
+  position:absolute; transform:translate(-50%,-50%);
+  display:flex; align-items:center; gap:11px; padding:14px 18px; border-radius:18px;
+  background:linear-gradient(160deg, rgba(22,20,52,.82), rgba(12,10,32,.72));
+  border:1px solid rgba(255,255,255,.10);
+  box-shadow:0 14px 40px rgba(0,0,0,.5), 0 0 0 1px rgba(0,198,255,.12) inset;
+  backdrop-filter:blur(9px); color:#eef1fb; opacity:0; overflow:hidden;
+  animation:otr-cardIn .8s cubic-bezier(.34,1.56,.64,1) var(--in) forwards,
+            otr-cardFloat 6s ease-in-out var(--floatStart) infinite;
+}
+.otr-card::before{ content:""; position:absolute; inset:0; border-radius:18px; padding:1px;
+  background:linear-gradient(135deg,var(--c1),var(--c3)); opacity:.55;
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor; mask-composite:exclude; }
+.otr-card::after{ content:""; position:absolute; top:0; left:-70%; width:55%; height:100%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.5),transparent);
+  transform:skewX(-18deg); opacity:0; animation:otr-glint .9s ease-out var(--glint) 1; }
+@keyframes otr-cardIn{
+  0%  {opacity:0; transform:translate(-50%,-50%) scale(.4);  filter:blur(6px);}
+  60% {opacity:1; transform:translate(-50%,-50%) scale(1.06); filter:blur(0);}
+  100%{opacity:1; transform:translate(-50%,-50%) scale(1);}
+}
+@keyframes otr-cardFloat{ 0%,100%{margin-top:0;} 50%{margin-top:-9px;} }
+@keyframes otr-glint{ 0%{opacity:0; left:-70%;} 30%{opacity:.9;} 100%{opacity:0; left:130%;} }
+
+.otr-card .ico{ font-size:26px; line-height:1; filter:drop-shadow(0 2px 6px rgba(0,0,0,.5)); }
+.otr-card .big{ font-family:'Poppins',sans-serif; font-weight:800; font-size:26px; }
+.otr-card .lbl{ font-size:13px; color:#aab2d4; font-weight:600; letter-spacing:.2px; }
+.otr-card .name{ font-family:'Poppins',sans-serif; font-weight:700; font-size:19px; }
+
+.otr-c-streak{ left:150px; top:210px; --in:3.50s; --glint:4.30s; --floatStart:4.5s; }
+.otr-c-board { left:470px; top:150px; --in:3.75s; --glint:4.55s; --floatStart:4.7s; }
+.otr-c-league{ left:520px; top:520px; --in:4.00s; --glint:4.80s; --floatStart:5.0s; }
+.otr-c-points{ left:210px; top:560px; --in:4.25s; --glint:5.05s; --floatStart:5.3s; }
+
+/* Overlay controls (not part of the visual composition) */
+.otr-controls{ position:absolute; left:0; right:0; bottom:22px; display:flex; gap:10px;
+  align-items:center; justify-content:center; z-index:5; }
+.otr-btn{ font-family:'Inter',sans-serif; font-weight:600; font-size:14px; color:#fff;
+  background:linear-gradient(135deg,var(--c1),var(--c2)); border:none; padding:9px 18px;
+  border-radius:10px; cursor:pointer; text-decoration:none; }
+.otr-btn.ghost{ background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); color:#cdd3e6; }
+
+/* Reduced motion: render the final composition, no motion. */
+@media (prefers-reduced-motion: reduce){
+  .otr-dolly,.otr-star,.otr-comet,.otr-planet .otr-float,.otr-core::after,
+  .otr-ring,.otr-orbiter,.otr-card{ animation:none !important; }
+  .otr-word,.otr-tagline,.otr-sub{ animation:none !important; filter:none !important; }
+  .otr-card{ opacity:1 !important; }
+  .otr-dust{ display:none !important; }
+}
