@@ -17,21 +17,29 @@ const isNative = (() => {
   try { return Capacitor.isNativePlatform(); } catch { return false; }
 })();
 
-// FCM registration is OPT-IN. Without a valid google-services.json in the
-// Android build, Firebase never initializes, and calling PushNotifications
-// .register() makes the native FirebaseMessaging layer throw
-// "Default FirebaseApp is not initialized" — which crashes the WHOLE app to the
-// home screen (a native exception JS try/catch cannot stop). That surfaced as
-// "the APK closes every time I log in", because this runs on every authed mount.
+// FCM registration is gated on Firebase ACTUALLY being configured for this build.
+// Without a valid google-services.json in the Android build, Firebase never
+// initializes, and calling PushNotifications.register() makes the native
+// FirebaseMessaging layer throw "Default FirebaseApp is not initialized" — which
+// crashes the WHOLE app to the home screen (a native exception JS try/catch
+// cannot stop). That surfaced as "the APK closes every time I log in", because
+// this runs on every authed mount.
 //
-// So push stays OFF unless the build explicitly opts in with
-// VITE_ENABLE_PUSH="true" — which you should only set once google-services.json
-// (for appId app.orbit.mobile) is in FrontEnd/android/app/. In-app + socket
-// notifications are unaffected; only the killed-app FCM tray path is gated.
-const PUSH_ENABLED = (() => {
-  try { return String(import.meta.env.VITE_ENABLE_PUSH).toLowerCase() === 'true'; }
+// __FCM_CONFIGURED__ is injected by vite.config.js: it is true ONLY when a
+// structurally-valid google-services.json for appId app.orbit.mobile is present
+// at build time. This is authoritative and needs no manual env coordination — a
+// build without Firebase configured simply can't turn push on, so it can't crash.
+// VITE_ENABLE_PUSH="false" can still force push OFF even on a configured build
+// (kill switch); it can never force it ON when Firebase is absent.
+const FCM_CONFIGURED = (() => {
+  try { return typeof __FCM_CONFIGURED__ !== 'undefined' && __FCM_CONFIGURED__ === true; }
   catch { return false; }
 })();
+const PUSH_FORCED_OFF = (() => {
+  try { return String(import.meta.env.VITE_ENABLE_PUSH).toLowerCase() === 'false'; }
+  catch { return false; }
+})();
+const PUSH_ENABLED = FCM_CONFIGURED && !PUSH_FORCED_OFF;
 
 let onOpenLink = null;
 let lastToken = null;
