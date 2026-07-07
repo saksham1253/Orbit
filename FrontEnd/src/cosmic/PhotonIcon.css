@@ -1,0 +1,41 @@
+/* PhotonIcon — periodic "catches-the-light" glow. Idle most of the cycle, then a
+   brief halo pulse + gloss sweep. Reduced-motion / anim-off → static. */
+
+.photon-icon {
+  display: inline-block;
+  filter: drop-shadow(0 0 1.5px rgba(139, 92, 246, 0.5));
+}
+
+.photon-icon--anim {
+  animation: photon-glow 5.5s ease-in-out infinite;
+}
+
+@keyframes photon-glow {
+  0%, 58%, 100% { filter: drop-shadow(0 0 1.5px rgba(139, 92, 246, 0.45)); }
+  74%           { filter: drop-shadow(0 0 5px rgba(168, 85, 247, 0.95)) drop-shadow(0 0 10px rgba(236, 72, 153, 0.55)); }
+}
+
+/* Diagonal gloss sweep. transform-box:fill-box makes the % translate relative to
+   the rect's own box so it reliably sweeps across the crystal. */
+.photon-icon__sweep {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: photon-sweep 5.5s ease-in-out infinite;
+}
+
+@keyframes photon-sweep {
+  0%, 60%   { transform: translateX(-130%) skewX(-16deg); opacity: 0; }
+  67%       { opacity: 0.9; }
+  82%       { transform: translateX(130%) skewX(-16deg); opacity: 0.9; }
+  88%, 100% { transform: translateX(130%) skewX(-16deg); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photon-icon--anim { animation: none; }
+  .photon-icon__sweep { display: none; }
+}
+
+/* App-wide "Animation Speed = 0 / off" switch used elsewhere in the app. */
+[data-anim-off="true"] .photon-icon--anim { animation: none; }
+[data-anim-off="true"] .photon-icon__sweep { display: none; }

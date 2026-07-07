@@ -18,7 +18,7 @@ import { useAuthStore } from '../store/authStore';
 import { useObservatory } from '../cosmic/useCosmic';
 import CosmicBadge from '../cosmic/CosmicBadge';
 import CosmicLoader from '../cosmic/CosmicLoader';
-import CosmicName from '../cosmic/CosmicName';
+import GlowName from '../cosmic/GlowName';
 import { getTier, nameGlowFor } from '../cosmic/tiers';
 import { InfoDot, Disclosure, ScoreExplainerBody } from '../cosmic/scoreInfo';
 import { SCORE_DISTINCTION, COSMIC_SCORE_INFO, TRUST_SCORE_INFO } from '../cosmic/scoreCopy';
@@ -204,7 +204,7 @@ export default function Observatory() {
                       </div>
                     </div>
                     <span className="text-xs font-bold text-text-primary mt-2">
-                      <CosmicName glow={nameGlowFor(ns.tierId)} exploring>{ns.name}</CosmicName>
+                      <GlowName nameGlowTier={nameGlowFor(ns.tierId)} cosmeticGlowKey={ns.nameGlow} exploring>{ns.name}</GlowName>
                       {isYouNorth && <span className="ml-1 font-bold" style={{ color: 'var(--accent-1, #00c6ff)' }}>· You</span>}
                     </span>
                     <span className="text-[10px] text-text-muted inline-flex items-center gap-0.5">

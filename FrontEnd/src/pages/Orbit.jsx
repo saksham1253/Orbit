@@ -9,8 +9,9 @@
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { Flame, Shield, Sparkles, Rocket, Clock, Trophy, Star, Bell, BellOff } from 'lucide-react';
+import { Flame, Shield, Rocket, Clock, Trophy, Star, Bell, BellOff } from 'lucide-react';
 import { useOrbit, useBuyFreeze, useOrbitPrefs } from '../cosmic/useOrbit';
+import PhotonIcon from '../cosmic/PhotonIcon';
 import MissionsPanel from '../cosmic/MissionsPanel';
 import ConstellationsPanel from '../cosmic/ConstellationsPanel';
 import LeaguePanel from '../cosmic/LeaguePanel';
@@ -159,7 +160,7 @@ export default function Orbit() {
       {/* Wallet + Gravity Assist */}
       <div className="grid gap-4 sm:grid-cols-2">
         <section className="rounded-2xl border border-white/10 bg-slate-900/30 p-4 flex items-center gap-3">
-          <Sparkles size={26} className="text-violet-300" />
+          <PhotonIcon size={26} />
           <div>
             <div className="text-xs uppercase tracking-wide text-slate-400">Photons</div>
             <div className="text-2xl font-black text-white tabular-nums">{photons}</div>

@@ -8,6 +8,7 @@ import SkillForm from '../components/skills/SkillForm';
 import { SkillGridSkeleton } from '../components/skeletons';
 import ErrorState from '../components/common/ErrorState';
 import OrbitDashboardWidget from '../cosmic/OrbitDashboardWidget';
+import PhotonsChip from '../cosmic/PhotonsChip';
 import { Plus, Layers, Sparkles } from 'lucide-react';
 
 const MySkills = () => {
@@ -37,12 +38,16 @@ const MySkills = () => {
           </h1>
           <p className="text-text-muted mt-1 text-sm">What you teach and what you want to learn.</p>
         </div>
-        <button
-          onClick={() => setFormOpen(true)}
-          className="btn-gradient flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm"
-        >
-          <Plus size={16} /> Add Skill
-        </button>
+        <div className="flex items-center gap-3">
+          {/* Live Photons balance — same chip as the nav, tap → shop */}
+          <PhotonsChip variant="dash" />
+          <button
+            onClick={() => setFormOpen(true)}
+            className="btn-gradient flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm"
+          >
+            <Plus size={16} /> Add Skill
+          </button>
+        </div>
       </div>
 
       {/* Orbit engagement summary — streak, Stardust, weekly missions */}

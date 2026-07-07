@@ -5,8 +5,9 @@
  * data is available so it never flashes an empty card.
  */
 import { Link } from 'react-router-dom';
-import { Flame, Sparkles, Target, ChevronRight, Shield } from 'lucide-react';
+import { Flame, Target, ChevronRight, Shield } from 'lucide-react';
 import { useOrbit } from './useOrbit';
+import PhotonIcon from './PhotonIcon';
 
 const STATE = {
   active:   { color: '#fbbf24', text: 'In orbit today' },
@@ -36,7 +37,7 @@ export default function OrbitDashboardWidget() {
       <div className="flex-1 min-w-0">
         <div className="text-sm font-semibold" style={{ color: st.color }}>{st.text}</div>
         <div className="flex items-center gap-3 text-xs text-slate-400 mt-0.5">
-          <span className="inline-flex items-center gap-1"><Sparkles size={12} className="text-violet-300" />{photons}</span>
+          <span className="inline-flex items-center gap-1"><PhotonIcon size={13} animated={false} />{photons}</span>
           <span className="inline-flex items-center gap-1"><Shield size={12} className="text-sky-300" />{freeze.tokens}/{freeze.cap}</span>
           <span className="inline-flex items-center gap-1"><Target size={12} className="text-amber-300" />{done}/{missions.length} missions</span>
           {claimable && <span className="text-emerald-400 font-semibold">· reward ready</span>}

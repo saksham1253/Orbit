@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Orbit · Photon Crystal (chosen, animated)</title>
+<style>
+  body { margin:0; padding:56px 24px; color:#eaf0ff; font-family:-apple-system,'Segoe UI',Roboto,sans-serif; background:#07080f;
+    background-image:radial-gradient(1000px 600px at 12% -5%,rgba(34,211,255,.16),transparent 60%),radial-gradient(1100px 700px at 100% 8%,rgba(217,70,239,.18),transparent 55%),radial-gradient(900px 700px at 60% 120%,rgba(139,92,246,.16),transparent 60%); min-height:100vh; }
+  h1 { font-weight:800; font-size:24px; } h1 .g{background:linear-gradient(90deg,#38bdf8,#8b5cf6,#ec4899);-webkit-background-clip:text;background-clip:text;color:transparent}
+  p { color:#9aa4bd; font-size:14px; max-width:640px; }
+  .row { display:flex; align-items:flex-end; gap:36px; margin:34px 0; flex-wrap:wrap; }
+  .col{ text-align:center } .lbl{ font-size:11px; color:#6b7490; margin-top:8px }
+  .chip{ display:inline-flex; align-items:center; gap:7px; padding:6px 9px 6px 7px; border-radius:999px; background:rgba(255,255,255,.06); border:1px solid rgba(139,92,246,.5); box-shadow:0 0 18px rgba(139,92,246,.25); font-weight:700; font-size:14px; }
+  .chip .plus{ width:19px;height:19px;border-radius:50%;display:grid;place-items:center;color:#0b0d17;background:linear-gradient(135deg,#38bdf8,#ec4899);font-weight:900;font-size:14px;margin-left:2px }
+  .dash{ display:inline-flex;align-items:center;gap:9px;padding:11px 15px;border-radius:14px;background:linear-gradient(135deg,rgba(15,23,42,.6),rgba(76,29,149,.3));border:1px solid rgba(255,255,255,.08);font-weight:800 }
+  .dash .big{ font-size:22px }
+  svg{ display:block }
+  /* ==== identical to PhotonIcon.css ==== */
+  .photon-icon{ display:inline-block; filter:drop-shadow(0 0 1.5px rgba(139,92,246,.5)); }
+  .photon-icon--anim{ animation:photon-glow 5.5s ease-in-out infinite; }
+  @keyframes photon-glow{ 0%,58%,100%{ filter:drop-shadow(0 0 1.5px rgba(139,92,246,.45)); } 74%{ filter:drop-shadow(0 0 5px rgba(168,85,247,.95)) drop-shadow(0 0 10px rgba(236,72,153,.55)); } }
+  .photon-icon__sweep{ transform-box:fill-box; transform-origin:center; opacity:0; animation:photon-sweep 5.5s ease-in-out infinite; }
+  @keyframes photon-sweep{ 0%,60%{ transform:translateX(-130%) skewX(-16deg); opacity:0 } 67%{ opacity:.9 } 82%{ transform:translateX(130%) skewX(-16deg); opacity:.9 } 88%,100%{ transform:translateX(130%) skewX(-16deg); opacity:0 } }
+  @media (prefers-reduced-motion:reduce){ .photon-icon--anim{animation:none} .photon-icon__sweep{display:none} }
+</style></head>
+<body>
+  <h1>Photon Crystal · <span class="g">Photons</span> <span style="font-weight:500;color:#9aa4bd;font-size:15px">— chosen, animated</span></h1>
+  <p>Idle most of the time; every ~5.5s it catches the light — a halo glow-pulse plus a diagonal gloss sweep. Watch a few seconds. (Turn on your OS “reduce motion” to confirm it goes fully static.)</p>
+
+  <div class="row" id="stage"></div>
+  <div class="row" id="chips"></div>
+
+  <script>
+    // one reusable SVG string (mirrors PhotonIcon.jsx)
+    let n = 0;
+    function icon(size) {
+      const id = 'x' + (n++);
+      return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" class="photon-icon photon-icon--anim" role="img" aria-label="Photons">
+        <defs>
+          <linearGradient id="a${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7dd3fc"/><stop offset="100%" stop-color="#6d28d9"/></linearGradient>
+          <linearGradient id="b${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c084fc"/><stop offset="100%" stop-color="#ec4899"/></linearGradient>
+          <linearGradient id="g${id}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="50%" stop-color="#fff" stop-opacity=".9"/><stop offset="100%" stop-color="#fff" stop-opacity="0"/></linearGradient>
+          <clipPath id="c${id}"><path d="M50 10 L68 34 L50 50 L34 34 Z M34 34 L50 50 L42 90 L24 44 Z M68 34 L76 44 L58 90 L50 50 Z"/></clipPath>
+        </defs>
+        <g stroke="#eaf6ff" stroke-width="2" stroke-linejoin="round">
+          <polygon points="50,10 68,34 50,50 34,34" fill="url(#a${id})"/>
+          <polygon points="34,34 50,50 42,90 24,44" fill="url(#b${id})"/>
+          <polygon points="68,34 76,44 58,90 50,50" fill="url(#a${id})"/>
+        </g>
+        <g clip-path="url(#c${id})"><rect class="photon-icon__sweep" x="38" y="-5" width="24" height="110" fill="url(#g${id})"/></g>
+      </svg>`;
+    }
+    document.getElementById('stage').innerHTML =
+      [16,24,40,64].map(s => `<div class="col">${icon(s)}<div class="lbl">${s}px</div></div>`).join('');
+    document.getElementById('chips').innerHTML =
+      `<span class="chip">${icon(18)}1,240<span class="plus">+</span></span>` +
+      `<span class="dash">${icon(30)}<span class="big">1,240</span></span>`;
+  </script>
+</body></html>

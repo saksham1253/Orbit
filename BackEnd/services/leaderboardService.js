@@ -90,7 +90,7 @@ async function mentorsWithin(lat, lng, maxKm, excludeId) {
         _id: { $ne: excludeId },
         $or: [{ "coordinates.lat": { $ne: null } }, { "geo.point.coordinates.0": { $exists: true } }],
     })
-        .select("name avatar city region country coordinates geo cosmic trustScore averageRating sentimentScore")
+        .select("name avatar city region country coordinates geo cosmic orbit.cosmetics trustScore averageRating sentimentScore")
         .limit(2000)
         .lean();
 
@@ -120,7 +120,7 @@ async function mentorCandidates(excludeId) {
         _id: { $in: ids, $ne: excludeId },
         $or: [{ bannedUntil: null }, { bannedUntil: { $lte: now } }],
     })
-        .select("name avatar location city region country coordinates geo cosmic trustScore averageRating sentimentScore")
+        .select("name avatar location city region country coordinates geo cosmic orbit.cosmetics trustScore averageRating sentimentScore")
         .limit(MENTOR_CAP)
         .lean();
 }
@@ -224,7 +224,7 @@ async function resolvePool({ lat, lng, scope, me }) {
     if (scope === "region") {
         if (me && me.region) {
             const pool = await User.find({ _id: { $ne: me._id }, region: me.region })
-                .select("name avatar city region country cosmic trustScore averageRating sentimentScore")
+                .select("name avatar city region country cosmic orbit.cosmetics trustScore averageRating sentimentScore")
                 .limit(MAX_POOL).lean();
             if (pool.length >= 1) return { pool, label: me.region, usedFallback: false };
         }
@@ -235,7 +235,7 @@ async function resolvePool({ lat, lng, scope, me }) {
     if (scope === "country") {
         if (me && me.country) {
             const pool = await User.find({ _id: { $ne: me._id }, country: me.country })
-                .select("name avatar city region country cosmic trustScore averageRating sentimentScore")
+                .select("name avatar city region country cosmic orbit.cosmetics trustScore averageRating sentimentScore")
                 .limit(MAX_POOL).lean();
             return { pool, label: me.country, usedFallback: false };
         }
@@ -253,7 +253,7 @@ async function resolvePool({ lat, lng, scope, me }) {
     // Still sparse → widen to region, then country.
     if (me && me.region) {
         const pool = await User.find({ _id: { $ne: me._id }, region: me.region })
-            .select("name avatar city region country cosmic trustScore averageRating sentimentScore")
+            .select("name avatar city region country cosmic orbit.cosmetics trustScore averageRating sentimentScore")
             .limit(MAX_POOL).lean();
         if (pool.length >= MIN_POOL) return { pool, label: me.region, usedFallback: true };
     }
@@ -436,7 +436,8 @@ async function buildLeaderboard({ me, lat, lng, scope = "city", season = "" }) {
             title: (u.cosmic && u.cosmic.currentTitle) || "",
             flair: (u.cosmic && u.cosmic.flair) || [],
             badge: s.tier.tierId,
-            nameGlowTier: nameGlowFor(s.tier.tierId),     // v2 §8
+            nameGlowTier: nameGlowFor(s.tier.tierId),     // v2 §8 (earned tier glow)
+            nameGlow: (u.orbit && u.orbit.cosmetics && u.orbit.cosmetics.nameGlow) || null, // purchased shop glow (visible to all)
             weightedReviews: s.weightedReviews,
             reviewsCount: s.reviewsCount,
         };
@@ -458,6 +459,7 @@ async function buildLeaderboard({ me, lat, lng, scope = "city", season = "" }) {
         tierId: meScore.tier.tierId,
         score: Math.round(meScore.score * 10) / 10,
         nameGlowTier: nameGlowFor(meScore.tier.tierId),
+        nameGlow: (me.orbit && me.orbit.cosmetics && me.orbit.cosmetics.nameGlow) || null,
         progress: meScore.tier.progress,              // { mode, pct, label }
         progressToNext: meScore.tier.progressToNext,
         inTop50: youRankIdx >= 0 && youRankIdx < TOP_N,
