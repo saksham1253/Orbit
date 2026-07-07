@@ -17,8 +17,25 @@ const isNative = (() => {
   try { return Capacitor.isNativePlatform(); } catch { return false; }
 })();
 
+// FCM registration is OPT-IN. Without a valid google-services.json in the
+// Android build, Firebase never initializes, and calling PushNotifications
+// .register() makes the native FirebaseMessaging layer throw
+// "Default FirebaseApp is not initialized" — which crashes the WHOLE app to the
+// home screen (a native exception JS try/catch cannot stop). That surfaced as
+// "the APK closes every time I log in", because this runs on every authed mount.
+//
+// So push stays OFF unless the build explicitly opts in with
+// VITE_ENABLE_PUSH="true" — which you should only set once google-services.json
+// (for appId app.orbit.mobile) is in FrontEnd/android/app/. In-app + socket
+// notifications are unaffected; only the killed-app FCM tray path is gated.
+const PUSH_ENABLED = (() => {
+  try { return String(import.meta.env.VITE_ENABLE_PUSH).toLowerCase() === 'true'; }
+  catch { return false; }
+})();
+
 let onOpenLink = null;
 let lastToken = null;
+let pushStarted = false; // one-shot: never re-attempt within a session
 
 /**
  * Request permission, register with FCM, and wire the tap handler. Call from a
@@ -29,6 +46,12 @@ let lastToken = null;
 export async function initPushNotifications(navigateFn) {
   onOpenLink = typeof navigateFn === 'function' ? navigateFn : null;
   if (!isNative) return;
+  // Opt-in only + one-shot. Skipping this when push isn't configured is what
+  // prevents the every-login native crash (see PUSH_ENABLED note above).
+  if (!PUSH_ENABLED || pushStarted) return;
+  // Defensive: never touch the plugin if the native side isn't even present.
+  try { if (!Capacitor.isPluginAvailable('PushNotifications')) return; } catch { return; }
+  pushStarted = true;
 
   try {
     const { PushNotifications } = await import('@capacitor/push-notifications');
