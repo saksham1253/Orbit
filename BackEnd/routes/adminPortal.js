@@ -19,6 +19,7 @@ const cosmic = require("../controllers/adminCosmicController");
 const records = require("../controllers/adminRecordsController");
 const system = require("../controllers/adminSystemController");
 const economy = require("../controllers/adminEconomyController");
+const storeAdmin = require("../controllers/adminStoreController");
 
 // Security headers for the whole admin surface: never index, never frame.
 router.use((req, res, next) => {
@@ -68,6 +69,16 @@ router.get("/economy/ledger", adminApiLimiter, requireAdmin, economy.ledger);
 router.get("/economy/config", adminApiLimiter, requireAdmin, economy.getConfig);
 router.post("/economy/adjust", adminApiLimiter, requireAdmin, requireRole("economy"), economy.adjust);
 router.patch("/economy/config", adminApiLimiter, requireAdmin, requireRole("economy"), economy.setConfig);
+
+// Nebula Store catalog + Rarity (modules B + C) — reads open to any admin;
+// mutations require the "catalog" portal role.
+router.get("/store/items", adminApiLimiter, requireAdmin, storeAdmin.listItems);
+router.post("/store/items", adminApiLimiter, requireAdmin, requireRole("catalog"), storeAdmin.createItem);
+router.patch("/store/items/:key", adminApiLimiter, requireAdmin, requireRole("catalog"), storeAdmin.updateItem);
+router.post("/store/items/:key/archive", adminApiLimiter, requireAdmin, requireRole("catalog"), storeAdmin.archiveItem);
+router.get("/store/items/:key/analytics", adminApiLimiter, requireAdmin, storeAdmin.itemAnalytics);
+router.get("/store/rarity", adminApiLimiter, requireAdmin, storeAdmin.listRarity);
+router.patch("/store/rarity/:key", adminApiLimiter, requireAdmin, requireRole("catalog"), storeAdmin.updateRarity);
 
 // Cosmic observability
 router.get("/cosmic/rank-events", adminApiLimiter, requireAdmin, cosmic.listRankEvents);

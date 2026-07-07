@@ -18,7 +18,7 @@ function shapeShop(orbit) {
         stardust,
         owned: cosmetics.owned,
         equipped: { name_glow: cosmetics.nameGlow, background: cosmetics.background },
-        catalog: shop.CATALOG.map((c) => ({
+        catalog: shop.getLiveCatalog().map((c) => ({
             ...c,
             owned: cosmetics.owned.includes(c.key),
             equipped: cosmetics.nameGlow === c.key || cosmetics.background === c.key,
@@ -47,6 +47,13 @@ exports.buy = async (req, res) => {
 
         const user = await User.findById(req.user.id).select("orbit.cosmetics orbit.stardust").lean();
         if (!user) return res.status(404).json({ message: "User not found" });
+
+        // Only LIVE items are purchasable (draft/archived exist for equip of prior
+        // purchases but can't be bought). Missing status ⇒ default catalog ⇒ live.
+        const catItem = shop.getItem(key);
+        if (catItem && catItem.status && catItem.status !== "live") {
+            return res.status(400).json({ message: "This item isn't available", reason: "unavailable" });
+        }
 
         const result = shop.applyPurchase(
             { stardust: (user.orbit && user.orbit.stardust) || 0, cosmetics: user.orbit && user.orbit.cosmetics },

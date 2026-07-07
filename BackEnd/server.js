@@ -620,6 +620,7 @@ mongoose.connect(process.env.MONGO_URI, {
         startLeagueWorker(io); // Orbit: weekly League promotion/relegation + regroup
         require("./services/flagStore").startAutoRefresh(); // Mission Control C1: live feature flags
         require("./services/configStore").startAutoRefresh(); // Admin: live gameplay/economy config overrides
+        require("./services/cosmeticsCatalog").startAutoRefresh(); // Admin: live Nebula Store catalog (StoreItem overlay)
 
         // One-time admin bootstrap for hosts without a shell (e.g. Render free
         // tier): set RUN_ADMIN_SEED=true + ADMIN_EMAIL + ADMIN_INITIAL_PASSWORD,
