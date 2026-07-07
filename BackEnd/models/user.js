@@ -162,7 +162,12 @@ const userSchema = new mongoose.Schema({
         failedAttempts:  { type: Number, default: 0 },
         lockoutUntil:    { type: Date, default: null },
         lastAdminLoginAt:{ type: Date, default: null },
-        tokenVersion:    { type: Number, default: 0 }        // bump to revoke all admin sessions
+        tokenVersion:    { type: Number, default: 0 },       // bump to revoke all admin sessions
+        // Admin-portal RBAC tier (distinct from the top-level user `role`, which
+        // requireAdmin already forces to "admin"). Governs least-privilege access
+        // to sensitive modules. Existing admins default to "superadmin" so nothing
+        // they could do before is suddenly blocked (back-compat).
+        portalRole:      { type: String, enum: ["superadmin", "economy", "catalog", "moderator", "support", "analyst"], default: "superadmin" }
     },
 
     // Chat Enhancements

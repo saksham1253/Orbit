@@ -134,19 +134,25 @@ exports.buyFreeze = async (req, res) => {
         const user = await User.findById(req.user.id).select("orbit").lean();
         if (!user) return res.status(404).json({ message: "User not found" });
 
+        // Freeze cap/cost are admin-overridable (economyConfig overlays the engine
+        // defaults); fall back to the engine constants when no override is set.
+        const econ = require("../services/economyConfig");
+        const FREEZE_CAP = econ.value("FREEZE_CAP");
+        const FREEZE_COST = econ.value("FREEZE_STARDUST_COST");
+
         let { orbit } = rollForward(user.orbit);
-        if (orbit.freeze.tokens >= engine.FREEZE_CAP) {
+        if (orbit.freeze.tokens >= FREEZE_CAP) {
             return res.status(400).json({ message: "Gravity Assist inventory full", reason: "at_cap" });
         }
-        if (orbit.stardust < engine.FREEZE_STARDUST_COST) {
+        if (orbit.stardust < FREEZE_COST) {
             return res.status(400).json({ message: "Not enough Stardust", reason: "insufficient" });
         }
-        orbit.stardust -= engine.FREEZE_STARDUST_COST;
-        orbit.freeze.tokens = Math.min(engine.FREEZE_CAP, orbit.freeze.tokens + 1);
-        require("../services/photonLedger").record(req.user.id, -engine.FREEZE_STARDUST_COST, "freeze"); // C6 sink
+        orbit.stardust -= FREEZE_COST;
+        orbit.freeze.tokens = Math.min(FREEZE_CAP, orbit.freeze.tokens + 1);
+        require("../services/photonLedger").record(req.user.id, -FREEZE_COST, "freeze"); // C6 sink
 
         await User.updateOne({ _id: req.user.id }, { $set: { orbit } });
-        return res.status(200).json({ spent: engine.FREEZE_STARDUST_COST, ...shapeOrbit(orbit) });
+        return res.status(200).json({ spent: FREEZE_COST, ...shapeOrbit(orbit) });
     } catch (err) {
         console.error("buyFreeze error:", err);
         res.status(500).json({ message: "Server error" });

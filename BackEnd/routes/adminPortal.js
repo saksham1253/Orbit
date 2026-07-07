@@ -11,13 +11,14 @@ const express = require("express");
 const router = express.Router();
 
 const { adminAuthLimiter, adminApiLimiter } = require("../middleware/adminRateLimit");
-const { requireAdmin } = require("../middleware/adminAuth");
+const { requireAdmin, requireRole } = require("../middleware/adminAuth");
 const adminAuth = require("../controllers/adminAuthController");
 const admin = require("../controllers/adminController");
 const users = require("../controllers/adminUsersController");
 const cosmic = require("../controllers/adminCosmicController");
 const records = require("../controllers/adminRecordsController");
 const system = require("../controllers/adminSystemController");
+const economy = require("../controllers/adminEconomyController");
 
 // Security headers for the whole admin surface: never index, never frame.
 router.use((req, res, next) => {
@@ -59,6 +60,14 @@ router.patch("/users/:id", adminApiLimiter, requireAdmin, users.updateUser);
 router.post("/users/:id/role", adminApiLimiter, requireAdmin, users.setRole);
 router.post("/users/:id/status", adminApiLimiter, requireAdmin, users.setStatus);
 router.post("/users/:id/reset-password", adminApiLimiter, requireAdmin, users.triggerPasswordReset);
+
+// Economy & Photons (module A) — reads open to any admin; mutations require the
+// "economy" portal role (superadmin always passes).
+router.get("/economy/summary", adminApiLimiter, requireAdmin, economy.summary);
+router.get("/economy/ledger", adminApiLimiter, requireAdmin, economy.ledger);
+router.get("/economy/config", adminApiLimiter, requireAdmin, economy.getConfig);
+router.post("/economy/adjust", adminApiLimiter, requireAdmin, requireRole("economy"), economy.adjust);
+router.patch("/economy/config", adminApiLimiter, requireAdmin, requireRole("economy"), economy.setConfig);
 
 // Cosmic observability
 router.get("/cosmic/rank-events", adminApiLimiter, requireAdmin, cosmic.listRankEvents);
