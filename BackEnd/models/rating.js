@@ -48,7 +48,15 @@ const ratingSchema = new mongoose.Schema({
 
     // Whether this review is tied to a completed swap (Connection.status==="completed").
     // Only completed-swap reviews count toward the CosmicScore (anti-gaming gate).
-    tiedToCompletedSwap: { type: Boolean, default: false }
+    tiedToCompletedSwap: { type: Boolean, default: false },
+
+    // Admin moderation (spec I). A hidden review is withheld from public listings
+    // (the star `score` still counts toward trust unless separately handled).
+    // Reversible: restore clears these.
+    hidden:    { type: Boolean, default: false },
+    hiddenBy:  { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    hiddenAt:  { type: Date, default: null },
+    hiddenReason: { type: String, default: "" }
 }, {
     timestamps: true
 });

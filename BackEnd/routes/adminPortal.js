@@ -21,6 +21,7 @@ const system = require("../controllers/adminSystemController");
 const economy = require("../controllers/adminEconomyController");
 const storeAdmin = require("../controllers/adminStoreController");
 const progression = require("../controllers/adminProgressionController");
+const ops = require("../controllers/adminOpsController");
 
 // Security headers for the whole admin surface: never index, never frame.
 router.use((req, res, next) => {
@@ -87,6 +88,17 @@ router.get("/progression/config", adminApiLimiter, requireAdmin, progression.get
 router.get("/progression/user/:id", adminApiLimiter, requireAdmin, progression.getUser);
 router.post("/progression/user/:id/streak", adminApiLimiter, requireAdmin, requireRole("support"), progression.adjustStreak);
 router.post("/progression/user/:id/freeze", adminApiLimiter, requireAdmin, requireRole("support"), progression.grantFreeze);
+
+// Ops & Moderation (modules H + I): call monitoring, skill taxonomy, review
+// moderation. Reads open to any admin; category writes require "catalog",
+// review moderation requires "moderator".
+router.get("/ops/calls", adminApiLimiter, requireAdmin, ops.listCalls);
+router.get("/ops/categories", adminApiLimiter, requireAdmin, ops.listCategories);
+router.post("/ops/categories", adminApiLimiter, requireAdmin, requireRole("catalog"), ops.createCategory);
+router.patch("/ops/categories/:slug", adminApiLimiter, requireAdmin, requireRole("catalog"), ops.updateCategory);
+router.get("/ops/reviews", adminApiLimiter, requireAdmin, ops.listReviews);
+router.post("/ops/reviews/:id/hide", adminApiLimiter, requireAdmin, requireRole("moderator"), ops.setReviewHidden(true));
+router.post("/ops/reviews/:id/restore", adminApiLimiter, requireAdmin, requireRole("moderator"), ops.setReviewHidden(false));
 
 // Cosmic observability
 router.get("/cosmic/rank-events", adminApiLimiter, requireAdmin, cosmic.listRankEvents);
