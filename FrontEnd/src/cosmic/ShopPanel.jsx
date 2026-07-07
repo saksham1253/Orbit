@@ -6,7 +6,8 @@
  * and reflects owned / equipped / affordable state. Purchases refresh the
  * Photons balance shown elsewhere on the page.
  */
-import { Sparkles, Check, Lock } from 'lucide-react';
+import { Check, Lock } from 'lucide-react';
+import PhotonIcon from './PhotonIcon';
 import { useShop, useBuyCosmetic, useEquipCosmetic } from './useShop';
 import { COSMETIC_RENDER } from './cosmetics';
 import { useUIStore } from '../store/uiStore';
@@ -41,7 +42,7 @@ function CosmeticCard({ item, onBuy, onEquip, busy }) {
               ? 'bg-gradient-to-r from-amber-400 to-violet-500 text-slate-900 hover:brightness-110'
               : 'bg-white/5 text-slate-500 cursor-not-allowed'}`}
         >
-          {item.affordable ? <Sparkles size={13} /> : <Lock size={13} />} {item.cost}
+          {item.affordable ? <PhotonIcon size={13} animated={false} /> : <Lock size={13} />} {item.cost}
         </button>
       ) : item.equipped ? (
         <button
@@ -87,10 +88,10 @@ export default function ShopPanel() {
   return (
     <section className="rounded-2xl border border-white/10 bg-slate-900/30 p-4">
       <div className="flex items-center gap-2 mb-3">
-        <Sparkles size={18} className="text-violet-300" />
+        <PhotonIcon size={18} animated={false} />
         <h2 className="text-base font-bold text-white">Photon Shop</h2>
         <span className="ml-auto inline-flex items-center gap-1 text-sm font-bold text-violet-200">
-          <Sparkles size={14} /> {data.photons ?? data.stardust}
+          <PhotonIcon size={14} /> {data.photons ?? data.stardust}
         </span>
       </div>
 

@@ -9,6 +9,7 @@ import ChatDrawer from '../chat/ChatDrawer';
 import NotificationBell from '../notifications/NotificationBell';
 import { unregisterPush } from '../../utils/pushNotify';
 import OrbitStreakBadge from '../../cosmic/OrbitStreakBadge';
+import PhotonsChip from '../../cosmic/PhotonsChip';
 import {
   LogOut, Layers, Compass, Users, Map,
   ShieldCheck, UserCircle, Menu, X, Handshake, Settings as SettingsIcon, MessageCircle, Phone, Trophy, Rocket, Music, VolumeX
@@ -225,6 +226,8 @@ const Navbar = () => {
             <div className="flex items-center gap-1.5 flex-shrink-0">
               {/* Orbit streak — glanceable loss-aversion cue (pulses when decaying) */}
               <OrbitStreakBadge variant="nav" className="hidden sm:inline-flex" />
+              {/* Photons currency chip — live balance, tap → shop */}
+              <PhotonsChip variant="nav" className="hidden sm:inline-flex" />
               <NavLink to="/profile" title="Profile"
                 className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all text-text-secondary hover:text-text-primary bg-surface border border-border-subtle"
               >
