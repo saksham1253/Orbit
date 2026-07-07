@@ -14,8 +14,9 @@
  * wired to a local preview for now and will deep-link into /holobay when it ships.
  */
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Check, Lock, Sparkles as SparkIcon } from 'lucide-react';
+import { Check, Lock, Sparkles as SparkIcon, FlaskConical } from 'lucide-react';
 import PhotonIcon from '../cosmic/PhotonIcon';
 import ItemIcon from '../cosmic/itemIcons';
 import { useShop, useBuyCosmetic, useEquipCosmetic } from '../cosmic/useShop';
@@ -220,13 +221,22 @@ export default function Shop() {
               Nebula Store
             </h1>
           </div>
-          <div className="ml-auto inline-flex items-center gap-2 rounded-full bg-white/5 px-3 py-1.5 ring-1 ring-violet-400/40 backdrop-blur"
-               style={{ boxShadow: '0 0 16px rgba(139,92,246,.25)' }}>
-            <PhotonIcon size={16} />
-            <span className="text-sm font-black tabular-nums text-violet-100">
-              {(data?.photons ?? data?.stardust ?? 0).toLocaleString()}
-            </span>
-            <span className="text-[11px] font-semibold text-slate-400">Photons</span>
+          <div className="ml-auto flex items-center gap-2">
+            <Link
+              to="/holobay"
+              className="inline-flex items-center gap-1.5 rounded-full bg-cyan-400/10 px-3 py-1.5 text-xs font-bold text-cyan-200 ring-1 ring-cyan-400/40 hover:bg-cyan-400/20"
+              title="Try any look on a live hologram before you buy"
+            >
+              <FlaskConical size={14} /> Holo-Bay
+            </Link>
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/5 px-3 py-1.5 ring-1 ring-violet-400/40 backdrop-blur"
+                 style={{ boxShadow: '0 0 16px rgba(139,92,246,.25)' }}>
+              <PhotonIcon size={16} />
+              <span className="text-sm font-black tabular-nums text-violet-100">
+                {(data?.photons ?? data?.stardust ?? 0).toLocaleString()}
+              </span>
+              <span className="text-[11px] font-semibold text-slate-400">Photons</span>
+            </div>
           </div>
         </div>
         <p className="mt-1.5 text-sm text-slate-400">
