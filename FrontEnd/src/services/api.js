@@ -5,8 +5,6 @@ import { useAuthStore } from '../store/authStore';
 // Read once; used to request a long-lived session on the APK (see interceptor).
 let IS_NATIVE = false;
 try {
-  // Lazy require so the web bundle doesn't hard-depend on the plugin at import time.
-  // eslint-disable-next-line global-require
   IS_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 } catch { IS_NATIVE = false; }
 
@@ -39,13 +37,27 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor: handle 401
+// Response interceptor: handle 401.
+//
+// A 401 means the session is genuinely gone (expired/invalid token), so we log
+// out and send the user to /login. Two guards make this safe on the APK, where
+// a full-page redirect reloads the whole WebView:
+//   1. Only redirect ONCE — a dashboard load fires several requests at once, so
+//      a single expiry would otherwise trigger a burst of concurrent 401s, each
+//      hard-reloading the WebView. That reload storm reads as "the app keeps
+//      closing/restarting after login". `redirecting` collapses the burst to one.
+//   2. Skip entirely if there's no token in the store (already logged out) — a
+//      401 on a public request must never bounce a signed-out user around.
+let redirecting = false;
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401 && window.location.pathname !== '/login') {
-      useAuthStore.getState().logout();
-      window.location.href = '/login';
+    const is401 = error.response?.status === 401;
+    const hasToken = !!useAuthStore.getState().token;
+    if (is401 && hasToken && !redirecting && window.location.pathname !== '/login') {
+      redirecting = true;                 // collapse concurrent 401s to a single redirect
+      useAuthStore.getState().logout();   // clears the persisted token synchronously
+      window.location.replace('/login');  // replace() so the dead session isn't in history
     }
     return Promise.reject(error);
   }

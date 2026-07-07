@@ -8,6 +8,38 @@ import ErrorBoundary from './components/common/ErrorBoundary.jsx';
 import { useThemeStore } from './store/themeStore.js';
 import { initWebVitals } from './utils/reportWebVitals.js';
 
+// ── Global crash observability (esp. the APK) ──────────────────────────────
+// The Android WebView can be killed by an uncaught error or an unhandled
+// promise rejection with no visible React error screen — the app simply
+// "closes". These listeners surface the real message + stack in `adb logcat`
+// (and the on-device console), turning an invisible native close into a
+// diagnosable line. They only log — they never swallow or alter behavior.
+if (typeof window !== 'undefined') {
+  window.addEventListener('error', (e) => {
+    console.error('[global error]', e?.message, e?.error?.stack || '', e?.filename, e?.lineno);
+  });
+  window.addEventListener('unhandledrejection', (e) => {
+    const r = e?.reason;
+    console.error('[unhandled rejection]', r?.message || r, r?.stack || '');
+  });
+
+  // Reload-loop detector — a purely diagnostic tripwire. If the document reloads
+  // many times within a few seconds (the "logs in → app restarts again and
+  // again" symptom), log it loudly so logcat shows the loop instead of a silent
+  // flicker. Diagnostic only: it does not stop the reloads, so it can't mask a
+  // real fix — it just makes the loop unmistakable in the logs.
+  try {
+    const KEY = '__reloadTrace';
+    const now = Date.now();
+    const trace = JSON.parse(sessionStorage.getItem(KEY) || '[]').filter((t) => now - t < 8000);
+    trace.push(now);
+    sessionStorage.setItem(KEY, JSON.stringify(trace));
+    if (trace.length >= 4) {
+      console.error(`[reload-loop] ${trace.length} reloads in <8s — the app is restarting in a loop (last path: ${window.location.pathname})`);
+    }
+  } catch { /* sessionStorage unavailable — skip the tripwire */ }
+}
+
 // Initialize theme on app load
 useThemeStore.getState().initializeTheme();
 
