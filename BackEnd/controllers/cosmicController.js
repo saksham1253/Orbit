@@ -23,7 +23,7 @@ exports.getLeaderboard = async (req, res) => {
         const season = req.query.season || "";
 
         const me = await User.findById(req.user.id)
-            .select("name avatar location city region country coordinates geo cosmic")
+            .select("name avatar location city region country coordinates geo cosmic orbit.cosmetics")
             .lean();
         if (!me) return res.status(404).json({ message: "User not found" });
 
@@ -58,7 +58,7 @@ exports.getLeaderboard = async (req, res) => {
 // ─────────────────────────────────────────────────────────────
 exports.getMentorCosmic = async (req, res) => {
     try {
-        const mentor = await User.findById(req.params.id).select("name cosmic city region country").lean();
+        const mentor = await User.findById(req.params.id).select("name cosmic city region country orbit.cosmetics").lean();
         if (!mentor) return res.status(404).json({ message: "User not found" });
 
         const now = Date.now();
@@ -144,7 +144,9 @@ exports.getMentorCosmic = async (req, res) => {
             progressToNext: tier.progressToNext,
             gated: tier.gated,
             gateReason: tier.gateReason,
-            nameGlowTier: glow,                   // v2 §8
+            nameGlowTier: glow,                   // v2 §8 (earned tier glow)
+            nameGlow: (mentor.orbit && mentor.orbit.cosmetics && mentor.orbit.cosmetics.nameGlow) || null,   // purchased shop glow
+            background: (mentor.orbit && mentor.orbit.cosmetics && mentor.orbit.cosmetics.background) || null, // purchased nebula bg
             direction: tier.direction,            // v4: 'up' | 'down' | null
             pendingMomentTierId: tierChanged ? tier.tierId : (mentor.cosmic && mentor.cosmic.pendingMomentTierId) || null,
             pendingMomentDirection: tierChanged ? tier.direction : (mentor.cosmic && mentor.cosmic.pendingMomentDirection) || null,
@@ -173,7 +175,7 @@ exports.getObservatory = async (req, res) => {
     try {
         const cityParam = (req.params.city || "").trim();
         const me = await User.findById(req.user.id)
-            .select("name location city region country coordinates geo cosmic").lean();
+            .select("name location city region country coordinates geo cosmic orbit.cosmetics").lean();
         if (!me) return res.status(404).json({ message: "User not found" });
 
         // §8.5 — unify the Observatory candidate set with the leaderboard/Browse
@@ -214,6 +216,7 @@ exports.getObservatory = async (req, res) => {
                     userId: String(u._id),
                     name: u.name,
                     avatar: u.avatar || "",
+                    nameGlow: (u.orbit && u.orbit.cosmetics && u.orbit.cosmetics.nameGlow) || null, // purchased glow, visible to all
                     score: Math.round(s.score * 10) / 10,
                     tierId: s.tier.tierId,
                     climb: Math.round((s.score - baseline) * 10) / 10,

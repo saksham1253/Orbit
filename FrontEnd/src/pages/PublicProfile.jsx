@@ -6,6 +6,8 @@ import { ShieldCheck, MapPin, Globe, Star, Link as LinkIcon, Calendar } from 'lu
 import { format, formatDistanceToNow } from 'date-fns';
 import api from '../services/api';
 import Avatar from '../components/common/Avatar';
+import GlowName from '../cosmic/GlowName';
+import { equippedFromUser } from '../cosmic/cosmetics';
 import { ProfileHeaderSkeleton, SkillGridSkeleton } from '../components/skeletons';
 import ErrorState from '../components/common/ErrorState';
 import CosmicProfileCard from '../cosmic/CosmicProfileCard';
@@ -54,9 +56,9 @@ const PublicProfile = () => {
         <meta name="description" content={`Check out ${user.name}'s profile on Orbit.`} />
       </Helmet>
 
-      {/* Header Profile Card */}
+      {/* Header Profile Card — shows THIS user's equipped nebula background to viewers */}
       <motion.div
-        className="card-glass p-6 sm:p-10 relative overflow-hidden flex flex-col md:flex-row items-center md:items-start gap-6 sm:gap-10"
+        className={`card-glass p-6 sm:p-10 relative overflow-hidden flex flex-col md:flex-row items-center md:items-start gap-6 sm:gap-10 ${equippedFromUser(user).bgClass}`}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
@@ -65,7 +67,7 @@ const PublicProfile = () => {
         <div className="flex-1 text-center md:text-left space-y-4 w-full">
           <div>
             <h1 className="text-3xl font-display font-bold text-text-primary flex items-center justify-center md:justify-start gap-2">
-              {user.name}
+              <GlowName user={user} exploring>{user.name}</GlowName>
               {user.trustScore >= 80 && (
                 <ShieldCheck className="text-accent" size={20} title="Highly Trusted" />
               )}

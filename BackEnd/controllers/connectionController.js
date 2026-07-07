@@ -82,13 +82,13 @@ exports.requestConnection = async (req, res) => {
 exports.getPendingConnections = async (req, res) => {
     try {
         const incoming = await Connection.find({ receiver: req.user.id, status: "pending" })
-            .populate("requester", "name email trustScore location avatar")
+            .populate("requester", "name email trustScore location avatar orbit.cosmetics cosmic.nameGlowTier")
             .populate("skill", "skillOffered skillWanted level")
             .sort({ createdAt: -1 })
             .lean();
 
         const outgoing = await Connection.find({ requester: req.user.id })
-            .populate("receiver", "name email trustScore location avatar")
+            .populate("receiver", "name email trustScore location avatar orbit.cosmetics cosmic.nameGlowTier")
             .populate("skill", "skillOffered")
             .sort({ createdAt: -1 })
             .lean();
@@ -113,8 +113,8 @@ exports.getMyConnections = async (req, res) => {
             $or: [{ requester: userId }, { receiver: userId }],
             status: 'accepted'
         })
-        .populate('requester', 'name email trustScore location avatar')
-        .populate('receiver',  'name email trustScore location avatar')
+        .populate('requester', 'name email trustScore location avatar orbit.cosmetics cosmic.nameGlowTier')
+        .populate('receiver',  'name email trustScore location avatar orbit.cosmetics cosmic.nameGlowTier')
         .populate('skill', 'skillOffered skillWanted level')
         .sort({ updatedAt: -1 })
         .lean();
@@ -146,8 +146,8 @@ exports.getCompletedConnections = async (req, res) => {
             $or: [{ requester: userId }, { receiver: userId }],
             status: 'completed'
         })
-        .populate('requester', 'name email trustScore location avatar totalRatings')
-        .populate('receiver',  'name email trustScore location avatar totalRatings')
+        .populate('requester', 'name email trustScore location avatar totalRatings orbit.cosmetics cosmic.nameGlowTier')
+        .populate('receiver',  'name email trustScore location avatar totalRatings orbit.cosmetics cosmic.nameGlowTier')
         .populate('skill', 'skillOffered skillWanted level')
         .sort({ completedAt: -1, updatedAt: -1 })
         .lean();

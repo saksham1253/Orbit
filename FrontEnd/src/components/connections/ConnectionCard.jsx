@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Check, X, Video, Star, Clock, UserCheck, Trash2, MessageSquare, MessageCircle } from 'lucide-react';
 import api from '../../services/api';
 import Avatar from '../common/Avatar';
+import GlowName from '../../cosmic/GlowName';
 import { useUIStore } from '../../store/uiStore';
 import { useAuthStore } from '../../store/authStore';
 import { useNotificationStore } from '../../store/notificationStore';
@@ -129,7 +130,7 @@ const ConnectionCard = ({ connection, type, onRate, onViewRatings }) => {
 
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h4 className="font-semibold text-text-primary truncate">{other?.name || 'Unknown User'}</h4>
+            <h4 className="font-semibold text-text-primary truncate"><GlowName user={other}>{other?.name || 'Unknown User'}</GlowName></h4>
             {ts !== undefined && (
               <span className="text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1"
                 style={{ background: trustBg, border: `1px solid ${trustColor}30`, color: trustColor }}

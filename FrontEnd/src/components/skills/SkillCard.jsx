@@ -8,6 +8,7 @@ import api from '../../services/api';
 import Avatar from '../common/Avatar';
 import CosmicBadge from '../../cosmic/CosmicBadge';
 import TierProgress from '../../cosmic/TierProgress';
+import GlowName from '../../cosmic/GlowName';
 import MasteryBar from '../../cosmic/MasteryBar';
 import { useAuthStore } from '../../store/authStore';
 import { useUIStore } from '../../store/uiStore';
@@ -73,7 +74,7 @@ const SkillCard = memo(({ skill, variant = 'browse', onConnect, onViewRatings })
         <div className="flex items-center gap-3 min-w-0">
           <Avatar name={owner?.name} url={owner?.avatar} size="md" userId={owner?._id} />
           <div className="min-w-0">
-            <p className="font-semibold text-text-primary text-sm truncate">{owner?.name || 'Unknown'}</p>
+            <p className="font-semibold text-text-primary text-sm truncate"><GlowName user={owner}>{owner?.name || 'Unknown'}</GlowName></p>
             <div className="flex items-center gap-2 mt-0.5">
               {owner?.location && (
                 <span className="text-xs text-text-muted truncate max-w-[100px]">{owner.location}</span>

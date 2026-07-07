@@ -17,7 +17,7 @@ import { useAuthStore } from '../store/authStore';
 import { useLeaderboard } from '../cosmic/useCosmic';
 import CosmicBadge from '../cosmic/CosmicBadge';
 import CosmicLoader from '../cosmic/CosmicLoader';
-import CosmicName from '../cosmic/CosmicName';
+import GlowName from '../cosmic/GlowName';
 import { getTier, TIER_FLOORS, TIER_ORDER } from '../cosmic/tiers';
 import { InfoDot } from '../cosmic/scoreInfo';
 import Avatar from '../components/common/Avatar';
@@ -323,7 +323,7 @@ export default function Leaderboard() {
                     <Avatar name={e.name} url={e.avatar} size="sm" userId={e.userId} />
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-semibold text-text-primary truncate flex items-center gap-1.5">
-                        <CosmicName glow={e.nameGlowTier}>{e.name}</CosmicName>{isMe && <span className="text-[9px] text-accent font-semibold opacity-70">you</span>}
+                        <GlowName nameGlowTier={e.nameGlowTier} cosmeticGlowKey={e.nameGlow}>{e.name}</GlowName>{isMe && <span className="text-[9px] text-accent font-semibold opacity-70">you</span>}
                       </div>
                       <div className="text-xs text-text-muted truncate">
                         {getTier(e.tierId).displayName}{e.title ? ` · ${e.title}` : ''}
@@ -359,7 +359,7 @@ export default function Leaderboard() {
             <Avatar name={data.you.name} url={data.you.avatar} size="sm" userId={data.you.userId} />
             <div className="flex-1 min-w-0">
               <div className="text-sm font-semibold text-text-primary truncate flex items-center gap-1.5">
-                <CosmicName glow={data.you.nameGlowTier}>{data.you.name}</CosmicName>
+                <GlowName nameGlowTier={data.you.nameGlowTier} cosmeticGlowKey={data.you.nameGlow}>{data.you.name}</GlowName>
                 <span className="text-[9px] text-accent font-semibold opacity-80">· jump to you</span>
                 {!data.you.inTop50 && <span className="text-[9px] text-text-muted">· outside top 50</span>}
               </div>
