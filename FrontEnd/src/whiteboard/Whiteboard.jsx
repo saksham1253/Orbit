@@ -52,6 +52,7 @@ export default function Whiteboard({ socket, pc, roomId, user, otherUser, onClos
   const boardRef = useRef(null);
   const syncRef = useRef(null);
   const drawRef = useRef({});
+  const textAreaRef = useRef(null);
   const senderId = user?._id || 'me';
 
   const tool = useRef('pen');
@@ -191,7 +192,17 @@ export default function Whiteboard({ socket, pc, roomId, user, otherUser, onClos
       } else if (t === 'laser') {
         board.addLaser(x, y, sync.color); sync.sendLaser(x, y); drawRef.current = { mode: 'laser' };
       } else if (t === 'text') {
-        setTextEditor({ cssX, cssY, world: { x, y }, value: '', id: null });
+        // Release the canvas pointer capture so focus can move to the <textarea>
+        // — critical on touch, where a captured canvas keeps the soft keyboard
+        // from ever opening (the old "the T tool does nothing on mobile" bug).
+        cv.releasePointerCapture?.(e.pointerId);
+        // Create the text object UP-FRONT (mirrors sticky) so a tap always yields
+        // an editable, already-broadcast element; an empty commit deletes it again
+        // in commitText. This removes the "empty blur = nothing happened" dead end.
+        const o = { id: nextLocalId(senderId), type: 'text', x, y, text: '', color: color.current, size: fontSize.current };
+        board.addObject(o); board.setSelection([o.id]);
+        setTextEditor({ cssX, cssY, world: { x, y }, value: '', id: o.id });
+        setTool('select');
         drawRef.current = {};
       } else if (t === 'sticky') {
         const o = { id: nextLocalId(senderId), type: 'sticky', x, y, w: 160, h: 120, text: '', color: stickyColor.current };
@@ -344,8 +355,11 @@ export default function Whiteboard({ socket, pc, roomId, user, otherUser, onClos
 
   // ── UI actions ────────────────────────────────────────────────────────────
   const applyColor = (c) => { color.current = c; setUi((u) => ({ ...u, color: c })); if (boardRef.current.selection.size) boardRef.current.selection.forEach((id) => boardRef.current.updateObject(id, { color: c })); };
-  const applyWidth = (w) => { width.current = w; setUi((u) => ({ ...u, width: w })); };
-  const applyFill = (f) => { fill.current = f; setUi((u) => ({ ...u, fill: f })); };
+  // Width/fill mirror applyColor: update the tool default AND any current
+  // selection (which broadcasts via updateObject → onLocalOp → sendOp), so a
+  // style tweak to an existing shape shows up for the peer, not just future draws.
+  const applyWidth = (w) => { width.current = w; setUi((u) => ({ ...u, width: w })); const b = boardRef.current; if (b.selection.size) b.selection.forEach((id) => b.updateObject(id, { width: w })); };
+  const applyFill = (f) => { fill.current = f; setUi((u) => ({ ...u, fill: f })); const b = boardRef.current; if (b.selection.size) b.selection.forEach((id) => b.updateObject(id, { fill: f })); };
 
   const commitText = () => {
     const te = textEditor; if (!te) { return; }
@@ -359,6 +373,23 @@ export default function Whiteboard({ socket, pc, roomId, user, otherUser, onClos
     }
     setTextEditor(null);
   };
+
+  // Focus the inline text editor imperatively when it OPENS (keyed by object id),
+  // rather than relying on autoFocus on an async-mounted textarea. The rAF lets
+  // the element mount first; this reliably opens the mobile soft keyboard, which
+  // autoFocus alone often fails to do after a pointer gesture. select() when
+  // re-editing existing text so typing replaces it.
+  useEffect(() => {
+    if (!textEditor) return;
+    const raf = requestAnimationFrame(() => {
+      const el = textAreaRef.current;
+      if (!el) return;
+      el.focus();
+      if (el.value) el.select();
+    });
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [textEditor?.id]);
 
   const insertRich = () => {
     const r = rich; if (!r || !r.value.trim()) { setRich(null); return; }
@@ -527,13 +558,21 @@ export default function Whiteboard({ socket, pc, roomId, user, otherUser, onClos
       {/* inline text editor */}
       {textEditor && (
         <textarea
+          ref={textAreaRef}
           className="wb-text-edit"
           autoFocus
+          inputMode="text"
           style={{ left: textEditor.cssX, top: textEditor.cssY, color: textEditor.sticky ? '#1a1a2e' : ui.color, fontSize: (textEditor.sticky ? 15 : fontSize.current) }}
           value={textEditor.value}
           onChange={(e) => setTextEditor((t) => ({ ...t, value: e.target.value }))}
           onBlur={commitText}
-          onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) commitText(); if (e.key === 'Escape') setTextEditor(null); }}
+          onKeyDown={(e) => {
+            // Plain Enter commits; Shift+Enter (or Ctrl/Cmd+Enter) inserts a newline.
+            if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey) { e.preventDefault(); commitText(); }
+            // Escape also commits so a freshly-created empty box is cleaned up
+            // (commitText deletes it when empty) instead of orphaning on the board.
+            else if (e.key === 'Escape') { e.preventDefault(); commitText(); }
+          }}
         />
       )}
 

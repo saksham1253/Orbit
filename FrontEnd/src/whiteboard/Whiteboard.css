@@ -1,4 +1,16 @@
-/* Orbit Whiteboard — themed with the app's cosmic CSS variables (index.css). */
+/* Orbit Whiteboard — themed with the app's cosmic CSS variables (index.css).
+ *
+ * Z-INDEX SCALE (documented so overlays stop colliding). The whole board renders
+ * inside the call stage under a single wrapper (VideoCall.jsx). Within the board:
+ *   canvas base/live ...... 1–2
+ *   glass panels .......... 5   (toolbar, style bar, react bar, top bars, pages, chat, menu)
+ *   reactions / peer-hand .. 6
+ *   inline text editor .... 7
+ *   modals (math/code/export) 9
+ * ABOVE the board, in the call layer, the draggable video PiP tiles sit at 30 so
+ * you can always see the video; they are collapsible/movable so they never
+ * permanently block a control. App-level modals live above everything.
+ */
 .wb-root {
   position: absolute; inset: 0; overflow: hidden;
   background: var(--bg-app, #060810);
@@ -117,11 +129,29 @@
 .wb-modal-actions button { padding: 9px 18px; border-radius: 10px; border: 1px solid var(--border-subtle); background: transparent; color: var(--text-secondary); font-weight: 600; font-size: 13px; cursor: pointer; }
 .wb-modal-actions .wb-primary { border: none; background: linear-gradient(135deg, var(--accent-1), var(--accent-3)); color: #fff; }
 
-/* mobile */
+/* Palette never overflows the viewport: the swatch row scrolls horizontally
+   inside the (already wrapping, max-width:92vw) style bar instead of clipping. */
+.wb-swatches { max-width: 100%; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.wb-swatches::-webkit-scrollbar { display: none; }
+
+/* mobile: the board lives inside the call stage (above the call control bar), so
+   these bottom offsets stack the docked panels WITHIN the stage and distribute
+   them (tools bottom-center, style bar above, reactions bottom-LEFT) so they clear
+   the default bottom-right self-view PiP. The PiP is also draggable, so the user
+   can always move it off any control. */
 @media (max-width: 640px) {
-  .wb-toolbar { top: auto; bottom: calc(70px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); flex-direction: row; max-width: 94vw; overflow-x: auto; max-height: none; }
-  .wb-stylebar { bottom: calc(118px + env(safe-area-inset-bottom, 0px)); }
-  .wb-react-bar { bottom: calc(118px + env(safe-area-inset-bottom, 0px)); right: 8px; }
+  .wb-toolbar { top: auto; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); flex-direction: row; max-width: calc(100vw - 16px); overflow-x: auto; max-height: none; }
+  .wb-stylebar { bottom: calc(64px + env(safe-area-inset-bottom, 0px)); max-width: calc(100vw - 12px); }
+  .wb-react-bar { bottom: calc(64px + env(safe-area-inset-bottom, 0px)); left: 8px; right: auto; }
   .wb-chat, .wb-pages { width: 92vw; left: 4vw; right: 4vw; }
   .wb-tool { width: 42px; height: 42px; }
+  /* free up the top row so the title can't overlap the zoom/toolbar cluster */
+  .wb-title { display: none; }
 }
+
+/* Reduced-motion / Animation-Speed Off: freeze the floating reaction so the
+   board matches the app-wide motion setting (App.jsx sets [data-anim-off]). */
+@media (prefers-reduced-motion: reduce) {
+  .wb-react-float { animation: none; opacity: 1; }
+}
+[data-anim-off="true"] .wb-react-float { animation: none; opacity: 1; }

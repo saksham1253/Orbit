@@ -12,9 +12,25 @@ import Avatar from '../components/common/Avatar';
 import { VideoCallHistorySkeleton } from '../components/skeletons';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 import io from 'socket.io-client';
+import DraggableVideoTile from '../whiteboard/DraggableVideoTile';
+import useCallLayoutStore from '../store/callLayoutStore';
 
 // Whiteboard is a large module — load it only when a call actually opens it.
 const Whiteboard = lazy(() => import('../whiteboard/Whiteboard'));
+
+// Small matchMedia hook — true on phone-portrait widths (drives the compact
+// control bar). SSR-safe and updates on rotate/resize.
+const useIsMobile = () => {
+  const [m, setM] = useState(() => typeof window !== 'undefined' && window.matchMedia?.('(max-width: 640px)').matches);
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mq = window.matchMedia('(max-width: 640px)');
+    const on = (e) => setM(e.matches);
+    mq.addEventListener?.('change', on);
+    return () => mq.removeEventListener?.('change', on);
+  }, []);
+  return m;
+};
 
 // Capacitor Android/iOS WebView detection (screen-share APIs differ there).
 const isNativeApp = () => !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
@@ -42,6 +58,11 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller, autoBoard }) => {
   const [isConnecting, setIsConnecting] = useState(true);
   const [showWhiteboard, setShowWhiteboard] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+
+  const isMobile = useIsMobile();
+  // Reset-layout affordance for the draggable PiP tiles (Phase C).
+  const resetLayout = useCallLayoutStore((s) => s.resetLayout);
+  const layoutCustomized = useCallLayoutStore((s) => !!(s.self || s.remote));
 
   useEffect(() => {
     setVideoCallActive(true);
@@ -335,6 +356,13 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller, autoBoard }) => {
     }
   }, [showWhiteboard, isConnected]);
 
+  // Control-bar sizing — compact on phone-portrait so 5 controls + the safe-area
+  // inset fit one row without clipping; roomier on desktop.
+  const btn = isMobile
+    ? { size: 46, big: 54, icon: 19, gap: 12, padY: 12 }
+    : { size: 56, big: 64, icon: 22, gap: 20, padY: 18 };
+  const ctrlBtn = { width: btn.size, height: btn.size, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid rgba(255,255,255,0.18)', cursor: 'pointer', transition: 'background 0.2s' };
+
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#000', display: 'flex', flexDirection: 'column', zIndex: 9999 }}>
       {/* Remote video area */}
@@ -350,7 +378,7 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller, autoBoard }) => {
         {isConnecting && (
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.88)' }}>
             <div style={{ textAlign: 'center' }}>
-              <div className="animate-spin" style={{ width: 60, height: 60, border: '4px solid rgba(255,255,255,0.15)', borderTopColor: '#00c6ff', borderRadius: '50%', margin: '0 auto 16px' }} />
+              <div className="animate-spin motion-reduce:animate-none" style={{ width: 60, height: 60, border: '4px solid rgba(255,255,255,0.15)', borderTopColor: '#00c6ff', borderRadius: '50%', margin: '0 auto 16px' }} />
               <p style={{ color: '#fff', fontSize: 18, marginBottom: 8, fontWeight: 600 }}>Connecting...</p>
               <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 13 }}>Waiting for the other person to join</p>
             </div>
@@ -373,31 +401,43 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller, autoBoard }) => {
           </Suspense>
         )}
 
-        {/* Remote video PiP — shown top-left while the board is open */}
+        {/* Remote video PiP — draggable while the board covers the stage.
+            (video pointerEvents:none so the tile's drag handlers get the gesture) */}
         {showWhiteboard && (
-          <div style={{ position: 'absolute', top: 60, left: 12, width: 150, height: 100, borderRadius: 12, overflow: 'hidden', border: '2px solid rgba(255,255,255,0.25)', boxShadow: '0 8px 32px rgba(0,0,0,0.6)', zIndex: 30, background: '#111' }}>
-            <video ref={remotePipRef} autoPlay playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          </div>
+          <DraggableVideoTile tileId="remote" defaultCorner="tl" defaultSize={{ w: 150, h: 110 }} label="Their video">
+            <video ref={remotePipRef} autoPlay playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }} />
+          </DraggableVideoTile>
         )}
 
-        {/* Local video PiP — bottom-right */}
-        <div style={{ position: 'absolute', bottom: 16, right: 16, width: 160, height: 120, borderRadius: 12, overflow: 'hidden', border: '2px solid rgba(255,255,255,0.25)', boxShadow: '0 8px 32px rgba(0,0,0,0.6)', zIndex: 30 }}>
+        {/* Local self-view PiP — draggable/resizable, snaps to corners, persists */}
+        <DraggableVideoTile tileId="self" defaultCorner="br" defaultSize={{ w: 160, h: 120 }} label="Your video">
           <video
             ref={localVideoRef}
             autoPlay
             playsInline
             muted
-            style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)', pointerEvents: 'none' }}
           />
           {!isVideoEnabled && (
-            <div style={{ position: 'absolute', inset: 0, background: '#1a1a2e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ position: 'absolute', inset: 0, background: '#1a1a2e', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
               <VideoOff size={28} color="rgba(255,255,255,0.4)" />
             </div>
           )}
-        </div>
+        </DraggableVideoTile>
+
+        {/* Reset the tuned tile layout back to default corners (only shown once moved) */}
+        {layoutCustomized && (
+          <button
+            onClick={resetLayout}
+            title="Reset video layout"
+            style={{ position: 'absolute', top: `calc(16px + env(safe-area-inset-top, 0px))`, right: `calc(16px + env(safe-area-inset-right, 0px))`, zIndex: 12, padding: '6px 12px', borderRadius: 999, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+          >
+            Reset layout
+          </button>
+        )}
 
         {/* Connection status badge */}
-        <div style={{ position: 'absolute', top: 16, left: 16, display: 'flex', alignItems: 'center', gap: 8, padding: '6px 14px', borderRadius: 999, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)', zIndex: 10 }}>
+        <div style={{ position: 'absolute', top: `calc(16px + env(safe-area-inset-top, 0px))`, left: `calc(16px + env(safe-area-inset-left, 0px))`, maxWidth: '55vw', display: 'flex', alignItems: 'center', gap: 8, padding: '6px 14px', borderRadius: 999, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)', zIndex: 10 }}>
           <span style={{ width: 8, height: 8, borderRadius: '50%', background: isConnected ? '#22c55e' : '#f59e0b', display: 'inline-block' }} />
           <span style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>
             {isConnected ? `Connected · ${otherUser?.name || 'User'}` : 'Waiting for peer...'}
@@ -405,16 +445,17 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller, autoBoard }) => {
         </div>
       </div>
 
-      {/* Controls bar — always visible at bottom */}
-      <div style={{ flexShrink: 0, padding: '18px 24px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20, background: 'rgba(0,0,0,0.92)', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+      {/* Controls bar — always visible at bottom. Sizes shrink on phone-portrait
+          and the bar honors the home-indicator safe-area so nothing is clipped. */}
+      <div style={{ flexShrink: 0, padding: `${btn.padY}px 16px calc(${btn.padY}px + env(safe-area-inset-bottom, 0px))`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: btn.gap, background: 'rgba(0,0,0,0.92)', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
         {/* Mic */}
         <button
           onClick={toggleAudio}
           title={isAudioEnabled ? 'Mute mic' : 'Unmute mic'}
           aria-label={isAudioEnabled ? 'Mute microphone' : 'Unmute microphone'}
-          style={{ width: 56, height: 56, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: isAudioEnabled ? 'rgba(255,255,255,0.12)' : '#ef4444', border: '2px solid rgba(255,255,255,0.18)', cursor: 'pointer', transition: 'background 0.2s' }}
+          style={{ ...ctrlBtn, background: isAudioEnabled ? 'rgba(255,255,255,0.12)' : '#ef4444' }}
         >
-          {isAudioEnabled ? <Mic size={22} color="#fff" /> : <MicOff size={22} color="#fff" />}
+          {isAudioEnabled ? <Mic size={btn.icon} color="#fff" /> : <MicOff size={btn.icon} color="#fff" />}
         </button>
 
         {/* End call */}
@@ -422,9 +463,9 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller, autoBoard }) => {
           onClick={handleCallEnd}
           title="End call"
           aria-label="End call"
-          style={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #ff0076, #ff4b4b)', boxShadow: '0 4px 24px rgba(255,0,118,0.5)', border: 'none', cursor: 'pointer' }}
+          style={{ width: btn.big, height: btn.big, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #ff0076, #ff4b4b)', boxShadow: '0 4px 24px rgba(255,0,118,0.5)', border: 'none', cursor: 'pointer' }}
         >
-          <PhoneOff size={26} color="#fff" />
+          <PhoneOff size={btn.icon + 4} color="#fff" />
         </button>
 
         {/* Camera */}
@@ -432,9 +473,9 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller, autoBoard }) => {
           onClick={toggleVideo}
           title={isVideoEnabled ? 'Turn off camera' : 'Turn on camera'}
           aria-label={isVideoEnabled ? 'Turn off camera' : 'Turn on camera'}
-          style={{ width: 56, height: 56, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: isVideoEnabled ? 'rgba(255,255,255,0.12)' : '#ef4444', border: '2px solid rgba(255,255,255,0.18)', cursor: 'pointer', transition: 'background 0.2s' }}
+          style={{ ...ctrlBtn, background: isVideoEnabled ? 'rgba(255,255,255,0.12)' : '#ef4444' }}
         >
-          {isVideoEnabled ? <VideoIcon size={22} color="#fff" /> : <VideoOff size={22} color="#fff" />}
+          {isVideoEnabled ? <VideoIcon size={btn.icon} color="#fff" /> : <VideoOff size={btn.icon} color="#fff" />}
         </button>
 
         {/* Screen share (desktop web only — Android WebView has no getDisplayMedia) */}
@@ -443,9 +484,9 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller, autoBoard }) => {
             onClick={toggleScreenShare}
             title={isSharing ? 'Stop sharing screen' : 'Share screen'}
             aria-label={isSharing ? 'Stop sharing screen' : 'Share screen'}
-            style={{ width: 56, height: 56, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: isSharing ? 'linear-gradient(135deg,#00c6ff,#7c3aed)' : 'rgba(255,255,255,0.12)', border: '2px solid rgba(255,255,255,0.18)', cursor: 'pointer', transition: 'background 0.2s' }}
+            style={{ ...ctrlBtn, background: isSharing ? 'linear-gradient(135deg,#00c6ff,#7c3aed)' : 'rgba(255,255,255,0.12)' }}
           >
-            <MonitorUp size={22} color="#fff" />
+            <MonitorUp size={btn.icon} color="#fff" />
           </button>
         )}
 
@@ -454,9 +495,9 @@ const DirectVideoCall = ({ roomId, onEnd, otherUser, isCaller, autoBoard }) => {
           onClick={() => setShowWhiteboard((s) => !s)}
           title={showWhiteboard ? 'Close whiteboard' : 'Open whiteboard'}
           aria-label={showWhiteboard ? 'Close whiteboard' : 'Open whiteboard'}
-          style={{ width: 56, height: 56, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: showWhiteboard ? 'linear-gradient(135deg,#00c6ff,#7c3aed)' : 'rgba(255,255,255,0.12)', border: '2px solid rgba(255,255,255,0.18)', cursor: 'pointer', transition: 'background 0.2s' }}
+          style={{ ...ctrlBtn, background: showWhiteboard ? 'linear-gradient(135deg,#00c6ff,#7c3aed)' : 'rgba(255,255,255,0.12)' }}
         >
-          <PenTool size={22} color="#fff" />
+          <PenTool size={btn.icon} color="#fff" />
         </button>
       </div>
     </div>
