@@ -3,8 +3,46 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import compression from 'vite-plugin-compression';
 import { VitePWA } from 'vite-plugin-pwa';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, resolve } from 'node:path';
+
+// ── FCM readiness (build-time, authoritative) ───────────────────────────────
+// Calling PushNotifications.register() WITHOUT a valid google-services.json makes
+// the native Firebase layer throw "Default FirebaseApp is not initialized", which
+// crashes the whole APK to the home screen (a native exception JS can't catch) —
+// the "APK closes every time I log in" bug. So we detect, at build time, whether
+// a STRUCTURALLY-VALID google-services.json for our appId is actually present in
+// the Android project, and expose the result as __FCM_CONFIGURED__. Push then
+// enables ONLY when this is true (see utils/pushNotify.js) — it's impossible to
+// ship a build that crashes on login, with no manual env coordination needed.
+const APP_ID = 'app.orbit.mobile';
+function detectFcmConfigured() {
+  try {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const raw = readFileSync(resolve(here, 'android/app/google-services.json'), 'utf8');
+    const j = JSON.parse(raw);
+    const clients = (j.client || []);
+    const ok = clients.some((c) =>
+      c?.client_info?.android_client_info?.package_name === APP_ID &&
+      c?.client_info?.mobilesdk_app_id &&
+      Array.isArray(c?.api_key) && c.api_key[0]?.current_key,
+    );
+    if (ok) console.log(`[vite] FCM configured — google-services.json valid for ${APP_ID}; push enabled.`);
+    else console.log('[vite] google-services.json present but not valid for this appId; push stays OFF.');
+    return ok;
+  } catch {
+    console.log('[vite] no google-services.json — push stays OFF (safe; no crash).');
+    return false;
+  }
+}
+const FCM_CONFIGURED = detectFcmConfigured();
 
 export default defineConfig({
+  define: {
+    // Authoritative build-time signal: is FCM actually configured for this build?
+    __FCM_CONFIGURED__: JSON.stringify(FCM_CONFIGURED),
+  },
   plugins: [
     react(),
     tailwindcss(),
