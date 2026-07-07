@@ -43,6 +43,11 @@ export class WhiteboardSync {
     this._destroyed = false;
     this._color = pickColor(this.senderId);
     this._onSocket = [];
+    // Belt-and-suspenders outbound buffer for COMMITTED ops made before ANY
+    // transport is ready (no DataChannel open yet AND socket not connected).
+    // Flushed on safe-channel open and on socket connect. Snapshot-on-join
+    // already covers late joiners; this closes the brief pre-connect window.
+    this._outQueue = [];
   }
 
   init() {
@@ -50,7 +55,12 @@ export class WhiteboardSync {
     this.fast = fast; this.safe = safe;
     if (safe) safe.onmessage = (e) => this._onChannel(e.data);
     if (fast) fast.onmessage = (e) => this._onChannel(e.data);
-    if (safe) safe.onopen = () => this.requestSnapshot();
+    if (safe) safe.onopen = () => { this.requestSnapshot(); this._flushOps(); };
+
+    // Flush any buffered committed ops once the socket connects (socket.io also
+    // buffers its own emits, but this also lets us re-route through the now-open
+    // channel and covers a socket that connects after init).
+    this._bind('connect', () => this._flushOps());
 
     // Socket relays (fallback + always-on membership-gated path).
     this._bind('whiteboard-op', ({ op }) => op && this.board.applyRemoteOp(op));
@@ -99,7 +109,17 @@ export class WhiteboardSync {
   // ── Outbound: committed ops (reliable) ────────────────────────────────────
   sendOp(op) {
     if (this._channelSafeOpen()) { try { this.safe.send(JSON.stringify({ k: 'op', op })); return; } catch { /* fall through */ } }
-    this.socket?.emit('whiteboard-op', { roomId: this.roomId, op });
+    if (this.socket && this.socket.connected) { this.socket.emit('whiteboard-op', { roomId: this.roomId, op }); return; }
+    // No transport ready — buffer (bounded) and flush on open/connect.
+    this._outQueue.push(op);
+    if (this._outQueue.length > 500) this._outQueue.shift();
+  }
+
+  _flushOps() {
+    if (!this._outQueue.length) return;
+    if (!this._channelSafeOpen() && !(this.socket && this.socket.connected)) return;
+    const q = this._outQueue; this._outQueue = [];
+    for (const op of q) this.sendOp(op);
   }
 
   // ── Outbound: ephemeral (unreliable, cursor throttled to rAF) ─────────────
