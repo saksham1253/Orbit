@@ -55,7 +55,7 @@ export default function PhotonsChip({ variant = 'nav', className = '' }) {
   if (!data) return null;
 
   const iconSize = variant === 'nav' ? 15 : 20;
-  const openShop = () => navigate('/orbit');    // Phase 2: switch to '/shop'
+  const openShop = () => navigate('/shop');      // Nebula Store
   const zero = amount <= 0;
 
   return (

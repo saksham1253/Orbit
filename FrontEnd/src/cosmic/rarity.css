@@ -1,0 +1,95 @@
+/**
+ * rarity.css — visual treatments for the 15-tier rarity ladder (Nebula Store).
+ * The per-tier COLOUR + halo SIZE are injected inline from rarity.js
+ * (`--rar` colour, `--rar-glow` px) so this file only owns the ANIMATION and
+ * shared shape. Reduced-motion (`prefers-reduced-motion`) and the app-wide
+ * `[data-anim-off="true"]` switch both freeze motion but keep the static halo,
+ * so rank still reads by intensity.
+ */
+
+/* Keyword badge — the little pill under each store item's title. */
+.rar-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rar, #cbd5e1);
+  border: 1px solid color-mix(in srgb, var(--rar, #cbd5e1) 55%, transparent);
+  background: color-mix(in srgb, var(--rar, #cbd5e1) 12%, rgba(6, 8, 15, 0.6));
+  box-shadow: 0 0 var(--rar-glow, 8px) color-mix(in srgb, var(--rar, #cbd5e1) 70%, transparent);
+  animation: rar-badge-pulse 3.4s ease-in-out infinite;
+}
+
+/* the little rarity dot next to the label */
+.rar-badge::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 9999px;
+  background: var(--rar, #cbd5e1);
+  box-shadow: 0 0 6px var(--rar, #cbd5e1);
+}
+
+@keyframes rar-badge-pulse {
+  0%, 100% { box-shadow: 0 0 calc(var(--rar-glow, 8px) * 0.7) color-mix(in srgb, var(--rar, #cbd5e1) 55%, transparent); }
+  50%      { box-shadow: 0 0 var(--rar-glow, 8px) color-mix(in srgb, var(--rar, #cbd5e1) 90%, transparent); }
+}
+
+/* Card halo — only the top tiers (rarity.card === true) get the class. The ring
+   colour + spread come from the same --rar / --rar-glow vars. */
+.rar-card-glow {
+  border-color: color-mix(in srgb, var(--rar, #a855f7) 45%, transparent) !important;
+  box-shadow:
+    0 0 calc(var(--rar-glow, 20px) * 0.9) color-mix(in srgb, var(--rar, #a855f7) 45%, transparent),
+    inset 0 0 30px color-mix(in srgb, var(--rar, #a855f7) 10%, transparent);
+  animation: rar-card-breathe 5s ease-in-out infinite;
+}
+
+@keyframes rar-card-breathe {
+  0%, 100% { box-shadow: 0 0 calc(var(--rar-glow, 20px) * 0.7) color-mix(in srgb, var(--rar, #a855f7) 35%, transparent), inset 0 0 22px color-mix(in srgb, var(--rar, #a855f7) 8%, transparent); }
+  50%      { box-shadow: 0 0 calc(var(--rar-glow, 20px) * 1.15) color-mix(in srgb, var(--rar, #a855f7) 60%, transparent), inset 0 0 34px color-mix(in srgb, var(--rar, #a855f7) 14%, transparent); }
+}
+
+/* MULTIVERSAL — animated iridescent halo that cycles hue (the ultimate tier). */
+.rar-iridescent {
+  animation: rar-card-breathe 5s ease-in-out infinite, rar-hue 8s linear infinite;
+}
+@keyframes rar-hue {
+  0%   { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+/* Featured-rail brand sweep — a slow sheen across the featured banner. */
+.rar-featured-sheen {
+  position: relative;
+  overflow: hidden;
+}
+.rar-featured-sheen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.14) 50%, transparent 70%);
+  transform: translateX(-100%);
+  animation: rar-sheen 6s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes rar-sheen {
+  0%, 62%  { transform: translateX(-100%); }
+  85%, 100% { transform: translateX(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rar-badge,
+  .rar-card-glow,
+  .rar-iridescent { animation: none; }
+  .rar-featured-sheen::after { display: none; }
+}
+[data-anim-off="true"] .rar-badge,
+[data-anim-off="true"] .rar-card-glow,
+[data-anim-off="true"] .rar-iridescent { animation: none; }
+[data-anim-off="true"] .rar-featured-sheen::after { display: none; }

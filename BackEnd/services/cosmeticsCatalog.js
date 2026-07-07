@@ -10,20 +10,21 @@
  * economy (key, type, cost, ownership).
  */
 
-// type: "name_glow" | "background"
+// type: "name_glow" | "background". `rarity` keys match the frontend 15-tier
+// ladder (cosmic/rarity.js); `category` groups items into the store tabs.
 const CATALOG = Object.freeze([
-    // ── Name glows ──────────────────────────────────────────────────────────
-    { key: "glow_aurora",   type: "name_glow", name: "Aurora Glow",    cost: 300,  hint: "Teal–green shimmer" },
-    { key: "glow_ember",    type: "name_glow", name: "Ember Glow",     cost: 300,  hint: "Warm orange flicker" },
-    { key: "glow_plasma",   type: "name_glow", name: "Plasma Glow",    cost: 600,  hint: "Magenta–violet pulse" },
-    { key: "glow_gold",     type: "name_glow", name: "Solar Gold",     cost: 900,  hint: "Radiant gold" },
-    { key: "glow_void",     type: "name_glow", name: "Void Glow",      cost: 1200, hint: "Iridescent dark shimmer" },
+    // ── Name glows (Identity) ───────────────────────────────────────────────
+    { key: "glow_aurora",   type: "name_glow", name: "Aurora Glow",    cost: 300,  hint: "Teal–green shimmer on your name",  rarity: "COSMIC",      category: "identity" },
+    { key: "glow_ember",    type: "name_glow", name: "Ember Glow",     cost: 300,  hint: "Warm orange flicker",              rarity: "STELLAR",     category: "identity" },
+    { key: "glow_plasma",   type: "name_glow", name: "Plasma Glow",    cost: 600,  hint: "Magenta–violet pulse",             rarity: "COSMIC",      category: "identity" },
+    { key: "glow_gold",     type: "name_glow", name: "Solar Gold",     cost: 900,  hint: "Radiant gold",                     rarity: "HYPERNOVA",   category: "identity" },
+    { key: "glow_void",     type: "name_glow", name: "Void Glow",      cost: 1200, hint: "Iridescent dark shimmer",          rarity: "SINGULARITY", category: "identity" },
 
-    // ── Profile backgrounds (nebulae) ───────────────────────────────────────
-    { key: "bg_nebula_violet", type: "background", name: "Violet Nebula", cost: 400,  hint: "Deep violet cloud" },
-    { key: "bg_nebula_teal",   type: "background", name: "Teal Nebula",   cost: 400,  hint: "Cyan–teal cloud" },
-    { key: "bg_deep_field",    type: "background", name: "Deep Field",    cost: 700,  hint: "Distant galaxies" },
-    { key: "bg_supernova",     type: "background", name: "Supernova",     cost: 1500, hint: "Blazing core burst" },
+    // ── Profile backgrounds / nebulae (Themes) ──────────────────────────────
+    { key: "bg_nebula_violet", type: "background", name: "Violet Nebula", cost: 400,  hint: "Deep violet profile cloud",   rarity: "STELLAR",   category: "themes" },
+    { key: "bg_nebula_teal",   type: "background", name: "Teal Nebula",   cost: 400,  hint: "Cyan–teal profile cloud",     rarity: "STELLAR",   category: "themes" },
+    { key: "bg_deep_field",    type: "background", name: "Deep Field",    cost: 700,  hint: "Distant galaxies",            rarity: "COSMIC",    category: "themes" },
+    { key: "bg_supernova",     type: "background", name: "Supernova",     cost: 1500, hint: "Blazing core burst",          rarity: "HYPERNOVA", category: "themes" },
 ]);
 
 const BY_KEY = new Map(CATALOG.map((c) => [c.key, c]));
