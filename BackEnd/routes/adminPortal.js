@@ -20,6 +20,7 @@ const records = require("../controllers/adminRecordsController");
 const system = require("../controllers/adminSystemController");
 const economy = require("../controllers/adminEconomyController");
 const storeAdmin = require("../controllers/adminStoreController");
+const progression = require("../controllers/adminProgressionController");
 
 // Security headers for the whole admin surface: never index, never frame.
 router.use((req, res, next) => {
@@ -79,6 +80,13 @@ router.post("/store/items/:key/archive", adminApiLimiter, requireAdmin, requireR
 router.get("/store/items/:key/analytics", adminApiLimiter, requireAdmin, storeAdmin.itemAnalytics);
 router.get("/store/rarity", adminApiLimiter, requireAdmin, storeAdmin.listRarity);
 router.patch("/store/rarity/:key", adminApiLimiter, requireAdmin, requireRole("catalog"), storeAdmin.updateRarity);
+
+// Progression: streaks + ranking (modules F + G). Support-tool mutations require
+// the "support" portal role; config + user reads are open to any admin.
+router.get("/progression/config", adminApiLimiter, requireAdmin, progression.getConfig);
+router.get("/progression/user/:id", adminApiLimiter, requireAdmin, progression.getUser);
+router.post("/progression/user/:id/streak", adminApiLimiter, requireAdmin, requireRole("support"), progression.adjustStreak);
+router.post("/progression/user/:id/freeze", adminApiLimiter, requireAdmin, requireRole("support"), progression.grantFreeze);
 
 // Cosmic observability
 router.get("/cosmic/rank-events", adminApiLimiter, requireAdmin, cosmic.listRankEvents);
