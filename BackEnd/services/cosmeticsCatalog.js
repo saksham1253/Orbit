@@ -1,9 +1,11 @@
 /**
  * cosmeticsCatalog.js — the Stardust shop catalog + pure buy/equip reducers
- * (Orbit Engine, Tier 3). NO I/O — the catalog is static data and the reducers
- * are pure functions over a { stardust, cosmetics } state, so purchase rules are
- * unit-testable in isolation (mirrors orbitEngine.js). Cosmetics are purely
- * visual and never touch CosmicScore or ranking.
+ * (Orbit Engine, Tier 3). The REDUCERS stay pure (functions over a { stardust,
+ * cosmetics } state) and unit-testable. The CATALOG DATA is now cache-backed:
+ * DEFAULT_CATALOG below is the seed/fallback, and when the admin StoreItem
+ * collection is non-empty it overlays the cache (loaded via refresh(), same
+ * pattern as flagStore/configStore). An un-seeded install behaves EXACTLY as
+ * before (cache == defaults), so the pure-reducer tests still pass with no DB.
  *
  * Render metadata (the CSS glow/gradient) lives on the FRONTEND
  * (cosmic/cosmetics.js) keyed by the same `key`; the server only owns the
@@ -12,7 +14,8 @@
 
 // type: "name_glow" | "background". `rarity` keys match the frontend 15-tier
 // ladder (cosmic/rarity.js); `category` groups items into the store tabs.
-const CATALOG = Object.freeze([
+// This is the DEFAULT catalog — the seed + fallback when no StoreItem rows exist.
+const DEFAULT_CATALOG = Object.freeze([
     // ── Name glows (Identity) ───────────────────────────────────────────────
     { key: "glow_aurora",   type: "name_glow", name: "Aurora Glow",    cost: 300,  hint: "Teal–green shimmer on your name",  rarity: "COSMIC",      category: "identity" },
     { key: "glow_ember",    type: "name_glow", name: "Ember Glow",     cost: 300,  hint: "Warm orange flicker",              rarity: "STELLAR",     category: "identity" },
@@ -27,12 +30,64 @@ const CATALOG = Object.freeze([
     { key: "bg_supernova",     type: "background", name: "Supernova",     cost: 1500, hint: "Blazing core burst",          rarity: "HYPERNOVA", category: "themes" },
 ]);
 
-const BY_KEY = new Map(CATALOG.map((c) => [c.key, c]));
+// Back-compat: CATALOG remains the DEFAULT array (used by tests + as the seed).
+const CATALOG = DEFAULT_CATALOG;
+
 const TYPES = Object.freeze(["name_glow", "background"]);
 // Which equipped-slot each type maps to on user.orbit.cosmetics.
 const SLOT = Object.freeze({ name_glow: "nameGlow", background: "background" });
 
-const getItem = (key) => BY_KEY.get(key) || null;
+// ── Live catalog cache (defaults seed; StoreItem overlay via refresh) ─────────
+// Defaults have no status → treated as "live". The cache holds ALL items (any
+// status) so getItem resolves owned-but-archived items for equip; getLiveCatalog
+// filters to purchasable ones for the shop.
+const withStatus = (c) => ({ status: "live", discountPct: 0, ...c });
+let _effective = DEFAULT_CATALOG.map(withStatus);
+let _byKey = new Map(_effective.map((c) => [c.key, c]));
+
+const getItem = (key) => _byKey.get(key) || null;
+
+/** All cached items (admin view). */
+function getAllCatalog() { return _effective.slice(); }
+
+/** Purchasable items for the user shop: live + inside any availability window. */
+function getLiveCatalog(now = Date.now()) {
+    return _effective.filter((c) => {
+        if (c.status && c.status !== "live") return false;
+        if (c.availableFrom && new Date(c.availableFrom).getTime() > now) return false;
+        if (c.availableTo && new Date(c.availableTo).getTime() < now) return false;
+        return true;
+    });
+}
+
+/** Rebuild the cache from an array of item-shaped rows (or reset to defaults). */
+function _load(rows) {
+    _effective = (rows && rows.length ? rows : DEFAULT_CATALOG).map(withStatus);
+    _byKey = new Map(_effective.map((c) => [c.key, c]));
+}
+
+/** Refresh the cache from the StoreItem collection. Empty collection → defaults. */
+async function refresh() {
+    try {
+        const StoreItem = require("../models/StoreItem");
+        const rows = await StoreItem.find().sort({ sortOrder: 1, createdAt: 1 }).lean();
+        _load(rows.map((r) => ({
+            key: r.key, type: r.type, name: r.name, hint: r.hint, cost: r.cost,
+            rarity: r.rarity, category: r.category, status: r.status,
+            discountPct: r.discountPct || 0, stock: r.stock,
+            availableFrom: r.availableFrom, availableTo: r.availableTo,
+        })));
+    } catch (_) { /* keep previous cache (defaults) */ }
+}
+
+let _timer = null;
+/** Call once after DB connect. Loads the catalog, then refreshes every `ms`. */
+function startAutoRefresh(ms = 15000) {
+    refresh();
+    if (_timer) clearInterval(_timer);
+    _timer = setInterval(refresh, ms);
+    if (_timer.unref) _timer.unref();
+}
 
 function normalizeCosmetics(c = {}) {
     return {
@@ -84,6 +139,7 @@ function applyEquip(state, type, key) {
 }
 
 module.exports = {
-    CATALOG, TYPES, SLOT,
-    getItem, normalizeCosmetics, applyPurchase, applyEquip,
+    CATALOG, DEFAULT_CATALOG, TYPES, SLOT,
+    getItem, getAllCatalog, getLiveCatalog, normalizeCosmetics, applyPurchase, applyEquip,
+    refresh, startAutoRefresh,
 };

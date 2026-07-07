@@ -214,7 +214,7 @@ exports.me = async (req, res) => {
         res.cookie(CSRF_COOKIE, csrf, { ...csrfCookieOpts });
     }
     return res.json({
-        admin: { id: u._id, name: u.name, email: u.email, role: u.role, lastAdminLoginAt: u.admin?.lastAdminLoginAt },
+        admin: { id: u._id, name: u.name, email: u.email, role: u.role, portalRole: u.admin?.portalRole || "superadmin", lastAdminLoginAt: u.admin?.lastAdminLoginAt },
         csrfToken: csrf,
     });
 };

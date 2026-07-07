@@ -8,7 +8,8 @@
     "dev": "nodemon server.js",
     "test": "jest",
     "seed:admin": "node scripts/seedAdmin.js",
-    "seed:orbit-demo": "node scripts/seedOrbitDemo.js"
+    "seed:orbit-demo": "node scripts/seedOrbitDemo.js",
+    "seed:store": "node scripts/seedStore.js"
   },
   "keywords": [],
   "author": "",

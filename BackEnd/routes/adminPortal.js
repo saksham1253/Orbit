@@ -11,13 +11,17 @@ const express = require("express");
 const router = express.Router();
 
 const { adminAuthLimiter, adminApiLimiter } = require("../middleware/adminRateLimit");
-const { requireAdmin } = require("../middleware/adminAuth");
+const { requireAdmin, requireRole } = require("../middleware/adminAuth");
 const adminAuth = require("../controllers/adminAuthController");
 const admin = require("../controllers/adminController");
 const users = require("../controllers/adminUsersController");
 const cosmic = require("../controllers/adminCosmicController");
 const records = require("../controllers/adminRecordsController");
 const system = require("../controllers/adminSystemController");
+const economy = require("../controllers/adminEconomyController");
+const storeAdmin = require("../controllers/adminStoreController");
+const progression = require("../controllers/adminProgressionController");
+const ops = require("../controllers/adminOpsController");
 
 // Security headers for the whole admin surface: never index, never frame.
 router.use((req, res, next) => {
@@ -59,6 +63,42 @@ router.patch("/users/:id", adminApiLimiter, requireAdmin, users.updateUser);
 router.post("/users/:id/role", adminApiLimiter, requireAdmin, users.setRole);
 router.post("/users/:id/status", adminApiLimiter, requireAdmin, users.setStatus);
 router.post("/users/:id/reset-password", adminApiLimiter, requireAdmin, users.triggerPasswordReset);
+
+// Economy & Photons (module A) — reads open to any admin; mutations require the
+// "economy" portal role (superadmin always passes).
+router.get("/economy/summary", adminApiLimiter, requireAdmin, economy.summary);
+router.get("/economy/ledger", adminApiLimiter, requireAdmin, economy.ledger);
+router.get("/economy/config", adminApiLimiter, requireAdmin, economy.getConfig);
+router.post("/economy/adjust", adminApiLimiter, requireAdmin, requireRole("economy"), economy.adjust);
+router.patch("/economy/config", adminApiLimiter, requireAdmin, requireRole("economy"), economy.setConfig);
+
+// Nebula Store catalog + Rarity (modules B + C) — reads open to any admin;
+// mutations require the "catalog" portal role.
+router.get("/store/items", adminApiLimiter, requireAdmin, storeAdmin.listItems);
+router.post("/store/items", adminApiLimiter, requireAdmin, requireRole("catalog"), storeAdmin.createItem);
+router.patch("/store/items/:key", adminApiLimiter, requireAdmin, requireRole("catalog"), storeAdmin.updateItem);
+router.post("/store/items/:key/archive", adminApiLimiter, requireAdmin, requireRole("catalog"), storeAdmin.archiveItem);
+router.get("/store/items/:key/analytics", adminApiLimiter, requireAdmin, storeAdmin.itemAnalytics);
+router.get("/store/rarity", adminApiLimiter, requireAdmin, storeAdmin.listRarity);
+router.patch("/store/rarity/:key", adminApiLimiter, requireAdmin, requireRole("catalog"), storeAdmin.updateRarity);
+
+// Progression: streaks + ranking (modules F + G). Support-tool mutations require
+// the "support" portal role; config + user reads are open to any admin.
+router.get("/progression/config", adminApiLimiter, requireAdmin, progression.getConfig);
+router.get("/progression/user/:id", adminApiLimiter, requireAdmin, progression.getUser);
+router.post("/progression/user/:id/streak", adminApiLimiter, requireAdmin, requireRole("support"), progression.adjustStreak);
+router.post("/progression/user/:id/freeze", adminApiLimiter, requireAdmin, requireRole("support"), progression.grantFreeze);
+
+// Ops & Moderation (modules H + I): call monitoring, skill taxonomy, review
+// moderation. Reads open to any admin; category writes require "catalog",
+// review moderation requires "moderator".
+router.get("/ops/calls", adminApiLimiter, requireAdmin, ops.listCalls);
+router.get("/ops/categories", adminApiLimiter, requireAdmin, ops.listCategories);
+router.post("/ops/categories", adminApiLimiter, requireAdmin, requireRole("catalog"), ops.createCategory);
+router.patch("/ops/categories/:slug", adminApiLimiter, requireAdmin, requireRole("catalog"), ops.updateCategory);
+router.get("/ops/reviews", adminApiLimiter, requireAdmin, ops.listReviews);
+router.post("/ops/reviews/:id/hide", adminApiLimiter, requireAdmin, requireRole("moderator"), ops.setReviewHidden(true));
+router.post("/ops/reviews/:id/restore", adminApiLimiter, requireAdmin, requireRole("moderator"), ops.setReviewHidden(false));
 
 // Cosmic observability
 router.get("/cosmic/rank-events", adminApiLimiter, requireAdmin, cosmic.listRankEvents);

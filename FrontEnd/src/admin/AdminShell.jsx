@@ -6,12 +6,16 @@
 import { useState } from 'react';
 import {
   LayoutDashboard, Users, Sparkles, Clapperboard, ShieldAlert, Database, ScrollText,
-  SlidersHorizontal, LogOut, Lock, Radar,
+  SlidersHorizontal, LogOut, Lock, Radar, Coins, Store as StoreIcon, TrendingUp, Video,
 } from 'lucide-react';
 import adminApi from './adminApi';
 import Overview from './pages/Overview';
 import UsersPage from './pages/Users';
 import Cosmic from './pages/Cosmic';
+import Economy from './pages/Economy';
+import StorePage from './pages/Store';
+import Progression from './pages/Progression';
+import Ops from './pages/Ops';
 import MomentLab from './pages/MomentLab';
 import Records from './pages/Records';
 import Audit from './pages/Audit';
@@ -22,6 +26,10 @@ import MissionControl from './pages/MissionControl';
 const SECTIONS = [
   { id: 'overview', label: 'Overview', Icon: LayoutDashboard, Comp: Overview },
   { id: 'missioncontrol', label: 'Mission Control', Icon: Radar, Comp: MissionControl },
+  { id: 'economy', label: 'Economy', Icon: Coins, Comp: Economy },
+  { id: 'store', label: 'Store', Icon: StoreIcon, Comp: StorePage },
+  { id: 'progression', label: 'Progression', Icon: TrendingUp, Comp: Progression },
+  { id: 'ops', label: 'Ops & Moderation', Icon: Video, Comp: Ops },
   { id: 'users', label: 'Users', Icon: Users, Comp: UsersPage },
   { id: 'cosmic', label: 'Cosmic', Icon: Sparkles, Comp: Cosmic },
   { id: 'momentlab', label: 'Moment Lab', Icon: Clapperboard, Comp: MomentLab },

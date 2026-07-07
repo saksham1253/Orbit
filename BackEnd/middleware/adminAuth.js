@@ -73,11 +73,17 @@ async function requireAdmin(req, res, next) {
     }
 }
 
-/** requireRole — further restrict an endpoint to specific roles (admin always allowed). */
+/**
+ * requireRole — least-privilege gate layered on top of requireAdmin. Restricts an
+ * endpoint to specific admin-portal tiers (admin.portalRole). "superadmin" always
+ * passes. Use for sensitive module actions (economy grants, catalog publish, bans).
+ * Falls back to "superadmin" when the field is absent (legacy admins) so existing
+ * accounts keep full access until roles are explicitly assigned.
+ */
 function requireRole(...roles) {
     return (req, res, next) => {
-        const r = req.adminUser?.role;
-        if (r === "admin" || roles.includes(r)) return next();
+        const pr = req.adminUser?.admin?.portalRole || "superadmin";
+        if (pr === "superadmin" || roles.includes(pr)) return next();
         return notFound(res);
     };
 }

@@ -167,7 +167,8 @@ exports.submitRating = async (req, res) => {
 exports.getUserRatings = async (req, res) => {
     try {
         const userId  = req.params.userId;
-        const ratings = await Rating.find({ toUser: userId })
+        // Admin-hidden reviews are withheld from the public listing (spec I).
+        const ratings = await Rating.find({ toUser: userId, hidden: { $ne: true } })
             .populate("fromUser", "name avatar")
             .sort({ createdAt: -1 });
 
