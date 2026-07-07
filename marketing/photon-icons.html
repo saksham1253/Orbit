@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Orbit · Photons Icon Candidates</title>
+<style>
+  :root { --card: rgba(18,20,33,.75); --line: rgba(255,255,255,.08); }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 40px 24px 80px; color: #eaf0ff;
+    font-family: -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
+    background: #07080f;
+    background-image:
+      radial-gradient(1000px 600px at 12% -5%, rgba(34,211,255,.16), transparent 60%),
+      radial-gradient(1100px 700px at 100% 8%, rgba(217,70,239,.18), transparent 55%),
+      radial-gradient(900px 700px at 60% 120%, rgba(139,92,246,.16), transparent 60%);
+    min-height: 100vh;
+  }
+  h1 { font-size: 26px; font-weight: 800; margin: 0 0 4px; }
+  h1 .grad { background: linear-gradient(90deg,#38bdf8,#8b5cf6,#ec4899); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { color: #9aa4bd; font-size: 14px; margin: 0 0 28px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px; backdrop-filter: blur(6px); }
+  .card h2 { font-size: 15px; margin: 0 0 2px; }
+  .card .tag { font-size: 11px; color: #7dd3fc; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+  .card p { font-size: 12px; color: #8b95ad; margin: 6px 0 14px; line-height: 1.5; }
+  .sizes { display: flex; align-items: flex-end; gap: 18px; margin-bottom: 14px; }
+  .sizes .col { text-align: center; }
+  .sizes .lbl { font-size: 10px; color: #6b7490; margin-top: 4px; }
+  /* mock chips */
+  .chips { display: flex; gap: 10px; flex-wrap: wrap; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px 5px 6px; border-radius: 999px;
+    background: rgba(255,255,255,.06); border: 1px solid rgba(139,92,246,.5); box-shadow: 0 0 18px rgba(139,92,246,.25);
+    font-weight: 700; font-size: 13px; }
+  .chip .plus { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; color: #0b0d17;
+    background: linear-gradient(135deg,#38bdf8,#ec4899); font-weight: 900; font-size: 13px; margin-left: 2px; }
+  .chip.light { background: #f5f7fc; border-color: #c9b8ff; color: #0f172a; box-shadow: 0 0 12px rgba(139,92,246,.2); }
+  .dash { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 14px;
+    background: linear-gradient(135deg, rgba(15,23,42,.6), rgba(76,29,149,.3)); border: 1px solid var(--line); font-weight: 800; }
+  .dash .big { font-size: 20px; }
+  svg { display: block; }
+</style>
+</head>
+<body>
+  <h1>Orbit · <span class="grad">Photons</span> icon candidates</h1>
+  <p class="sub">Pick one (A–F). Each is shown at <b>16 / 24 / 40&nbsp;px</b>, then inside a real nav chip (dark + light) and a dashboard chip. The winner ships as <code>&lt;PhotonIcon&gt;</code>.</p>
+
+  <div class="grid">
+
+    <!-- ================= A · Orbit Spark Coin ================= -->
+    <div class="card">
+      <div class="tag">A · recommended</div>
+      <h2>Orbit Spark Coin</h2>
+      <p>Glossy medallion + orbit ring + 4-point spark. On-brand with Orbit's planet/ring motif; reads as “currency”.</p>
+      <div class="sizes">
+        <div class="col"><svg width="40" height="40" viewBox="0 0 100 100">
+          <defs><radialGradient id="A1" cx="38%" cy="32%" r="80%"><stop offset="0" stop-color="#eaf6ff"/><stop offset="45%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#8b5cf6"/></radialGradient></defs>
+          <ellipse cx="50" cy="50" rx="44" ry="18" fill="none" stroke="#ec4899" stroke-width="4" opacity=".8" transform="rotate(-22 50 50)"/>
+          <circle cx="50" cy="50" r="30" fill="url(#A1)" stroke="#d8c7ff" stroke-width="2.5"/>
+          <path d="M50 34 L54.5 45.5 L66 50 L54.5 54.5 L50 66 L45.5 54.5 L34 50 L45.5 45.5 Z" fill="#fff"/>
+        </svg><div class="lbl">40</div></div>
+        <div class="col"><svg width="24" height="24" viewBox="0 0 100 100">
+          <use href="#A1"/>
+          <ellipse cx="50" cy="50" rx="44" ry="18" fill="none" stroke="#ec4899" stroke-width="5" opacity=".85" transform="rotate(-22 50 50)"/>
+          <circle cx="50" cy="50" r="30" fill="url(#A1)" stroke="#d8c7ff" stroke-width="3"/>
+          <path d="M50 34 L54.5 45.5 L66 50 L54.5 54.5 L50 66 L45.5 54.5 L34 50 L45.5 45.5 Z" fill="#fff"/>
+        </svg><div class="lbl">24</div></div>
+        <div class="col"><svg width="16" height="16" viewBox="0 0 100 100">
+          <ellipse cx="50" cy="50" rx="44" ry="18" fill="none" stroke="#ec4899" stroke-width="7" opacity=".9" transform="rotate(-22 50 50)"/>
+          <circle cx="50" cy="50" r="30" fill="url(#A1)" stroke="#d8c7ff" stroke-width="4"/>
+          <path d="M50 32 L55 45 L68 50 L55 55 L50 68 L45 55 L32 50 L45 45 Z" fill="#fff"/>
+        </svg><div class="lbl">16</div></div>
+      </div>
+      <div class="chips">
+        <span class="chip"><svg width="18" height="18" viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="44" ry="18" fill="none" stroke="#ec4899" stroke-width="6" opacity=".9" transform="rotate(-22 50 50)"/><circle cx="50" cy="50" r="30" fill="url(#A1)" stroke="#d8c7ff" stroke-width="3.5"/><path d="M50 33 L55 45 L67 50 L55 55 L50 67 L45 55 L33 50 L45 45 Z" fill="#fff"/></svg>1,240<span class="plus">+</span></span>
+        <span class="chip light"><svg width="18" height="18" viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="44" ry="18" fill="none" stroke="#ec4899" stroke-width="6" opacity=".95" transform="rotate(-22 50 50)"/><circle cx="50" cy="50" r="30" fill="url(#A1)" stroke="#a78bfa" stroke-width="3.5"/><path d="M50 33 L55 45 L67 50 L55 55 L50 67 L45 55 L33 50 L45 45 Z" fill="#fff"/></svg>1,240</span>
+        <span class="dash"><svg width="30" height="30" viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="44" ry="18" fill="none" stroke="#ec4899" stroke-width="4" opacity=".8" transform="rotate(-22 50 50)"/><circle cx="50" cy="50" r="30" fill="url(#A1)" stroke="#d8c7ff" stroke-width="2.5"/><path d="M50 34 L54.5 45.5 L66 50 L54.5 54.5 L50 66 L45.5 54.5 L34 50 L45.5 45.5 Z" fill="#fff"/></svg><span class="big">1,240</span></span>
+      </div>
+    </div>
+
+    <!-- ================= B · Neon Gem ================= -->
+    <div class="card">
+      <div class="tag">B</div>
+      <h2>Neon Gem</h2>
+      <p>Faceted crystal — the classic “premium currency” look. Very legible; less tied to Orbit's cosmic identity.</p>
+      <div class="sizes">
+        <div class="col"><svg width="40" height="40" viewBox="0 0 100 100">
+          <defs><linearGradient id="B1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7dd3fc"/><stop offset="55%" stop-color="#8b5cf6"/><stop offset="100%" stop-color="#ec4899"/></linearGradient></defs>
+          <path d="M50 16 L78 40 L50 86 L22 40 Z" fill="url(#B1)" stroke="#e7f6ff" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M22 40 H78 M50 16 L50 86 M35 40 L50 86 M65 40 L50 86" stroke="#eaf0ff" stroke-width="1.6" opacity=".55" fill="none"/>
+        </svg><div class="lbl">40</div></div>
+        <div class="col"><svg width="24" height="24" viewBox="0 0 100 100">
+          <path d="M50 16 L78 40 L50 86 L22 40 Z" fill="url(#B1)" stroke="#e7f6ff" stroke-width="3.5" stroke-linejoin="round"/>
+          <path d="M22 40 H78 M50 16 L50 86" stroke="#eaf0ff" stroke-width="2.2" opacity=".55" fill="none"/>
+        </svg><div class="lbl">24</div></div>
+        <div class="col"><svg width="16" height="16" viewBox="0 0 100 100">
+          <path d="M50 14 L80 40 L50 88 L20 40 Z" fill="url(#B1)" stroke="#e7f6ff" stroke-width="5" stroke-linejoin="round"/>
+          <path d="M20 40 H80" stroke="#eaf0ff" stroke-width="3" opacity=".6" fill="none"/>
+        </svg><div class="lbl">16</div></div>
+      </div>
+      <div class="chips">
+        <span class="chip"><svg width="18" height="18" viewBox="0 0 100 100"><path d="M50 14 L80 40 L50 88 L20 40 Z" fill="url(#B1)" stroke="#e7f6ff" stroke-width="4.5" stroke-linejoin="round"/><path d="M20 40 H80" stroke="#eaf0ff" stroke-width="2.6" opacity=".6" fill="none"/></svg>1,240<span class="plus">+</span></span>
+        <span class="chip light"><svg width="18" height="18" viewBox="0 0 100 100"><path d="M50 14 L80 40 L50 88 L20 40 Z" fill="url(#B1)" stroke="#4c1d95" stroke-width="4.5" stroke-linejoin="round"/></svg>1,240</span>
+        <span class="dash"><svg width="30" height="30" viewBox="0 0 100 100"><path d="M50 16 L78 40 L50 86 L22 40 Z" fill="url(#B1)" stroke="#e7f6ff" stroke-width="2.5" stroke-linejoin="round"/><path d="M22 40 H78 M50 16 L50 86" stroke="#eaf0ff" stroke-width="1.6" opacity=".55" fill="none"/></svg><span class="big">1,240</span></span>
+      </div>
+    </div>
+
+    <!-- ================= C · Photon Token ================= -->
+    <div class="card">
+      <div class="tag">C</div>
+      <h2>Photon Token</h2>
+      <p>A glowing photon core with a small orbiting electron dot (atom-like). Most literal to “Photons”; slightly busier at 16px.</p>
+      <div class="sizes">
+        <div class="col"><svg width="40" height="40" viewBox="0 0 100 100">
+          <defs><radialGradient id="C1" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#eaf6ff"/><stop offset="40%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#8b5cf6"/></radialGradient></defs>
+          <ellipse cx="50" cy="50" rx="38" ry="15" fill="none" stroke="#22d3ee" stroke-width="3" opacity=".7" transform="rotate(30 50 50)"/>
+          <ellipse cx="50" cy="50" rx="38" ry="15" fill="none" stroke="#ec4899" stroke-width="3" opacity=".7" transform="rotate(-30 50 50)"/>
+          <circle cx="50" cy="50" r="16" fill="url(#C1)"/>
+          <circle cx="83" cy="41" r="6" fill="#fbbf24"/>
+        </svg><div class="lbl">40</div></div>
+        <div class="col"><svg width="24" height="24" viewBox="0 0 100 100">
+          <ellipse cx="50" cy="50" rx="38" ry="15" fill="none" stroke="#22d3ee" stroke-width="4.5" opacity=".75" transform="rotate(30 50 50)"/>
+          <ellipse cx="50" cy="50" rx="38" ry="15" fill="none" stroke="#ec4899" stroke-width="4.5" opacity=".75" transform="rotate(-30 50 50)"/>
+          <circle cx="50" cy="50" r="18" fill="url(#C1)"/>
+        </svg><div class="lbl">24</div></div>
+        <div class="col"><svg width="16" height="16" viewBox="0 0 100 100">
+          <ellipse cx="50" cy="50" rx="40" ry="15" fill="none" stroke="#22d3ee" stroke-width="7" opacity=".8" transform="rotate(30 50 50)"/>
+          <ellipse cx="50" cy="50" rx="40" ry="15" fill="none" stroke="#ec4899" stroke-width="7" opacity=".8" transform="rotate(-30 50 50)"/>
+          <circle cx="50" cy="50" r="22" fill="url(#C1)"/>
+        </svg><div class="lbl">16</div></div>
+      </div>
+      <div class="chips">
+        <span class="chip"><svg width="18" height="18" viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="38" ry="15" fill="none" stroke="#22d3ee" stroke-width="6" opacity=".8" transform="rotate(30 50 50)"/><ellipse cx="50" cy="50" rx="38" ry="15" fill="none" stroke="#ec4899" stroke-width="6" opacity=".8" transform="rotate(-30 50 50)"/><circle cx="50" cy="50" r="20" fill="url(#C1)"/></svg>1,240<span class="plus">+</span></span>
+        <span class="dash"><svg width="30" height="30" viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="38" ry="15" fill="none" stroke="#22d3ee" stroke-width="3" opacity=".7" transform="rotate(30 50 50)"/><ellipse cx="50" cy="50" rx="38" ry="15" fill="none" stroke="#ec4899" stroke-width="3" opacity=".7" transform="rotate(-30 50 50)"/><circle cx="50" cy="50" r="16" fill="url(#C1)"/><circle cx="83" cy="41" r="6" fill="#fbbf24"/></svg><span class="big">1,240</span></span>
+      </div>
+    </div>
+
+    <!-- ================= D · Photon Burst (original) ================= -->
+    <div class="card">
+      <div class="tag">D · original</div>
+      <h2>Photon Burst</h2>
+      <p>A radiant photon emission — 8 rays from a bright core in a gradient disc. Energetic and unmistakably “light/photon”.</p>
+      <div class="sizes">
+        <div class="col"><svg width="40" height="40" viewBox="0 0 100 100">
+          <defs><radialGradient id="D1" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#fff"/><stop offset="35%" stop-color="#7dd3fc"/><stop offset="100%" stop-color="#a855f7"/></radialGradient></defs>
+          <circle cx="50" cy="50" r="34" fill="url(#D1)" opacity=".22"/>
+          <g stroke="#e7f6ff" stroke-width="5" stroke-linecap="round">
+            <line x1="50" y1="16" x2="50" y2="30"/><line x1="50" y1="70" x2="50" y2="84"/>
+            <line x1="16" y1="50" x2="30" y2="50"/><line x1="70" y1="50" x2="84" y2="50"/>
+            <line x1="26" y1="26" x2="36" y2="36"/><line x1="64" y1="64" x2="74" y2="74"/>
+            <line x1="74" y1="26" x2="64" y2="36"/><line x1="36" y1="64" x2="26" y2="74"/>
+          </g>
+          <circle cx="50" cy="50" r="15" fill="url(#D1)" stroke="#fff" stroke-width="2"/>
+        </svg><div class="lbl">40</div></div>
+        <div class="col"><svg width="24" height="24" viewBox="0 0 100 100">
+          <g stroke="#e7f6ff" stroke-width="7" stroke-linecap="round"><line x1="50" y1="14" x2="50" y2="30"/><line x1="50" y1="70" x2="50" y2="86"/><line x1="14" y1="50" x2="30" y2="50"/><line x1="70" y1="50" x2="86" y2="50"/></g>
+          <circle cx="50" cy="50" r="18" fill="url(#D1)" stroke="#fff" stroke-width="2.5"/>
+        </svg><div class="lbl">24</div></div>
+        <div class="col"><svg width="16" height="16" viewBox="0 0 100 100">
+          <g stroke="#e7f6ff" stroke-width="9" stroke-linecap="round"><line x1="50" y1="12" x2="50" y2="30"/><line x1="50" y1="70" x2="50" y2="88"/><line x1="12" y1="50" x2="30" y2="50"/><line x1="70" y1="50" x2="88" y2="50"/></g>
+          <circle cx="50" cy="50" r="22" fill="url(#D1)"/>
+        </svg><div class="lbl">16</div></div>
+      </div>
+      <div class="chips">
+        <span class="chip"><svg width="18" height="18" viewBox="0 0 100 100"><g stroke="#e7f6ff" stroke-width="8" stroke-linecap="round"><line x1="50" y1="12" x2="50" y2="30"/><line x1="50" y1="70" x2="50" y2="88"/><line x1="12" y1="50" x2="30" y2="50"/><line x1="70" y1="50" x2="88" y2="50"/></g><circle cx="50" cy="50" r="20" fill="url(#D1)"/></svg>1,240<span class="plus">+</span></span>
+        <span class="dash"><svg width="30" height="30" viewBox="0 0 100 100"><g stroke="#e7f6ff" stroke-width="5" stroke-linecap="round"><line x1="50" y1="16" x2="50" y2="30"/><line x1="50" y1="70" x2="50" y2="84"/><line x1="16" y1="50" x2="30" y2="50"/><line x1="70" y1="50" x2="84" y2="50"/><line x1="26" y1="26" x2="36" y2="36"/><line x1="64" y1="64" x2="74" y2="74"/><line x1="74" y1="26" x2="64" y2="36"/><line x1="36" y1="64" x2="26" y2="74"/></g><circle cx="50" cy="50" r="15" fill="url(#D1)" stroke="#fff" stroke-width="2"/></svg><span class="big">1,240</span></span>
+      </div>
+    </div>
+
+    <!-- ================= E · Orbit Diamond (original) ================= -->
+    <div class="card">
+      <div class="tag">E · original</div>
+      <h2>Orbit Diamond</h2>
+      <p>A tall 4-point sparkle-diamond crossed by a thin orbit ring. Elegant, minimal, very crisp at tiny sizes.</p>
+      <div class="sizes">
+        <div class="col"><svg width="40" height="40" viewBox="0 0 100 100">
+          <defs><linearGradient id="E1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#38bdf8"/><stop offset="50%" stop-color="#a855f7"/><stop offset="100%" stop-color="#ec4899"/></linearGradient></defs>
+          <ellipse cx="50" cy="50" rx="42" ry="15" fill="none" stroke="#7dd3fc" stroke-width="3.5" opacity=".55" transform="rotate(-18 50 50)"/>
+          <path d="M50 16 C54 40 60 46 84 50 C60 54 54 60 50 84 C46 60 40 54 16 50 C40 46 46 40 50 16 Z" fill="url(#E1)" stroke="#eaf6ff" stroke-width="2.2"/>
+        </svg><div class="lbl">40</div></div>
+        <div class="col"><svg width="24" height="24" viewBox="0 0 100 100">
+          <ellipse cx="50" cy="50" rx="42" ry="15" fill="none" stroke="#7dd3fc" stroke-width="5" opacity=".55" transform="rotate(-18 50 50)"/>
+          <path d="M50 16 C54 40 60 46 84 50 C60 54 54 60 50 84 C46 60 40 54 16 50 C40 46 46 40 50 16 Z" fill="url(#E1)" stroke="#eaf6ff" stroke-width="3"/>
+        </svg><div class="lbl">24</div></div>
+        <div class="col"><svg width="16" height="16" viewBox="0 0 100 100">
+          <path d="M50 12 C55 40 60 45 88 50 C60 55 55 60 50 88 C45 60 40 55 12 50 C40 45 45 40 50 12 Z" fill="url(#E1)" stroke="#eaf6ff" stroke-width="4"/>
+        </svg><div class="lbl">16</div></div>
+      </div>
+      <div class="chips">
+        <span class="chip"><svg width="18" height="18" viewBox="0 0 100 100"><path d="M50 13 C55 40 60 45 87 50 C60 55 55 60 50 87 C45 60 40 55 13 50 C40 45 45 40 50 13 Z" fill="url(#E1)" stroke="#eaf6ff" stroke-width="3.5"/></svg>1,240<span class="plus">+</span></span>
+        <span class="chip light"><svg width="18" height="18" viewBox="0 0 100 100"><path d="M50 13 C55 40 60 45 87 50 C60 55 55 60 50 87 C45 60 40 55 13 50 C40 45 45 40 50 13 Z" fill="url(#E1)" stroke="#4c1d95" stroke-width="3"/></svg>1,240</span>
+        <span class="dash"><svg width="30" height="30" viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="42" ry="15" fill="none" stroke="#7dd3fc" stroke-width="3.5" opacity=".55" transform="rotate(-18 50 50)"/><path d="M50 16 C54 40 60 46 84 50 C60 54 54 60 50 84 C46 60 40 54 16 50 C40 46 46 40 50 16 Z" fill="url(#E1)" stroke="#eaf6ff" stroke-width="2.2"/></svg><span class="big">1,240</span></span>
+      </div>
+    </div>
+
+    <!-- ================= F · Quantum Spark (original) ================= -->
+    <div class="card">
+      <div class="tag">F · original</div>
+      <h2>Quantum Spark</h2>
+      <p>A clean 4-point spark with a tiny satellite dot and soft halo. The most minimal — flawless at 16px, still lovely large.</p>
+      <div class="sizes">
+        <div class="col"><svg width="40" height="40" viewBox="0 0 100 100">
+          <defs><linearGradient id="F1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eaf6ff"/><stop offset="45%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs>
+          <circle cx="50" cy="50" r="30" fill="#8b5cf6" opacity=".18"/>
+          <path d="M50 18 C53 42 58 47 82 50 C58 53 53 58 50 82 C47 58 42 53 18 50 C42 47 47 42 50 18 Z" fill="url(#F1)"/>
+          <circle cx="78" cy="26" r="7" fill="#ec4899"/>
+        </svg><div class="lbl">40</div></div>
+        <div class="col"><svg width="24" height="24" viewBox="0 0 100 100">
+          <path d="M50 16 C53 42 58 47 84 50 C58 53 53 58 50 84 C47 58 42 53 16 50 C42 47 47 42 50 16 Z" fill="url(#F1)"/>
+          <circle cx="80" cy="24" r="8" fill="#ec4899"/>
+        </svg><div class="lbl">24</div></div>
+        <div class="col"><svg width="16" height="16" viewBox="0 0 100 100">
+          <path d="M50 12 C54 42 58 46 88 50 C58 54 54 58 50 88 C46 58 42 54 12 50 C42 46 46 42 50 12 Z" fill="url(#F1)"/>
+        </svg><div class="lbl">16</div></div>
+      </div>
+      <div class="chips">
+        <span class="chip"><svg width="18" height="18" viewBox="0 0 100 100"><path d="M50 13 C54 42 58 46 87 50 C58 54 54 58 50 87 C46 58 42 54 13 50 C42 46 46 42 50 13 Z" fill="url(#F1)"/></svg>1,240<span class="plus">+</span></span>
+        <span class="chip light"><svg width="18" height="18" viewBox="0 0 100 100"><path d="M50 13 C54 42 58 46 87 50 C58 54 54 58 50 87 C46 58 42 54 13 50 C42 46 46 42 50 13 Z" fill="url(#F1)" stroke="#7c3aed" stroke-width="2"/></svg>1,240</span>
+        <span class="dash"><svg width="30" height="30" viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="#8b5cf6" opacity=".18"/><path d="M50 18 C53 42 58 47 82 50 C58 53 53 58 50 82 C47 58 42 53 18 50 C42 47 47 42 50 18 Z" fill="url(#F1)"/><circle cx="78" cy="26" r="7" fill="#ec4899"/></svg><span class="big">1,240</span></span>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
